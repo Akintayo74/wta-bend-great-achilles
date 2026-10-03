@@ -5,3 +5,5 @@ engine/*
 node_modules/
 # Results: only published runs are committed (force-add them: git add -f)
 results/*.csv
+# Compiled simulator binaries
+build/
