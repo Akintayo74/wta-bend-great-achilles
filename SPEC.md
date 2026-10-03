@@ -173,11 +173,11 @@ These are the rules the code must never break, written in plain words; each beco
 | L4 | Game (advantage) | From a 1-point lead at 4–3 or higher, the next point either wins the game or returns it to deuce. |
 | L5 | Game | Once a game is won, further points do not change it. |
 | L6 | Tiebreak | A tiebreak ends only when one player has at least 7 points (or the set target) and leads by 2. |
-| L7 | Tiebreak (level) | At any tie of 6–6 or higher, the tiebreak is not over; from a 1-point lead, the next point either wins it or levels it. |
+| L7 | Tiebreak (level) | At any tie of 6–6 or higher, the tiebreak is not over; from a 1-point lead at 6–5 or higher (target minus 1 for longer tiebreaks), the next point either wins it or levels it. |
 | L8 | Tiebreak | The serving player for each tiebreak point follows the 1-then-2s pattern. |
 | L9 | Set | A finished set score is 6–0 to 6–4, 7–5 or 7–6 (either way round); nothing else. |
 | L10 | Set | A 7–6 set always contains exactly one tiebreak; no other set contains one. |
-| L11 | Serve order | The server alternates every game, and after a tiebreak set the correct player serves first. |
+| L11 | Serve order | The server alternates every game, with the tiebreak counting as a game, so after a tiebreak set the player who received first in the tiebreak serves first in the next set. In an ordinary game the same player serves every point. Stated about the function the simulator uses to pick whose serve chance applies. |
 | L12 | Match | A finished match has a winner with exactly 2 sets; the loser has 0 or 1. |
 | L13 | Match | Once a match is won, further points do not change it. |
 | L14 | Simulation | The same seed and inputs always give the same result. |
@@ -187,10 +187,13 @@ These are the rules the code must never break, written in plain words; each beco
 | L18 | Knockouts | The champion won both her semifinal and the final. |
 | L19 | Knockouts | Semifinal pairings always cross groups. |
 | L20 | Game | While a game is in progress, each point is added to the player who won it. |
+| L21 | Tiebreak | While a tiebreak is in progress, each point is added to the player who won it; a finished tiebreak does not change. |
+| L22 | Set | While a set is in progress, each finished game or tiebreak adds one game to its winner and changes nothing else; a finished set does not change. |
+| L23 | Match | While a match is in progress, each finished set adds one set to its winner, and the next set starts at 0–0 with the correct server. |
 
 L3, L4 and L7 follow from L2 and L6, but they get their own laws anyway: deuce is where scoring bugs hide, and it is the reason every match needs a point cap.
 
-L20 was added during milestone 2. L2–L5 only constrain who has won a game and that a won game stays won, so without L20 an engine that credited a point to the wrong player would still pass them.
+L20 was added during milestone 2. L2–L5 only constrain who has won a game and that a won game stays won, so without L20 an engine that credited a point to the wrong player would still pass them. L21–L23 were added in milestone 3 to close the same gap for tiebreaks, sets and matches.
 
 Two things Bend will not prove: that the point model reflects real tennis, and that the input numbers are right. Those are checked by validation, below.
 
@@ -226,7 +229,7 @@ wta-sim/
 
 The published page shows, for each of the eight players, her chance of getting out of the group, reaching the final and winning the title, plus win chances for every possible match-up.
 
-**Engine output (CSV, one file per run):** per player, the counts of group exits, semifinals, finals and titles; per pair, match wins and set-score counts; plus the seed, inputs, run count and any unfinished matches.
+**Engine output (CSV, one file per run):** per player, the counts of group exits, semifinals, finals and titles; per pair, match wins and set-score counts (the game score of each set, such as 6–4 or 7–6); plus the seed, inputs, run count and any unfinished matches.
 
 **Validation, in order of how much it tells us:**
 
