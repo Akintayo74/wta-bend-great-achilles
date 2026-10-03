@@ -181,3 +181,26 @@ export PATH="$HOME/.elan/bin:$PATH"
   cases make the premise false, so they compute to True as well.
 - The whole proof set (about 3,900 lines across LAWS, PROOF, proof_tables and
   scoring) checks in 0.3 s, and `--verdict` in under 1 s.
+
+## Found in milestone 4
+
+- **Base has no 64-bit integers.** `U32` is the only fixed-size number type
+  (`bend base U64` finds nothing). The random number generator therefore
+  works in 32 bits.
+- `U32` is a 32-bit word stored as bits (`Word(32n)`). The checker can
+  compute with concrete `U32`s (`{==}` proves `U32.mod(4294967295, 10000) ==
+  7295`), but Base has almost no lemmas about `U32` arithmetic (only
+  `U32.add_comm`). So laws about all `U32` values (such as "x mod 10000 is
+  below 10000 for every x") are out of practical reach, while laws that only
+  pass `U32`s around are fine.
+- A `Data` type can carry a proof as a field:
+  `Chance{p: U32, ok: {U32.is_le(p, 10000) == True{} : Bool}}`. In a type,
+  write constructors with braces (`True{}`); plain `True` fails with
+  "expected : a defined name".
+- A def named `Sim.step` in a file imported `as Sim` can't be reached:
+  `Sim.step` from the importer means the file's own `step`, and the def is
+  `Sim.Sim.step`. Name defs in a module by type or topic (`Point.simulate`,
+  `Run.tally`), like `scoring.bend` does (`Game.point`, imported as
+  `S.Game.point`).
+- `match a b:` accepts `Nat` literal patterns with a fallback:
+  `case 6n 0n:` ... `case _ _:`.
