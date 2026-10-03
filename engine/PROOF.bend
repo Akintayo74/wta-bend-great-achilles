@@ -1,5 +1,6 @@
 import Base
 import ./scoring.bend as S
+import ./sim.bend as Sim
 import ./LAWS.bend as Laws
 import ./proof_tables.bend as T
 
@@ -1378,3 +1379,507 @@ def fin_match(t, ft, w, mm, won, inv):
 
 def Laws.L12_finished_match_score(t, ft, first, pts, w, won):
   fin_match(t, ft, w, Laws.Rule.play_match(Laws.Rule.wta(t, ft), pts, S.Match.start(first)), won, match_reach(t, ft, pts, S.Match.start(first), {==}))
+
+# ===========================================================================
+# MILESTONE 4: simulation
+# ===========================================================================
+
+def Laws.ex_chance_100_percent_is_valid():
+  {==}
+
+def Laws.ex_chance_above_100_percent_is_rejected():
+  {==}
+
+def Laws.ex_roll_below_chance_is_server_point():
+  {==}
+
+def Laws.ex_roll_at_chance_is_receiver_point():
+  {==}
+
+def Laws.ex_b_serving_uses_b_chance():
+  {==}
+
+def Laws.ex_100_percent_server_wins_every_roll():
+  {==}
+
+def Laws.ex_0_percent_server_loses_every_roll():
+  {==}
+
+def Laws.ex_two_bits_make_four_runs():
+  {==}
+
+def Laws.ex_run_5_in_block_0():
+  {==}
+
+def Laws.ex_run_13_in_block_1():
+  {==}
+
+def Laws.ex_set_3_6_counted_as_b63():
+  {==}
+
+# ---------------------------------------------------------------------------
+# L1: point chances
+# ---------------------------------------------------------------------------
+
+# A Chance carries its own proof of being at most 10,000: hand it back.
+def Laws.L1_chance_in_range(c):
+  match c:
+    case Sim.Chance{p, ok}:
+      ok
+
+# The check, for either answer of the comparison.
+law chance_make_go:
+  for +p: U32
+  for fits: Bool
+  for ok: {U32.is_le(p, 10000) == fits : Bool}
+  {Laws.Rule.made_value(Sim.Chance.make.go(p, fits, ok)) == Laws.Rule.keep_if(fits, p) : Maybe<U32>}
+
+def chance_make_go(p, fits, ok):
+  match fits:
+    case True{}:
+      {==}
+    case False{}:
+      {==}
+
+def Laws.L1_input_check(p):
+  chance_make_go(p, U32.is_le(p, 10000), {==})
+
+# ---------------------------------------------------------------------------
+# L26: one simulated point
+# ---------------------------------------------------------------------------
+
+law pick_same:
+  for h: Bool
+  for +s: S.Side
+  {Sim.Point.pick(h, s) == Laws.Rule.server_or_receiver(h, s) : S.Side}
+
+def pick_same(h, s):
+  match h s:
+    case True{} S.A{}:
+      {==}
+    case True{} S.B{}:
+      {==}
+    case False{} S.A{}:
+      {==}
+    case False{} S.B{}:
+      {==}
+
+law point_winner_same:
+  for +s: S.Side
+  for +pa: U32
+  for +pb: U32
+  for +roll: U32
+  {Sim.Point.winner(s, pa, pb, roll) == Laws.Rule.point_winner(s, pa, pb, roll) : S.Side}
+
+def point_winner_same(s, pa, pb, roll):
+  match s:
+    case S.A{}:
+      pick_same(U32.is_lt(roll, pa), S.A{})
+    case S.B{}:
+      pick_same(U32.is_lt(roll, pb), S.B{})
+
+# The engine's point step is the spec's, with the chances as plain numbers.
+law apply_is_step:
+  for +fmt: S.Format
+  for +pa: U32
+  for +pb: U32
+  for +m: S.Match
+  for +roll: U32
+  {Sim.Point.apply(fmt, pa, pb, m, roll) == Laws.Rule.step(fmt, pa, pb, m, roll) : S.Match}
+
+def apply_is_step(fmt, pa, pb, m, roll):
+  %Equal.sym(S.Side, S.Match.server(m), Laws.Rule.match_server(m), server_same(m)) : {S.Match.point(fmt, m, Sim.Point.winner(_, pa, pb, roll)) == Laws.Rule.step(fmt, pa, pb, m, roll) : S.Match}
+  %Equal.sym(S.Side, Sim.Point.winner(Laws.Rule.match_server(m), pa, pb, roll), Laws.Rule.point_winner(Laws.Rule.match_server(m), pa, pb, roll), point_winner_same(Laws.Rule.match_server(m), pa, pb, roll)) : {S.Match.point(fmt, m, _) == Laws.Rule.step(fmt, pa, pb, m, roll) : S.Match}
+  {==}
+
+def Laws.L26_point_follows_serve_chance(fmt, ca, cb, m, roll):
+  apply_is_step(fmt, Sim.Chance.value(ca), Sim.Chance.value(cb), m, roll)
+
+# ---------------------------------------------------------------------------
+# L27: one simulated match
+# ---------------------------------------------------------------------------
+
+# Once the match is won, playing more points leaves it as it is (by L13).
+# The assumption is needed twice (for this point and the rest), so it comes
+# as a pair.
+law won_stays:
+  for n: Nat
+  for +fmt: S.Format
+  for +pa: U32
+  for +pb: U32
+  for +seed: U32
+  for +run: U32
+  for +slot: U32
+  for +k: U32
+  for +m: S.Match
+  for -x: S.Side
+  for hh: {S.Match.winner(fmt, m) == Some{x} : Maybe<S.Side>} & {S.Match.winner(fmt, m) == Some{x} : Maybe<S.Side>}
+  {Laws.Rule.play_points(n, fmt, pa, pb, seed, run, slot, k, m) == m : S.Match}
+
+def won_stays(n, fmt, pa, pb, seed, run, slot, k, m, x, hh):
+  match n:
+    case 0n:
+      {==}
+    case 1n+p:
+      match hh:
+        case (h1, h2):
+          %Equal.sym(S.Match, S.Match.point(fmt, m, Laws.Rule.point_winner(Laws.Rule.match_server(m), pa, pb, Sim.Rng.roll(seed, run, slot, k))), m, Laws.L13_won_match_is_final(fmt, m, x, h1, Laws.Rule.point_winner(Laws.Rule.match_server(m), pa, pb, Sim.Rng.roll(seed, run, slot, k)))) : {Laws.Rule.play_points(p, fmt, pa, pb, seed, run, slot, U32.inc(k), _) == m : S.Match}
+          won_stays(p, fmt, pa, pb, seed, run, slot, U32.inc(k), m, x, dup_eq(Maybe<S.Side>, S.Match.winner(fmt, m), Some{x}, h2))
+
+# The engine's loop, which stops as soon as the match is won, gives the same
+# match as playing all n points. `w` is who has won so far.
+law loop_is_play:
+  for n: Nat
+  for +fmt: S.Format
+  for +pa: U32
+  for +pb: U32
+  for +seed: U32
+  for +run: U32
+  for +slot: U32
+  for +k: U32
+  for +m: S.Match
+  for w: Maybe<S.Side>
+  for h: {S.Match.winner(fmt, m) == w : Maybe<S.Side>}
+  {Sim.Match.loop(n, w, fmt, pa, pb, Sim.Rng.key(seed, run, slot), k, m) == Laws.Rule.play_points(n, fmt, pa, pb, seed, run, slot, k, m) : S.Match}
+
+def loop_is_play(n, fmt, pa, pb, seed, run, slot, k, m, w, h):
+  match n w:
+    case 0n _:
+      {==}
+    case 1n+p Some{x}:
+      Equal.sym(S.Match, Laws.Rule.play_points(1n+p, fmt, pa, pb, seed, run, slot, k, m), m, won_stays(1n+p, fmt, pa, pb, seed, run, slot, k, m, x, dup_eq(Maybe<S.Side>, S.Match.winner(fmt, m), Some{x}, h)))
+    case 1n+p None{}:
+      %Equal.sym(S.Match, Sim.Point.apply(fmt, pa, pb, m, Sim.Rng.roll(seed, run, slot, k)), Laws.Rule.step(fmt, pa, pb, m, Sim.Rng.roll(seed, run, slot, k)), apply_is_step(fmt, pa, pb, m, Sim.Rng.roll(seed, run, slot, k))) : {Sim.Match.loop(p, S.Match.winner(fmt, _), fmt, pa, pb, Sim.Rng.key(seed, run, slot), U32.inc(k), _) == Laws.Rule.play_points(p, fmt, pa, pb, seed, run, slot, U32.inc(k), Laws.Rule.step(fmt, pa, pb, m, Sim.Rng.roll(seed, run, slot, k))) : S.Match}
+      loop_is_play(p, fmt, pa, pb, seed, run, slot, U32.inc(k), Laws.Rule.step(fmt, pa, pb, m, Sim.Rng.roll(seed, run, slot, k)), S.Match.winner(fmt, Laws.Rule.step(fmt, pa, pb, m, Sim.Rng.roll(seed, run, slot, k))), {==})
+
+law report_go_same:
+  for w: Maybe<S.Side>
+  for m: S.Match
+  {Sim.Match.report.go(w, m) == Laws.Rule.report.go(w, m) : Sim.Outcome}
+
+def report_go_same(w, m):
+  match w:
+    case Some{x}:
+      {==}
+    case None{}:
+      {==}
+
+# The engine reports a match the way the spec does (using L25).
+law report_same:
+  for +fmt: S.Format
+  for +m: S.Match
+  {Sim.Match.report(fmt, m) == Laws.Rule.report(fmt, m) : Sim.Outcome}
+
+def report_same(fmt, m):
+  match m:
+    case S.Match{+first, +done, +st}:
+      %Equal.sym(Maybe<S.Side>, S.Match.winner(fmt, S.Match{first, done, st}), Laws.Rule.match_winner(Laws.Rule.sets_of(fmt), done), Laws.L25_match_winner_follows_rule(fmt, first, done, st)) : {Sim.Match.report.go(_, S.Match{first, done, st}) == Laws.Rule.report(fmt, S.Match{first, done, st}) : Sim.Outcome}
+      report_go_same(Laws.Rule.match_winner(Laws.Rule.sets_of(fmt), done), S.Match{first, done, st})
+
+# L27 for any number of points n and any starting match m; the law is the
+# case n = 1,000 and m = 0-0.
+law match_is_report:
+  for +n: Nat
+  for +fmt: S.Format
+  for +pa: U32
+  for +pb: U32
+  for +seed: U32
+  for +run: U32
+  for +slot: U32
+  for +m: S.Match
+  {Sim.Match.report(fmt, Sim.Match.loop(n, S.Match.winner(fmt, m), fmt, pa, pb, Sim.Rng.key(seed, run, slot), 0, m)) == Laws.Rule.report(fmt, Laws.Rule.play_points(n, fmt, pa, pb, seed, run, slot, 0, m)) : Sim.Outcome}
+
+def match_is_report(n, fmt, pa, pb, seed, run, slot, m):
+  %Equal.sym(S.Match, Sim.Match.loop(n, S.Match.winner(fmt, m), fmt, pa, pb, Sim.Rng.key(seed, run, slot), 0, m), Laws.Rule.play_points(n, fmt, pa, pb, seed, run, slot, 0, m), loop_is_play(n, fmt, pa, pb, seed, run, slot, 0, m, S.Match.winner(fmt, m), {==})) : {Sim.Match.report(fmt, _) == Laws.Rule.report(fmt, Laws.Rule.play_points(n, fmt, pa, pb, seed, run, slot, 0, m)) : Sim.Outcome}
+  report_same(fmt, Laws.Rule.play_points(n, fmt, pa, pb, seed, run, slot, 0, m))
+
+# Speed note. Once two sides of an equation differ anywhere, Bend's checker
+# computes both sides in full, and computing the spec side here means playing
+# 1,000 points symbolically (about 20 s). So the proof is split in two with
+# Equal.trans: the first step (engine cap = spec cap) has no spec side to
+# compute, and the second matches the spec side letter for letter.
+def Laws.L27_match_plays_at_most_1000_points(fmt, ca, cb, seed, run, slot, first):
+  Equal.trans(Sim.Outcome, Sim.Match.simulate(fmt, ca, cb, seed, run, slot, first), Sim.Match.report(fmt, Sim.Match.loop(Laws.Rule.cap(), S.Match.winner(fmt, S.Match.start(first)), fmt, Sim.Chance.value(ca), Sim.Chance.value(cb), Sim.Rng.key(seed, run, slot), 0, S.Match.start(first))), Laws.Rule.report(fmt, Laws.Rule.play_points(Laws.Rule.cap(), fmt, Sim.Chance.value(ca), Sim.Chance.value(cb), seed, run, slot, 0, S.Match.start(first))), {==}, match_is_report(Laws.Rule.cap(), fmt, Sim.Chance.value(ca), Sim.Chance.value(cb), seed, run, slot, S.Match.start(first)))
+
+def Laws.L27_single_run_is_one_match(fmt, ca, cb, seed, run):
+  {==}
+
+# ---------------------------------------------------------------------------
+# L14: counting many runs
+# ---------------------------------------------------------------------------
+
+# Two facts about adding Nats, by induction.
+law nat_add_zero:
+  for a: Nat
+  {Nat.add(a, 0n) == a : Nat}
+
+def nat_add_zero(a):
+  match a:
+    case 0n:
+      {==}
+    case 1n+p:
+      Equal.cong(Nat, Nat, x => 1n+x, Nat.add(p, 0n), p, nat_add_zero(p))
+
+law nat_add_assoc:
+  for a: Nat
+  for b: Nat
+  for c: Nat
+  {Nat.add(Nat.add(a, b), c) == Nat.add(a, Nat.add(b, c)) : Nat}
+
+def nat_add_assoc(a, b, c):
+  match a:
+    case 0n:
+      {==}
+    case 1n+p:
+      Equal.cong(Nat, Nat, x => 1n+x, Nat.add(Nat.add(p, b), c), Nat.add(p, Nat.add(b, c)), nat_add_assoc(p, b, c))
+
+# Two tallies are equal when their fields are.
+
+law sets_cong:
+  for -x1: Nat
+  for -x2: Nat
+  for -x3: Nat
+  for -x4: Nat
+  for -x5: Nat
+  for -x6: Nat
+  for -x7: Nat
+  for -x8: Nat
+  for -x9: Nat
+  for -x10: Nat
+  for -x11: Nat
+  for -x12: Nat
+  for -x13: Nat
+  for -x14: Nat
+  for -x15: Nat
+  for -y1: Nat
+  for -y2: Nat
+  for -y3: Nat
+  for -y4: Nat
+  for -y5: Nat
+  for -y6: Nat
+  for -y7: Nat
+  for -y8: Nat
+  for -y9: Nat
+  for -y10: Nat
+  for -y11: Nat
+  for -y12: Nat
+  for -y13: Nat
+  for -y14: Nat
+  for -y15: Nat
+  for e1: {x1 == y1 : Nat}
+  for e2: {x2 == y2 : Nat}
+  for e3: {x3 == y3 : Nat}
+  for e4: {x4 == y4 : Nat}
+  for e5: {x5 == y5 : Nat}
+  for e6: {x6 == y6 : Nat}
+  for e7: {x7 == y7 : Nat}
+  for e8: {x8 == y8 : Nat}
+  for e9: {x9 == y9 : Nat}
+  for e10: {x10 == y10 : Nat}
+  for e11: {x11 == y11 : Nat}
+  for e12: {x12 == y12 : Nat}
+  for e13: {x13 == y13 : Nat}
+  for e14: {x14 == y14 : Nat}
+  for e15: {x15 == y15 : Nat}
+  {Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15} == Sim.SetCounts{y1, y2, y3, y4, y5, y6, y7, y8, y9, y10, y11, y12, y13, y14, y15} : Sim.SetCounts}
+
+def sets_cong(x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, y1, y2, y3, y4, y5, y6, y7, y8, y9, y10, y11, y12, y13, y14, y15, e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15):
+  %e1 : {Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15} == Sim.SetCounts{_, y2, y3, y4, y5, y6, y7, y8, y9, y10, y11, y12, y13, y14, y15} : Sim.SetCounts}
+  %e2 : {Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15} == Sim.SetCounts{x1, _, y3, y4, y5, y6, y7, y8, y9, y10, y11, y12, y13, y14, y15} : Sim.SetCounts}
+  %e3 : {Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15} == Sim.SetCounts{x1, x2, _, y4, y5, y6, y7, y8, y9, y10, y11, y12, y13, y14, y15} : Sim.SetCounts}
+  %e4 : {Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15} == Sim.SetCounts{x1, x2, x3, _, y5, y6, y7, y8, y9, y10, y11, y12, y13, y14, y15} : Sim.SetCounts}
+  %e5 : {Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15} == Sim.SetCounts{x1, x2, x3, x4, _, y6, y7, y8, y9, y10, y11, y12, y13, y14, y15} : Sim.SetCounts}
+  %e6 : {Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15} == Sim.SetCounts{x1, x2, x3, x4, x5, _, y7, y8, y9, y10, y11, y12, y13, y14, y15} : Sim.SetCounts}
+  %e7 : {Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15} == Sim.SetCounts{x1, x2, x3, x4, x5, x6, _, y8, y9, y10, y11, y12, y13, y14, y15} : Sim.SetCounts}
+  %e8 : {Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15} == Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, _, y9, y10, y11, y12, y13, y14, y15} : Sim.SetCounts}
+  %e9 : {Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15} == Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, _, y10, y11, y12, y13, y14, y15} : Sim.SetCounts}
+  %e10 : {Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15} == Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, _, y11, y12, y13, y14, y15} : Sim.SetCounts}
+  %e11 : {Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15} == Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, _, y12, y13, y14, y15} : Sim.SetCounts}
+  %e12 : {Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15} == Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, _, y13, y14, y15} : Sim.SetCounts}
+  %e13 : {Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15} == Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, _, y14, y15} : Sim.SetCounts}
+  %e14 : {Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15} == Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, _, y15} : Sim.SetCounts}
+  %e15 : {Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15} == Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, _} : Sim.SetCounts}
+  {==}
+
+law tally_cong:
+  for -xa: Nat
+  for -xb: Nat
+  for -xu: Nat
+  for -xs: Sim.SetCounts
+  for -ya: Nat
+  for -yb: Nat
+  for -yu: Nat
+  for -ys: Sim.SetCounts
+  for ea: {xa == ya : Nat}
+  for eb: {xb == yb : Nat}
+  for eu: {xu == yu : Nat}
+  for es: {xs == ys : Sim.SetCounts}
+  {Sim.Tally{xa, xb, xu, xs} == Sim.Tally{ya, yb, yu, ys} : Sim.Tally}
+
+def tally_cong(xa, xb, xu, xs, ya, yb, yu, ys, ea, eb, eu, es):
+  %ea : {Sim.Tally{xa, xb, xu, xs} == Sim.Tally{_, yb, yu, ys} : Sim.Tally}
+  %eb : {Sim.Tally{xa, xb, xu, xs} == Sim.Tally{xa, _, yu, ys} : Sim.Tally}
+  %eu : {Sim.Tally{xa, xb, xu, xs} == Sim.Tally{xa, xb, _, ys} : Sim.Tally}
+  %es : {Sim.Tally{xa, xb, xu, xs} == Sim.Tally{xa, xb, xu, _} : Sim.Tally}
+  {==}
+
+# Adding nothing changes nothing; adding is associative.
+law add_nothing_left:
+  for t: Sim.Tally
+  {Laws.Rule.add(Laws.Rule.nothing(), t) == t : Sim.Tally}
+
+def add_nothing_left(t):
+  match t:
+    case Sim.Tally{a, b, u, s}:
+      match s:
+        case Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15}:
+          {==}
+
+law add_nothing_right:
+  for t: Sim.Tally
+  {Laws.Rule.add(t, Laws.Rule.nothing()) == t : Sim.Tally}
+
+def add_nothing_right(t):
+  match t:
+    case Sim.Tally{a, b, u, s}:
+      match s:
+        case Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15}:
+          tally_cong(Nat.add(a, 0n), Nat.add(b, 0n), Nat.add(u, 0n), Laws.Rule.add_sets(Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15}, Laws.Rule.no_sets()), a, b, u, Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15}, nat_add_zero(a), nat_add_zero(b), nat_add_zero(u), sets_cong(Nat.add(x1, 0n), Nat.add(x2, 0n), Nat.add(x3, 0n), Nat.add(x4, 0n), Nat.add(x5, 0n), Nat.add(x6, 0n), Nat.add(x7, 0n), Nat.add(x8, 0n), Nat.add(x9, 0n), Nat.add(x10, 0n), Nat.add(x11, 0n), Nat.add(x12, 0n), Nat.add(x13, 0n), Nat.add(x14, 0n), Nat.add(x15, 0n), x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, nat_add_zero(x1), nat_add_zero(x2), nat_add_zero(x3), nat_add_zero(x4), nat_add_zero(x5), nat_add_zero(x6), nat_add_zero(x7), nat_add_zero(x8), nat_add_zero(x9), nat_add_zero(x10), nat_add_zero(x11), nat_add_zero(x12), nat_add_zero(x13), nat_add_zero(x14), nat_add_zero(x15)))
+
+law add_assoc:
+  for x: Sim.Tally
+  for y: Sim.Tally
+  for z: Sim.Tally
+  {Laws.Rule.add(Laws.Rule.add(x, y), z) == Laws.Rule.add(x, Laws.Rule.add(y, z)) : Sim.Tally}
+
+def add_assoc(x, y, z):
+  match x y z:
+    case Sim.Tally{xa, xb, xu, Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15}} Sim.Tally{ya, yb, yu, Sim.SetCounts{y1, y2, y3, y4, y5, y6, y7, y8, y9, y10, y11, y12, y13, y14, y15}} Sim.Tally{za, zb, zu, Sim.SetCounts{z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12, z13, z14, z15}}:
+      tally_cong(Nat.add(Nat.add(xa, ya), za), Nat.add(Nat.add(xb, yb), zb), Nat.add(Nat.add(xu, yu), zu), Sim.SetCounts{Nat.add(Nat.add(x1, y1), z1), Nat.add(Nat.add(x2, y2), z2), Nat.add(Nat.add(x3, y3), z3), Nat.add(Nat.add(x4, y4), z4), Nat.add(Nat.add(x5, y5), z5), Nat.add(Nat.add(x6, y6), z6), Nat.add(Nat.add(x7, y7), z7), Nat.add(Nat.add(x8, y8), z8), Nat.add(Nat.add(x9, y9), z9), Nat.add(Nat.add(x10, y10), z10), Nat.add(Nat.add(x11, y11), z11), Nat.add(Nat.add(x12, y12), z12), Nat.add(Nat.add(x13, y13), z13), Nat.add(Nat.add(x14, y14), z14), Nat.add(Nat.add(x15, y15), z15)}, Nat.add(xa, Nat.add(ya, za)), Nat.add(xb, Nat.add(yb, zb)), Nat.add(xu, Nat.add(yu, zu)), Sim.SetCounts{Nat.add(x1, Nat.add(y1, z1)), Nat.add(x2, Nat.add(y2, z2)), Nat.add(x3, Nat.add(y3, z3)), Nat.add(x4, Nat.add(y4, z4)), Nat.add(x5, Nat.add(y5, z5)), Nat.add(x6, Nat.add(y6, z6)), Nat.add(x7, Nat.add(y7, z7)), Nat.add(x8, Nat.add(y8, z8)), Nat.add(x9, Nat.add(y9, z9)), Nat.add(x10, Nat.add(y10, z10)), Nat.add(x11, Nat.add(y11, z11)), Nat.add(x12, Nat.add(y12, z12)), Nat.add(x13, Nat.add(y13, z13)), Nat.add(x14, Nat.add(y14, z14)), Nat.add(x15, Nat.add(y15, z15))}, nat_add_assoc(xa, ya, za), nat_add_assoc(xb, yb, zb), nat_add_assoc(xu, yu, zu), sets_cong(Nat.add(Nat.add(x1, y1), z1), Nat.add(Nat.add(x2, y2), z2), Nat.add(Nat.add(x3, y3), z3), Nat.add(Nat.add(x4, y4), z4), Nat.add(Nat.add(x5, y5), z5), Nat.add(Nat.add(x6, y6), z6), Nat.add(Nat.add(x7, y7), z7), Nat.add(Nat.add(x8, y8), z8), Nat.add(Nat.add(x9, y9), z9), Nat.add(Nat.add(x10, y10), z10), Nat.add(Nat.add(x11, y11), z11), Nat.add(Nat.add(x12, y12), z12), Nat.add(Nat.add(x13, y13), z13), Nat.add(Nat.add(x14, y14), z14), Nat.add(Nat.add(x15, y15), z15), Nat.add(x1, Nat.add(y1, z1)), Nat.add(x2, Nat.add(y2, z2)), Nat.add(x3, Nat.add(y3, z3)), Nat.add(x4, Nat.add(y4, z4)), Nat.add(x5, Nat.add(y5, z5)), Nat.add(x6, Nat.add(y6, z6)), Nat.add(x7, Nat.add(y7, z7)), Nat.add(x8, Nat.add(y8, z8)), Nat.add(x9, Nat.add(y9, z9)), Nat.add(x10, Nat.add(y10, z10)), Nat.add(x11, Nat.add(y11, z11)), Nat.add(x12, Nat.add(y12, z12)), Nat.add(x13, Nat.add(y13, z13)), Nat.add(x14, Nat.add(y14, z14)), Nat.add(x15, Nat.add(y15, z15)), nat_add_assoc(x1, y1, z1), nat_add_assoc(x2, y2, z2), nat_add_assoc(x3, y3, z3), nat_add_assoc(x4, y4, z4), nat_add_assoc(x5, y5, z5), nat_add_assoc(x6, y6, z6), nat_add_assoc(x7, y7, z7), nat_add_assoc(x8, y8, z8), nat_add_assoc(x9, y9, z9), nat_add_assoc(x10, y10, z10), nat_add_assoc(x11, y11, z11), nat_add_assoc(x12, y12, z12), nat_add_assoc(x13, y13, z13), nat_add_assoc(x14, y14, z14), nat_add_assoc(x15, y15, z15)))
+
+# A list of tallies added in two parts is the sum of the parts.
+law sum_append:
+  for +xs: List<&2, Sim.Tally>
+  for +ys: List<&2, Sim.Tally>
+  {Laws.Rule.sum(List.append(&2, Sim.Tally, xs, ys)) == Laws.Rule.add(Laws.Rule.sum(xs), Laws.Rule.sum(ys)) : Sim.Tally}
+
+def sum_append(xs, ys):
+  match xs:
+    case Nil{}:
+      Equal.sym(Sim.Tally, Laws.Rule.add(Laws.Rule.nothing(), Laws.Rule.sum(ys)), Laws.Rule.sum(ys), add_nothing_left(Laws.Rule.sum(ys)))
+    case Con{+t, +rest}:
+      %Equal.sym(Sim.Tally, Laws.Rule.sum(List.append(&2, Sim.Tally, rest, ys)), Laws.Rule.add(Laws.Rule.sum(rest), Laws.Rule.sum(ys)), sum_append(rest, ys)) : {Laws.Rule.add(t, _) == Laws.Rule.add(Laws.Rule.add(t, Laws.Rule.sum(rest)), Laws.Rule.sum(ys)) : Sim.Tally}
+      Equal.sym(Sim.Tally, Laws.Rule.add(Laws.Rule.add(t, Laws.Rule.sum(rest)), Laws.Rule.sum(ys)), Laws.Rule.add(t, Laws.Rule.add(Laws.Rule.sum(rest), Laws.Rule.sum(ys))), add_assoc(t, Laws.Rule.sum(rest), Laws.Rule.sum(ys)))
+
+# The runs of two lists of paths are the runs of each.
+law results_append:
+  for +fmt: S.Format
+  for +ca: Sim.Chance
+  for +cb: Sim.Chance
+  for +seed: U32
+  for +prefix: U32
+  for +xs: List<&2, List<&2, Bool>>
+  for +ys: List<&2, List<&2, Bool>>
+  {Laws.Rule.results(fmt, ca, cb, seed, prefix, List.append(&2, List<&2, Bool>, xs, ys)) == List.append(&2, Sim.Tally, Laws.Rule.results(fmt, ca, cb, seed, prefix, xs), Laws.Rule.results(fmt, ca, cb, seed, prefix, ys)) : List<&2, Sim.Tally>}
+
+def results_append(fmt, ca, cb, seed, prefix, xs, ys):
+  match xs:
+    case Nil{}:
+      {==}
+    case Con{+path, +rest}:
+      %Equal.sym(List<&2, Sim.Tally>, Laws.Rule.results(fmt, ca, cb, seed, prefix, List.append(&2, List<&2, Bool>, rest, ys)), List.append(&2, Sim.Tally, Laws.Rule.results(fmt, ca, cb, seed, prefix, rest), Laws.Rule.results(fmt, ca, cb, seed, prefix, ys)), results_append(fmt, ca, cb, seed, prefix, rest, ys)) : {(Laws.Rule.tally_of(Sim.Run.single(fmt, ca, cb, seed, Laws.Rule.number(path, prefix))) <> _) == List.append(&2, Sim.Tally, Laws.Rule.results(fmt, ca, cb, seed, prefix, path <> rest), Laws.Rule.results(fmt, ca, cb, seed, prefix, ys)) : List<&2, Sim.Tally>}
+      {==}
+
+# Putting bit b in front of every path moves to block 2*prefix+b.
+law results_cons_all:
+  for +fmt: S.Format
+  for +ca: Sim.Chance
+  for +cb: Sim.Chance
+  for +seed: U32
+  for +b: Bool
+  for +prefix: U32
+  for +paths: List<&2, List<&2, Bool>>
+  {Laws.Rule.results(fmt, ca, cb, seed, prefix, Laws.Rule.cons_all(b, paths)) == Laws.Rule.results(fmt, ca, cb, seed, (prefix * 2 + Laws.Rule.bit(b) : U32), paths) : List<&2, Sim.Tally>}
+
+def results_cons_all(fmt, ca, cb, seed, b, prefix, paths):
+  match paths:
+    case Nil{}:
+      {==}
+    case Con{+path, +rest}:
+      %Equal.sym(List<&2, Sim.Tally>, Laws.Rule.results(fmt, ca, cb, seed, prefix, Laws.Rule.cons_all(b, rest)), Laws.Rule.results(fmt, ca, cb, seed, (prefix * 2 + Laws.Rule.bit(b) : U32), rest), results_cons_all(fmt, ca, cb, seed, b, prefix, rest)) : {(Laws.Rule.tally_of(Sim.Run.single(fmt, ca, cb, seed, Laws.Rule.number(b <> path, prefix))) <> _) == Laws.Rule.results(fmt, ca, cb, seed, (prefix * 2 + Laws.Rule.bit(b) : U32), path <> rest) : List<&2, Sim.Tally>}
+      {==}
+
+# The engine's tally helpers agree with the spec's.
+law add_sets_same:
+  for x: Sim.SetCounts
+  for y: Sim.SetCounts
+  {Sim.Run.add_sets(x, y) == Laws.Rule.add_sets(x, y) : Sim.SetCounts}
+
+def add_sets_same(x, y):
+  match x y:
+    case Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15} Sim.SetCounts{y1, y2, y3, y4, y5, y6, y7, y8, y9, y10, y11, y12, y13, y14, y15}:
+      {==}
+
+law run_add_same:
+  for x: Sim.Tally
+  for y: Sim.Tally
+  {Sim.Run.add(x, y) == Laws.Rule.add(x, y) : Sim.Tally}
+
+def run_add_same(x, y):
+  match x y:
+    case Sim.Tally{xa, xb, xu, Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15}} Sim.Tally{ya, yb, yu, Sim.SetCounts{y1, y2, y3, y4, y5, y6, y7, y8, y9, y10, y11, y12, y13, y14, y15}}:
+      {==}
+
+law one_set_same:
+  for sc: S.Score
+  {Sim.Run.one_set(sc) == Laws.Rule.one_set(sc) : Sim.SetCounts}
+
+def one_set_same(sc):
+  match sc:
+    case S.Score{+a, +b}:
+      sets_cong(S.Match.count(Bool.and(Nat.is_eq(a, 6n), Nat.is_eq(b, 0n)), 0n), S.Match.count(Bool.and(Nat.is_eq(a, 6n), Nat.is_eq(b, 1n)), 0n), S.Match.count(Bool.and(Nat.is_eq(a, 6n), Nat.is_eq(b, 2n)), 0n), S.Match.count(Bool.and(Nat.is_eq(a, 6n), Nat.is_eq(b, 3n)), 0n), S.Match.count(Bool.and(Nat.is_eq(a, 6n), Nat.is_eq(b, 4n)), 0n), S.Match.count(Bool.and(Nat.is_eq(a, 7n), Nat.is_eq(b, 5n)), 0n), S.Match.count(Bool.and(Nat.is_eq(a, 7n), Nat.is_eq(b, 6n)), 0n), S.Match.count(Bool.and(Nat.is_eq(a, 0n), Nat.is_eq(b, 6n)), 0n), S.Match.count(Bool.and(Nat.is_eq(a, 1n), Nat.is_eq(b, 6n)), 0n), S.Match.count(Bool.and(Nat.is_eq(a, 2n), Nat.is_eq(b, 6n)), 0n), S.Match.count(Bool.and(Nat.is_eq(a, 3n), Nat.is_eq(b, 6n)), 0n), S.Match.count(Bool.and(Nat.is_eq(a, 4n), Nat.is_eq(b, 6n)), 0n), S.Match.count(Bool.and(Nat.is_eq(a, 5n), Nat.is_eq(b, 7n)), 0n), S.Match.count(Bool.and(Nat.is_eq(a, 6n), Nat.is_eq(b, 7n)), 0n), S.Match.count(Bool.not(Bool.or(Sim.Run.score_ok(a, b), Sim.Run.score_ok(b, a))), 0n), Laws.Rule.count(Bool.and(Nat.is_eq(a, 6n), Nat.is_eq(b, 0n)), 0n), Laws.Rule.count(Bool.and(Nat.is_eq(a, 6n), Nat.is_eq(b, 1n)), 0n), Laws.Rule.count(Bool.and(Nat.is_eq(a, 6n), Nat.is_eq(b, 2n)), 0n), Laws.Rule.count(Bool.and(Nat.is_eq(a, 6n), Nat.is_eq(b, 3n)), 0n), Laws.Rule.count(Bool.and(Nat.is_eq(a, 6n), Nat.is_eq(b, 4n)), 0n), Laws.Rule.count(Bool.and(Nat.is_eq(a, 7n), Nat.is_eq(b, 5n)), 0n), Laws.Rule.count(Bool.and(Nat.is_eq(a, 7n), Nat.is_eq(b, 6n)), 0n), Laws.Rule.count(Bool.and(Nat.is_eq(a, 0n), Nat.is_eq(b, 6n)), 0n), Laws.Rule.count(Bool.and(Nat.is_eq(a, 1n), Nat.is_eq(b, 6n)), 0n), Laws.Rule.count(Bool.and(Nat.is_eq(a, 2n), Nat.is_eq(b, 6n)), 0n), Laws.Rule.count(Bool.and(Nat.is_eq(a, 3n), Nat.is_eq(b, 6n)), 0n), Laws.Rule.count(Bool.and(Nat.is_eq(a, 4n), Nat.is_eq(b, 6n)), 0n), Laws.Rule.count(Bool.and(Nat.is_eq(a, 5n), Nat.is_eq(b, 7n)), 0n), Laws.Rule.count(Bool.and(Nat.is_eq(a, 6n), Nat.is_eq(b, 7n)), 0n), Laws.Rule.count(Bool.not(Bool.or(Laws.Rule.set_score_ok(a, b), Laws.Rule.set_score_ok(b, a))), 0n), count_same(Bool.and(Nat.is_eq(a, 6n), Nat.is_eq(b, 0n)), 0n), count_same(Bool.and(Nat.is_eq(a, 6n), Nat.is_eq(b, 1n)), 0n), count_same(Bool.and(Nat.is_eq(a, 6n), Nat.is_eq(b, 2n)), 0n), count_same(Bool.and(Nat.is_eq(a, 6n), Nat.is_eq(b, 3n)), 0n), count_same(Bool.and(Nat.is_eq(a, 6n), Nat.is_eq(b, 4n)), 0n), count_same(Bool.and(Nat.is_eq(a, 7n), Nat.is_eq(b, 5n)), 0n), count_same(Bool.and(Nat.is_eq(a, 7n), Nat.is_eq(b, 6n)), 0n), count_same(Bool.and(Nat.is_eq(a, 0n), Nat.is_eq(b, 6n)), 0n), count_same(Bool.and(Nat.is_eq(a, 1n), Nat.is_eq(b, 6n)), 0n), count_same(Bool.and(Nat.is_eq(a, 2n), Nat.is_eq(b, 6n)), 0n), count_same(Bool.and(Nat.is_eq(a, 3n), Nat.is_eq(b, 6n)), 0n), count_same(Bool.and(Nat.is_eq(a, 4n), Nat.is_eq(b, 6n)), 0n), count_same(Bool.and(Nat.is_eq(a, 5n), Nat.is_eq(b, 7n)), 0n), count_same(Bool.and(Nat.is_eq(a, 6n), Nat.is_eq(b, 7n)), 0n), count_same(Bool.not(Bool.or(Sim.Run.score_ok(a, b), Sim.Run.score_ok(b, a))), 0n))
+
+law set_scores_same:
+  for +done: List<&2, S.Score>
+  {Sim.Run.set_scores(done) == Laws.Rule.set_scores(done) : Sim.SetCounts}
+
+def set_scores_same(done):
+  match done:
+    case Nil{}:
+      {==}
+    case Con{+sc, +rest}:
+      %Equal.sym(Sim.SetCounts, Sim.Run.one_set(sc), Laws.Rule.one_set(sc), one_set_same(sc)) : {Sim.Run.add_sets(_, Sim.Run.set_scores(rest)) == Laws.Rule.add_sets(Laws.Rule.one_set(sc), Laws.Rule.set_scores(rest)) : Sim.SetCounts}
+      %Equal.sym(Sim.SetCounts, Sim.Run.set_scores(rest), Laws.Rule.set_scores(rest), set_scores_same(rest)) : {Sim.Run.add_sets(Laws.Rule.one_set(sc), _) == Laws.Rule.add_sets(Laws.Rule.one_set(sc), Laws.Rule.set_scores(rest)) : Sim.SetCounts}
+      add_sets_same(Laws.Rule.one_set(sc), Laws.Rule.set_scores(rest))
+
+law run_count_same:
+  for o: Sim.Outcome
+  {Sim.Run.count(o) == Laws.Rule.tally_of(o) : Sim.Tally}
+
+def run_count_same(o):
+  match o:
+    case Sim.Won{w, m}:
+      match w m:
+        case S.A{} S.Match{_, +done, _}:
+          Equal.cong(Sim.SetCounts, Sim.Tally, s => Sim.Tally{1n, 0n, 0n, s}, Sim.Run.set_scores(done), Laws.Rule.set_scores(done), set_scores_same(done))
+        case S.B{} S.Match{_, +done, _}:
+          Equal.cong(Sim.SetCounts, Sim.Tally, s => Sim.Tally{0n, 1n, 0n, s}, Sim.Run.set_scores(done), Laws.Rule.set_scores(done), set_scores_same(done))
+    case Sim.Unfinished{_}:
+      {==}
+
+# L14, by induction on the number of bits: a block of 2^(1+p) runs is two
+# blocks of 2^p, and its list of paths is the paths starting False followed
+# by those starting True.
+def Laws.L14_every_run_counted_once(d, fmt, ca, cb, seed, prefix):
+  match d:
+    case 0n:
+      %Equal.sym(Sim.Tally, Sim.Run.count(Sim.Run.single(fmt, ca, cb, seed, prefix)), Laws.Rule.tally_of(Sim.Run.single(fmt, ca, cb, seed, prefix)), run_count_same(Sim.Run.single(fmt, ca, cb, seed, prefix))) : {_ == Laws.Rule.sum(Laws.Rule.results(fmt, ca, cb, seed, prefix, [[]])) : Sim.Tally}
+      Equal.sym(Sim.Tally, Laws.Rule.add(Laws.Rule.tally_of(Sim.Run.single(fmt, ca, cb, seed, prefix)), Laws.Rule.nothing()), Laws.Rule.tally_of(Sim.Run.single(fmt, ca, cb, seed, prefix)), add_nothing_right(Laws.Rule.tally_of(Sim.Run.single(fmt, ca, cb, seed, prefix))))
+    case 1n+p:
+      %Equal.sym(List<&2, Sim.Tally>, Laws.Rule.results(fmt, ca, cb, seed, prefix, List.append(&2, List<&2, Bool>, Laws.Rule.cons_all(False{}, Laws.Rule.paths(p)), Laws.Rule.cons_all(True{}, Laws.Rule.paths(p)))), List.append(&2, Sim.Tally, Laws.Rule.results(fmt, ca, cb, seed, prefix, Laws.Rule.cons_all(False{}, Laws.Rule.paths(p))), Laws.Rule.results(fmt, ca, cb, seed, prefix, Laws.Rule.cons_all(True{}, Laws.Rule.paths(p)))), results_append(fmt, ca, cb, seed, prefix, Laws.Rule.cons_all(False{}, Laws.Rule.paths(p)), Laws.Rule.cons_all(True{}, Laws.Rule.paths(p)))) : {Sim.Run.add(Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 0 : U32)), Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 1 : U32))) == Laws.Rule.sum(_) : Sim.Tally}
+      %Equal.sym(Sim.Tally, Laws.Rule.sum(List.append(&2, Sim.Tally, Laws.Rule.results(fmt, ca, cb, seed, prefix, Laws.Rule.cons_all(False{}, Laws.Rule.paths(p))), Laws.Rule.results(fmt, ca, cb, seed, prefix, Laws.Rule.cons_all(True{}, Laws.Rule.paths(p))))), Laws.Rule.add(Laws.Rule.sum(Laws.Rule.results(fmt, ca, cb, seed, prefix, Laws.Rule.cons_all(False{}, Laws.Rule.paths(p)))), Laws.Rule.sum(Laws.Rule.results(fmt, ca, cb, seed, prefix, Laws.Rule.cons_all(True{}, Laws.Rule.paths(p))))), sum_append(Laws.Rule.results(fmt, ca, cb, seed, prefix, Laws.Rule.cons_all(False{}, Laws.Rule.paths(p))), Laws.Rule.results(fmt, ca, cb, seed, prefix, Laws.Rule.cons_all(True{}, Laws.Rule.paths(p))))) : {Sim.Run.add(Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 0 : U32)), Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 1 : U32))) == _ : Sim.Tally}
+      %Equal.sym(List<&2, Sim.Tally>, Laws.Rule.results(fmt, ca, cb, seed, prefix, Laws.Rule.cons_all(False{}, Laws.Rule.paths(p))), Laws.Rule.results(fmt, ca, cb, seed, (prefix * 2 + Laws.Rule.bit(False{}) : U32), Laws.Rule.paths(p)), results_cons_all(fmt, ca, cb, seed, False{}, prefix, Laws.Rule.paths(p))) : {Sim.Run.add(Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 0 : U32)), Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 1 : U32))) == Laws.Rule.add(Laws.Rule.sum(_), Laws.Rule.sum(Laws.Rule.results(fmt, ca, cb, seed, prefix, Laws.Rule.cons_all(True{}, Laws.Rule.paths(p))))) : Sim.Tally}
+      %Equal.sym(List<&2, Sim.Tally>, Laws.Rule.results(fmt, ca, cb, seed, prefix, Laws.Rule.cons_all(True{}, Laws.Rule.paths(p))), Laws.Rule.results(fmt, ca, cb, seed, (prefix * 2 + Laws.Rule.bit(True{}) : U32), Laws.Rule.paths(p)), results_cons_all(fmt, ca, cb, seed, True{}, prefix, Laws.Rule.paths(p))) : {Sim.Run.add(Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 0 : U32)), Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 1 : U32))) == Laws.Rule.add(Laws.Rule.sum(Laws.Rule.results(fmt, ca, cb, seed, (prefix * 2 + 0 : U32), Laws.Rule.paths(p))), Laws.Rule.sum(_)) : Sim.Tally}
+      %Laws.L14_every_run_counted_once(p, fmt, ca, cb, seed, (prefix * 2 + 0 : U32)) : {Sim.Run.add(Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 0 : U32)), Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 1 : U32))) == Laws.Rule.add(_, Laws.Rule.sum(Laws.Rule.results(fmt, ca, cb, seed, (prefix * 2 + 1 : U32), Laws.Rule.paths(p)))) : Sim.Tally}
+      %Laws.L14_every_run_counted_once(p, fmt, ca, cb, seed, (prefix * 2 + 1 : U32)) : {Sim.Run.add(Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 0 : U32)), Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 1 : U32))) == Laws.Rule.add(Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 0 : U32)), _) : Sim.Tally}
+      run_add_same(Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 0 : U32)), Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 1 : U32)))

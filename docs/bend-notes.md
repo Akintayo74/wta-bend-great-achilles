@@ -181,3 +181,62 @@ export PATH="$HOME/.elan/bin:$PATH"
   cases make the premise false, so they compute to True as well.
 - The whole proof set (about 3,900 lines across LAWS, PROOF, proof_tables and
   scoring) checks in 0.3 s, and `--verdict` in under 1 s.
+
+## Found in milestone 4
+
+- **Base has no 64-bit integers.** `U32` is the only fixed-size number type
+  (`bend base U64` finds nothing). The random number generator therefore
+  works in 32 bits.
+- `U32` is a 32-bit word stored as bits (`Word(32n)`). The checker can
+  compute with concrete `U32`s (`{==}` proves `U32.mod(4294967295, 10000) ==
+  7295`), but Base has almost no lemmas about `U32` arithmetic (only
+  `U32.add_comm`). So laws about all `U32` values (such as "x mod 10000 is
+  below 10000 for every x") are out of practical reach, while laws that only
+  pass `U32`s around are fine.
+- A `Data` type can carry a proof as a field:
+  `Chance{p: U32, ok: {U32.is_le(p, 10000) == True{} : Bool}}`. In a type,
+  write constructors with braces (`True{}`); plain `True` fails with
+  "expected : a defined name".
+- A def named `Sim.step` in a file imported `as Sim` can't be reached:
+  `Sim.step` from the importer means the file's own `step`, and the def is
+  `Sim.Sim.step`. Name defs in a module by type or topic (`Point.simulate`,
+  `Run.tally`), like `scoring.bend` does (`Game.point`, imported as
+  `S.Game.point`).
+- `match a b:` accepts `Nat` literal patterns with a fallback:
+  `case 6n 0n:` ... `case _ _:`.
+- **The checker computes whole equations on any mismatch.** When the two
+  sides of an equation differ anywhere, even in a constant's name
+  (`Sim.Match.cap()` vs `Laws.Rule.cap()`, both `1000n`), the checker
+  evaluates both sides in full. For L27 that meant playing 1,000 points
+  symbolically: the proof took 22 s instead of 0.6 s. A rewrite (`%e : P`)
+  triggers it too. Fix: split the proof with `Equal.trans(T, a, b, c, ab,
+  bc)` so the expensive side is only ever compared with an identical copy of
+  itself, and the step that needs computing has nothing expensive in it.
+  Syntactically identical sides are compared instantly.
+- Tuple patterns work only as the sole pattern: `match hh: case (h1, h2):`
+  is fine, `match n hh: case 1n+p (h1, h2):` is a syntax error. Nest the
+  matches.
+- After `match x y z:`, a further `match` on fields bound in that case
+  (`xs ys zs`) is refused ("can't be matched in this position"). Write the
+  nested patterns in one go instead:
+  `case Sim.Tally{xa, xb, xu, Sim.SetCounts{x1, ...}} ...`.
+- `match` can't scrutinize a computed value in IO code either
+  (`match U32.read(s):`); pass it to a helper def.
+- In a `do` block, binds can't be marked reusable (`+x : U32 <- ...` is a
+  syntax error). Bind plainly, then hand the values to a pure def whose
+  parameters are `+`.
+- `++` joins Strings only; to build a `List<String>` use `<>` (cons).
+- `List.append(&2, T, xs, ys)` needs the quantity and type spelled out in
+  laws and proofs.
+- `bend --check-only` on PROOF.bend takes ~0.6 s with all milestone 4
+  proofs.
+
+## Measured in milestone 4
+
+- Simulator binary (`bend engine/simulate.bend -o build/simulate`) builds in
+  a few seconds.
+- 2^20 = 1,048,576 best-of-three matches (60% vs 56.5% servers): **5.0 s on
+  4 cores, 21 s on 1 core** (4.2x), with byte-identical output.
+- `U32` arithmetic compiles to native operations (the hash costs little);
+  unary `Nat` scores and counters are cheap at tennis sizes, and adding up
+  the `Nat` tallies of a million runs is not noticeable.

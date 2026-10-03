@@ -1,10 +1,11 @@
-# LAWS.bend: the rules the engine must never break (SPEC.md, Laws L1-L23).
+# LAWS.bend: the rules the engine must never break (SPEC.md, Laws L1-L27).
 #
 # STATUS: Milestone 2 (game layer: L2-L5, L20): approved by the owner.
-#         Milestone 3 (tiebreak, set, match: L6-L13, L21-L23, and proposed
-#         L24-L25): DRAFT for owner review, at the end of this file.
-# Still to come, with their layers: L1 (point chances, milestone 4 or 5)
-# and L14-L19 (simulation, tournament).
+#         Milestone 3 (tiebreak, set, match: L6-L13, L21-L25): approved by
+#         the owner.
+#         Milestone 4 (simulation: L1, L14, L26, L27): approved by the
+#         owner.
+# Still to come: L15-L19 (tournament, milestone 6).
 # Once merged to main, this file is locked; see CLAUDE.md.
 #
 # How to read a law:
@@ -24,6 +25,7 @@
 
 import Base
 import ./scoring.bend as S
+import ./sim.bend as Sim
 
 # ---------------------------------------------------------------------------
 # The game rule, written once, straight from SPEC.md
@@ -141,7 +143,7 @@ law L20_live_point_goes_to_b:
   {S.Game.point(S.Game{a, b}, S.B{}) == S.Game{a, 1n+b} : S.Game}
 
 # ===========================================================================
-# MILESTONE 3: tiebreak, set and match. DRAFT for owner review.
+# MILESTONE 3: tiebreak, set and match. Approved by the owner.
 # ===========================================================================
 #
 # How this section is organised:
@@ -414,13 +416,12 @@ law ex_set_6_7_is_won_by_b:
   {Rule.set_winner(6n, 7n) == Some{S.B{}} : Maybe<S.Side>}
 
 # ---------------------------------------------------------------------------
-# Set laws: L24 (proposed), L22, L9, L10
+# Set laws: L24, L22, L9, L10
 # ---------------------------------------------------------------------------
 
-# L24 (PROPOSED, not in SPEC.md). The engine's verdict on who has won a set
-# agrees with the set rule, at every score. Without it, an engine that never
-# ended a set would pass L9 and L10, which only say what a finished set looks
-# like.
+# L24. The engine's verdict on who has won a set agrees with the set rule, at
+# every score. Without it, an engine that never ended a set would pass L9 and
+# L10, which only say what a finished set looks like.
 law L24_set_winner_follows_rule:
   for +a: Nat
   for +b: Nat
@@ -588,12 +589,12 @@ law ex_won_in_three_sets:
   {Rule.match_winner(2n, [S.Score{7n, 6n}, S.Score{3n, 6n}, S.Score{6n, 4n}]) == Some{S.A{}} : Maybe<S.Side>}
 
 # ---------------------------------------------------------------------------
-# Match laws: L25 (proposed), L23, L13, L12
+# Match laws: L25, L23, L13, L12
 # ---------------------------------------------------------------------------
 
-# L25 (PROPOSED, not in SPEC.md). The engine's verdict on who has won the
-# match agrees with the match rule: the first to win `sets` sets. Without it,
-# an engine that never ended a match would pass L12.
+# L25. The engine's verdict on who has won the match agrees with the match
+# rule: the first to win `sets` sets. Without it, an engine that never ended a
+# match would pass L12.
 law L25_match_winner_follows_rule:
   for +fmt: S.Format
   for +first: S.Side
@@ -749,3 +750,309 @@ law L11_same_server_within_game:
   for set_live: {S.TennisSet.winner(Rule.games_of(fmt), S.TennisSet{a, b, S.InGame{g}}) == None{} : Maybe<S.Side>}
   for game_goes_on: {S.Game.winner(S.Game.point(g, s)) == None{} : Maybe<S.Side>}
   {S.Match.server(S.Match.point(fmt, S.Match{first, done, S.TennisSet{a, b, S.InGame{g}}}, s)) == S.Match.server(S.Match{first, done, S.TennisSet{a, b, S.InGame{g}}}) : S.Side}
+
+# ===========================================================================
+# MILESTONE 4: simulation. Approved by the owner.
+# ===========================================================================
+#
+# How this section is organised:
+# - L1 is about the point chances the simulator is given.
+# - L26 is about one simulated point, L27 about one simulated match, and L14
+#   about adding up many runs.
+# - The laws treat the random numbers themselves (Sim.Rng.roll) as given: no
+#   law says they look random. That is checked by validation instead, against
+#   the exact calculator (SPEC.md, Outputs and validation). What the laws do
+#   pin down is how the simulator uses them.
+
+# ---------------------------------------------------------------------------
+# Point chances: L1
+# ---------------------------------------------------------------------------
+
+# A number from the input is a valid point chance when it is at most 10,000
+# (100%). It can't be below 0: U32 has no negative numbers.
+def Rule.keep_if(ok: Bool, p: U32) -> Maybe<U32>:
+  match ok:
+    case True{}:
+      Some{p}
+    case False{}:
+      None{}
+
+def Rule.valid_chance(+p: U32) -> Maybe<U32>:
+  Rule.keep_if(U32.is_le(p, 10000), p)
+
+# The number inside a checked chance, if the check accepted it.
+def Rule.made_value(m: Maybe<Sim.Chance>) -> Maybe<U32>:
+  match m:
+    case Some{c}:
+      Some{Sim.Chance.value(c)}
+    case None{}:
+      None{}
+
+# Examples.
+law ex_chance_100_percent_is_valid:
+  {Rule.valid_chance(10000) == Some{10000} : Maybe<U32>}
+
+law ex_chance_above_100_percent_is_rejected:
+  {Rule.valid_chance(10001) == None{} : Maybe<U32>}
+
+# L1. Every point chance is between 0 and 10,000.
+law L1_chance_in_range:
+  for +c: Sim.Chance
+  {U32.is_le(Sim.Chance.value(c), 10000) == True{} : Bool}
+
+# L1, continued. The input check accepts exactly the numbers from 0 to 10,000,
+# and keeps them unchanged; anything else is rejected, never clamped. (Without
+# this, a check that wrongly rejected 10,000, or turned 12,000 into 10,000,
+# would still satisfy the law above.)
+law L1_input_check:
+  for +p: U32
+  {Rule.made_value(Sim.Chance.make(p)) == Rule.valid_chance(p) : Maybe<U32>}
+
+# ---------------------------------------------------------------------------
+# One simulated point: L26
+# ---------------------------------------------------------------------------
+
+# The point chance of whoever is serving: pa when A serves, pb when B serves.
+def Rule.serve_chance(server: S.Side, pa: U32, pb: U32) -> U32:
+  match server:
+    case S.A{}:
+      pa
+    case S.B{}:
+      pb
+
+def Rule.server_or_receiver(server_won: Bool, +server: S.Side) -> S.Side:
+  match server_won:
+    case True{}:
+      server
+    case False{}:
+      Rule.other(server)
+
+# Who wins a point: the server when the random number (0 to 9,999) is below
+# her point chance, the receiver otherwise. With a chance of 6000, the 6,000
+# numbers 0 to 5,999 go to the server: exactly 60%.
+def Rule.point_winner(+server: S.Side, pa: U32, pb: U32, roll: U32) -> S.Side:
+  Rule.server_or_receiver(U32.is_lt(roll, Rule.serve_chance(server, pa, pb)), server)
+
+# One simulated point: the server is the one the serve rule picks (L11), and
+# the point is scored by the scoring engine.
+def Rule.step(+fmt: S.Format, pa: U32, pb: U32, +m: S.Match, roll: U32) -> S.Match:
+  S.Match.point(fmt, m, Rule.point_winner(Rule.match_server(m), pa, pb, roll))
+
+# Examples: A serves with a 60% chance (6000), B with 50% (5000).
+law ex_roll_below_chance_is_server_point:
+  {Rule.point_winner(S.A{}, 6000, 5000, 5999) == S.A{} : S.Side}
+
+law ex_roll_at_chance_is_receiver_point:
+  {Rule.point_winner(S.A{}, 6000, 5000, 6000) == S.B{} : S.Side}
+
+# B serving uses B's chance, not A's: 5,500 is below A's 6000 but not B's 5000.
+law ex_b_serving_uses_b_chance:
+  {Rule.point_winner(S.B{}, 6000, 5000, 5500) == S.A{} : S.Side}
+
+# A 100% server wins even the highest roll; a 0% server loses even the lowest.
+law ex_100_percent_server_wins_every_roll:
+  {Rule.point_winner(S.A{}, 10000, 5000, 9999) == S.A{} : S.Side}
+
+law ex_0_percent_server_loses_every_roll:
+  {Rule.point_winner(S.B{}, 6000, 0, 0) == S.A{} : S.Side}
+
+# L26. Each simulated point goes to the server exactly when the random number
+# is below the server's point chance, and to the receiver otherwise; the
+# server is the one L11 picks. Without this, a simulator that used the wrong
+# player's chance (or the receiver's) would pass every scoring law.
+law L26_point_follows_serve_chance:
+  for +fmt: S.Format
+  for +ca: Sim.Chance
+  for +cb: Sim.Chance
+  for +m: S.Match
+  for +roll: U32
+  {Sim.Point.simulate(fmt, ca, cb, m, roll) == Rule.step(fmt, Sim.Chance.value(ca), Sim.Chance.value(cb), m, roll) : S.Match}
+
+# ---------------------------------------------------------------------------
+# One simulated match: L27
+# ---------------------------------------------------------------------------
+
+# Play n points, numbered k, k+1, ..., each with its own random number from
+# the stream of the match in `slot` of run `run`. Points after the match is
+# won change nothing (L13).
+def Rule.play_points(n: Nat, +fmt: S.Format, +pa: U32, +pb: U32, +seed: U32, +run: U32, +slot: U32, +k: U32, m: S.Match) -> S.Match:
+  match n:
+    case 0n:
+      m
+    case 1n+p:
+      Rule.play_points(p, fmt, pa, pb, seed, run, slot, U32.inc(k), Rule.step(fmt, pa, pb, m, Sim.Rng.roll(seed, run, slot, k)))
+
+def Rule.report.go(w: Maybe<S.Side>, m: S.Match) -> Sim.Outcome:
+  match w:
+    case Some{x}:
+      Sim.Won{x, m}
+    case None{}:
+      Sim.Unfinished{m}
+
+# How a match is reported: won by the player the match rule says has won it,
+# otherwise unfinished.
+def Rule.report(+fmt: S.Format, +m: S.Match) -> Sim.Outcome:
+  Rule.report.go(Rule.match_winner(Rule.sets_of(fmt), Rule.done_of(m)), m)
+
+# The point cap (SPEC.md, Simulation).
+def Rule.cap() -> Nat:
+  1000n
+
+# L27. A simulated match plays the first 1,000 points of its random stream
+# (numbered 0 to 999), starting from 0-0 with `first` serving. It is reported
+# as won only by the player who has won by then; otherwise it is reported as
+# unfinished. The engine may stop as soon as the match is won (L13 says the
+# remaining points would change nothing), but it may not stop earlier, play a
+# 1,001st point, skip or reuse a random number, or count an unfinished match
+# as a win.
+law L27_match_plays_at_most_1000_points:
+  for +fmt: S.Format
+  for +ca: Sim.Chance
+  for +cb: Sim.Chance
+  for +seed: U32
+  for +run: U32
+  for +slot: U32
+  for +first: S.Side
+  {Sim.Match.simulate(fmt, ca, cb, seed, run, slot, first) == Rule.report(fmt, Rule.play_points(Rule.cap(), fmt, Sim.Chance.value(ca), Sim.Chance.value(cb), seed, run, slot, 0, S.Match.start(first))) : Sim.Outcome}
+
+# L27, continued. In milestone 4 a run is one match, in slot 0, with the first
+# server chosen by the coin toss. (So L27 covers every match that is counted.)
+law L27_single_run_is_one_match:
+  for +fmt: S.Format
+  for +ca: Sim.Chance
+  for +cb: Sim.Chance
+  for +seed: U32
+  for +run: U32
+  {Sim.Run.single(fmt, ca, cb, seed, run) == Sim.Match.simulate(fmt, ca, cb, seed, run, 0, Sim.Rng.coin(seed, run, 0)) : Sim.Outcome}
+
+# ---------------------------------------------------------------------------
+# Counting many runs: L14
+# ---------------------------------------------------------------------------
+
+# Every list of d bits (True or False), each exactly once: the d bits of the
+# 2^d runs in a block. Those starting False come first, then those starting
+# True.
+def Rule.cons_all(+b: Bool, xss: List<&2, List<&2, Bool>>) -> List<&2, List<&2, Bool>>:
+  match xss:
+    case Nil{}:
+      Nil{}
+    case Con{xs, rest}:
+      (b <> xs) <> Rule.cons_all(b, rest)
+
+def Rule.paths(+d: Nat) -> List<&2, List<&2, Bool>>:
+  match d:
+    case 0n:
+      [[]]
+    case 1n+p:
+      List.append(&2, List<&2, Bool>, Rule.cons_all(False{}, Rule.paths(p)), Rule.cons_all(True{}, Rule.paths(p)))
+
+def Rule.bit(b: Bool) -> U32:
+  match b:
+    case True{}:
+      1
+    case False{}:
+      0
+
+# The run number given by a list of bits, written after the block number
+# `prefix` in binary: the bits [True, False, True] in block 0 are run 5
+# (binary 101); in block 1 they are run 13 (binary 1101).
+def Rule.number(path: List<&2, Bool>, prefix: U32) -> U32:
+  match path:
+    case Nil{}:
+      prefix
+    case Con{b, rest}:
+      Rule.number(rest, (prefix * 2 + Rule.bit(b) : U32))
+
+# Tallies, added field by field.
+def Rule.add_sets(x: Sim.SetCounts, y: Sim.SetCounts) -> Sim.SetCounts:
+  match x y:
+    case Sim.SetCounts{x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15} Sim.SetCounts{y1, y2, y3, y4, y5, y6, y7, y8, y9, y10, y11, y12, y13, y14, y15}:
+      Sim.SetCounts{Nat.add(x1, y1), Nat.add(x2, y2), Nat.add(x3, y3), Nat.add(x4, y4), Nat.add(x5, y5), Nat.add(x6, y6), Nat.add(x7, y7), Nat.add(x8, y8), Nat.add(x9, y9), Nat.add(x10, y10), Nat.add(x11, y11), Nat.add(x12, y12), Nat.add(x13, y13), Nat.add(x14, y14), Nat.add(x15, y15)}
+
+def Rule.add(x: Sim.Tally, y: Sim.Tally) -> Sim.Tally:
+  match x y:
+    case Sim.Tally{xa, xb, xu, xs} Sim.Tally{ya, yb, yu, ys}:
+      Sim.Tally{Nat.add(xa, ya), Nat.add(xb, yb), Nat.add(xu, yu), Rule.add_sets(xs, ys)}
+
+def Rule.no_sets() -> Sim.SetCounts:
+  Sim.SetCounts{0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n}
+
+def Rule.nothing() -> Sim.Tally:
+  Sim.Tally{0n, 0n, 0n, Rule.no_sets()}
+
+# 1 if the set score is x-y (A's games first), else 0.
+def Rule.is_score(+a: Nat, +b: Nat, x: Nat, y: Nat) -> Nat:
+  Rule.count(Bool.and(Nat.is_eq(a, x), Nat.is_eq(b, y)), 0n)
+
+# One finished set, counted under its score.
+def Rule.one_set(sc: S.Score) -> Sim.SetCounts:
+  match sc:
+    case S.Score{+a, +b}:
+      Sim.SetCounts{Rule.is_score(a, b, 6n, 0n), Rule.is_score(a, b, 6n, 1n), Rule.is_score(a, b, 6n, 2n), Rule.is_score(a, b, 6n, 3n), Rule.is_score(a, b, 6n, 4n), Rule.is_score(a, b, 7n, 5n), Rule.is_score(a, b, 7n, 6n), Rule.is_score(a, b, 0n, 6n), Rule.is_score(a, b, 1n, 6n), Rule.is_score(a, b, 2n, 6n), Rule.is_score(a, b, 3n, 6n), Rule.is_score(a, b, 4n, 6n), Rule.is_score(a, b, 5n, 7n), Rule.is_score(a, b, 6n, 7n), Rule.count(Bool.not(Bool.or(Rule.set_score_ok(a, b), Rule.set_score_ok(b, a))), 0n)}
+
+def Rule.set_scores(done: List<&2, S.Score>) -> Sim.SetCounts:
+  match done:
+    case Nil{}:
+      Rule.no_sets()
+    case Con{sc, rest}:
+      Rule.add_sets(Rule.one_set(sc), Rule.set_scores(rest))
+
+def Rule.win_for(+w: S.Side, s: S.Side) -> Nat:
+  Rule.count(Rule.same(w, s), 0n)
+
+# What one run adds to the totals: one win for the winner and the scores of
+# the sets played, or one unfinished match.
+def Rule.tally_of(o: Sim.Outcome) -> Sim.Tally:
+  match o:
+    case Sim.Won{+w, m}:
+      Sim.Tally{Rule.win_for(w, S.A{}), Rule.win_for(w, S.B{}), 0n, Rule.set_scores(Rule.done_of(m))}
+    case Sim.Unfinished{_}:
+      Sim.Tally{0n, 0n, 1n, Rule.no_sets()}
+
+# The totals of a list of tallies, added one after another.
+def Rule.sum(ts: List<&2, Sim.Tally>) -> Sim.Tally:
+  match ts:
+    case Nil{}:
+      Rule.nothing()
+    case Con{t, rest}:
+      Rule.add(t, Rule.sum(rest))
+
+# The tally of each run in block `prefix`, one per list of bits.
+def Rule.results(+fmt: S.Format, +ca: Sim.Chance, +cb: Sim.Chance, +seed: U32, +prefix: U32, paths: List<&2, List<&2, Bool>>) -> List<&2, Sim.Tally>:
+  match paths:
+    case Nil{}:
+      Nil{}
+    case Con{path, rest}:
+      Rule.tally_of(Sim.Run.single(fmt, ca, cb, seed, Rule.number(path, prefix))) <> Rule.results(fmt, ca, cb, seed, prefix, rest)
+
+# Examples.
+law ex_two_bits_make_four_runs:
+  {Rule.paths(2n) == [[False{}, False{}], [False{}, True{}], [True{}, False{}], [True{}, True{}]] : List<&2, List<&2, Bool>>}
+
+law ex_run_5_in_block_0:
+  {Rule.number([True{}, False{}, True{}], 0) == 5 : U32}
+
+law ex_run_13_in_block_1:
+  {Rule.number([True{}, False{}, True{}], 1) == 13 : U32}
+
+# B won a set 6-3: counted under b63 only.
+law ex_set_3_6_counted_as_b63:
+  {Rule.one_set(S.Score{3n, 6n}) == Sim.SetCounts{0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 1n, 0n, 0n, 0n, 0n} : Sim.SetCounts}
+
+# L14. The total over all runs counts every run exactly once, however the work
+# is split across cores. Precisely: the engine's totals for the 2^d runs in a
+# block equal the plain sum, one run after another, of one tally for each list
+# of d bits, that is, one for each run number in the block.
+#
+# (The spec's first wording, "the same seed and inputs always give the same
+# result", is automatically true in Bend, which has no hidden state, so it
+# needs no law. Reruns and runs on different numbers of cores are still
+# compared by running them.)
+law L14_every_run_counted_once:
+  for +d: Nat
+  for +fmt: S.Format
+  for +ca: Sim.Chance
+  for +cb: Sim.Chance
+  for +seed: U32
+  for +prefix: U32
+  {Sim.Run.tally(d, fmt, ca, cb, seed, prefix) == Rule.sum(Rule.results(fmt, ca, cb, seed, prefix, Rule.paths(d))) : Sim.Tally}

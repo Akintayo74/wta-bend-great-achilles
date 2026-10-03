@@ -123,7 +123,7 @@ The two serve-order rows are easy to get wrong and hard to notice when wrong: th
 
 ## Simulation
 
-The simulator plays one million tournaments from a fixed, published seed, so anyone re-running it gets identical numbers.
+The simulator plays 2²⁰ = 1,048,576 tournaments ("one million" below) from a fixed, published seed, **20261108**, so anyone re-running it gets identical numbers. Runs come in a power of two because Bend splits work in halves, and that shape is what lets L14 be proven.
 
 **Numbers are whole numbers out of 10,000.** A 60% chance is stored as 6000. Bend can prove things about whole numbers but not about decimals, so this keeps laws like "a probability is never above 100%" provable. Resolution is 0.01%, finer than the data deserves.
 
@@ -167,7 +167,7 @@ These are the rules the code must never break, written in plain words; each beco
 
 | # | Layer | Law |
 | --- | --- | --- |
-| L1 | Inputs | Every point chance is between 0 and 10,000. |
+| L1 | Inputs | Every point chance is between 0 and 10,000. The engine checks each input once and rejects anything outside that range; it never clamps. |
 | L2 | Game | A game ends only when one player has at least 4 points and leads by 2. |
 | L3 | Game (deuce) | At any tie of 3–3 (40–40) or higher, the game is not over. |
 | L4 | Game (advantage) | From a 1-point lead at 4–3 or higher, the next point either wins the game or returns it to deuce. |
@@ -180,7 +180,7 @@ These are the rules the code must never break, written in plain words; each beco
 | L11 | Serve order | The server alternates every game, with the tiebreak counting as a game, so after a tiebreak set the player who received first in the tiebreak serves first in the next set. In an ordinary game the same player serves every point. Stated about the function the simulator uses to pick whose serve chance applies. |
 | L12 | Match | A finished match has a winner with exactly 2 sets; the loser has 0 or 1. |
 | L13 | Match | Once a match is won, further points do not change it. |
-| L14 | Simulation | The same seed and inputs always give the same result. |
+| L14 | Simulation | The total over all runs counts every run exactly once, however the work is split across cores. |
 | L15 | Draw | In seeded mode, the top two seeds are never in the same group, and each pair of lower seeds is split. |
 | L16 | Standings | A player with more round-robin wins always ranks above one with fewer. |
 | L17 | Standings | Exactly two players advance from each group. |
@@ -192,10 +192,14 @@ These are the rules the code must never break, written in plain words; each beco
 | L23 | Match | While a match is in progress, each finished set adds one set to its winner, and the next set starts at 0–0 with the correct server. |
 | L24 | Set | Who has won a set follows the set rule at every score: first to 6 games with a 2-game lead, or 7–6 via the tiebreak. |
 | L25 | Match | Who has won a match follows the match rule: the first player to win 2 sets (the sets-to-win setting). |
+| L26 | Simulation | Each simulated point goes to the server exactly when the random number is below the server's point chance, and to the receiver otherwise. The server is the one L11 picks. |
+| L27 | Simulation | A simulated match plays at most 1,000 points from its random stream. It is reported as won only by the player the scoring engine says has won; otherwise it is reported as unfinished. |
 
 L3, L4 and L7 follow from L2 and L6, but they get their own laws anyway: deuce is where scoring bugs hide, and it is the reason every match needs a point cap.
 
 L20 was added during milestone 2. L2–L5 only constrain who has won a game and that a won game stays won, so without L20 an engine that credited a point to the wrong player would still pass them. L21–L23 were added in milestone 3 to close the same gap for tiebreaks, sets and matches. L24 and L25 were added for the same reason: L9 and L12 only describe a finished set or match, so without them an engine that never ended a set or match would pass.
+
+L14 was reworded in milestone 4. As first written ("the same seed and inputs always give the same result") it is automatically true in Bend: functions have no hidden state, clock or shared generator, so the proof would be "it is the same expression" and could never fail. The reworded law covers the way parallel tallying really goes wrong: a run dropped or counted twice. Identical output on reruns, and on 1 core versus all cores, is still checked by running it. L26 and L27 were added in milestone 4: without L26 a simulator could use the wrong player's point chance and every scoring law would still prove; without L27 it could stop early, use more than 1,000 points, or count an unfinished match as a win.
 
 Two things Bend will not prove: that the point model reflects real tennis, and that the input numbers are right. Those are checked by validation, below.
 
@@ -236,7 +240,7 @@ The published page shows, for each of the eight players, her chance of getting o
 **Validation, in order of how much it tells us:**
 
 1. **Laws compile.** Proves the rules are followed.
-2. **Simulator matches the exact calculator** within 0.2 points on a grid of inputs (point chances from 40% to 75%). Catches errors in the simulation and random numbers.
+2. **Simulator matches the exact calculator** within 0.2 points on a grid of inputs: each player's serve point chance takes the values 40%, 45%, … 75%, giving 8 × 8 = 64 match-ups, with 2²⁰ (1,048,576) runs each. Both the match-win chance and the share of each set score (6–4, 7–6 and so on) must agree. Any unfinished match fails the check. Catches errors in the simulation and random numbers. (A tolerance of 0.2 points needs about a million runs per match-up: at 100,000 runs the noise alone is ±0.3 points, so a correct simulator would fail some match-ups by chance.)
 3. **Sanity cases.** Equal players give 50/50; a 100% server never loses a service game; swapping players swaps the result.
 4. **Compare with outside forecasts** (bookmaker odds, Tennis Abstract forecasts) before the event. Large gaps need an explanation, not necessarily a fix.
 5. **Score the predictions after the event.** Use the Brier score (average squared gap between predicted chance and what happened).
@@ -259,7 +263,7 @@ These are the choices that are easy to make without noticing, each with my recom
 | 8 | Probability units | Whole numbers out of 10,000; decimals | Out of 10,000 | Needed for Bend to prove anything about chances | Agreed |
 | 9 | Point cap per match | 1,000 points; none | 1,000, with capped matches reported | Bend requires every function to finish | Agreed |
 | 10 | Random numbers | Counter-based hash per simulation; one shared generator | Counter-based hash | Lets simulations run in parallel and stay reproducible | Agreed |
-| 11 | Number of runs | 100,000; 1,000,000 | 1,000,000 | Noise of about 0.1 points versus 0.3 | Agreed |
+| 11 | Number of runs | 100,000; 1,000,000 | 1,000,000, run as 2²⁰ = 1,048,576 (milestone 4) | Noise of about 0.1 points versus 0.3 | Agreed |
 | 12 | Deciding-set format | 7-point tiebreak at 6–6; 10-point | 7-point, confirmed against the 2026 rulebook | A wrong format slightly changes every three-set result | Agreed |
 | 13 | First server | Coin toss; higher-ranked player | Coin toss | Serving first is a small edge; a fixed choice biases toward one player | Agreed |
 | 14 | Groups before the draw | Seeded random; real groups; custom groups | Seeded random until drawn, then real groups; custom for what-ifs | Fully random groups would sometimes pair the top two seeds, which the real draw never does | Agreed&#32; |
@@ -268,7 +272,7 @@ These are the choices that are easy to make without noticing, each with my recom
 | 17 | Passing inputs to Bend | Prep script writes a generated `.bend` parameters file; Bend reads CSV | Generated `.bend` file | Bend has no JSON support and slow text handling | Agreed |
 | 18 | Where to run | Claude Code cloud; local PC; both | Build in the cloud; run full simulations there if session limits allow, else locally from the same repo | Bend needs Linux or macOS, which the cloud provides with no setup; local runs have no session time limits. CPU only; GPUs are out of scope | Agreed |
 | 19 | Display precision? | Whole percentages; two decimals | Whole percentages | Decimals suggest accuracy the model does not have | Agreed |
-| 20 | Seed | Fixed and published; random each run | Fixed and published | Anyone can reproduce the exact numbers | Agreed |
+| 20 | Seed | Fixed and published; random each run | Fixed and published: 20261108 (milestone 4) | Anyone can reproduce the exact numbers | Agreed |
 
 ## Open questions and roadmap
 
