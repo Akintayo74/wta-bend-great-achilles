@@ -71,6 +71,7 @@ Bend 2.0.35 is installed automatically at session start by `.claude/hooks/sessio
 # smoke test:         bend engine/hello.bend          (prints "Hello, world!")
 # check a file:       bend engine/<file>.bend --check-only
 # check laws:         bend engine/PROOF.bend          (while working)
+# proof tables:       node prep/gen-proof-tables.ts   (regenerates engine/proof_tables.bend)
 # install Lean:       curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain leanprover/lean4:v4.34.0 --no-modify-path && export PATH="$HOME/.elan/bin:$PATH"
 #                     (only at milestone end; ~25 s and 3 GB)
 # verdict gate:       bend engine/PROOF.bend --verdict  (milestone end; first run builds the kernel, ~30 s)
