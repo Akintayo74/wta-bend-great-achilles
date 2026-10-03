@@ -1,4 +1,4 @@
-# LAWS.bend: the rules the engine must never break (SPEC.md, Laws L1-L19).
+# LAWS.bend: the rules the engine must never break (SPEC.md, Laws L1-L20).
 #
 # STATUS: Approved by the owner, milestone 2 (game layer: L2-L5, L20).
 # Still to come, with their layers: L1 (point chances, milestone 4 or 5)
