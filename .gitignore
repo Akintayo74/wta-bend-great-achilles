@@ -1,0 +1,7 @@
+# Bend build output (native binaries, emitted C/JS); only .bend sources are tracked
+engine/*
+!engine/*.bend
+# Node
+node_modules/
+# Results: only published runs are committed (force-add them: git add -f)
+results/*.csv

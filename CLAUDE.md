@@ -62,12 +62,14 @@ Don't build these, even if they seem easy: opponent-strength adjustment, shrinka
 
 ## Commands
 
-To be filled in during milestone 1, once Bend 2 is installed and the layout exists:
+Filled in at milestone 1 (Bend 2.0.35). The cloud container is wiped between sessions, so reinstall Bend at the start of each one. More detail in `docs/bend-notes.md`.
 
 ```
-# install Bend:       TODO
-# check laws:         TODO
-# build engine:       TODO
+# install Bend:       curl -fsSL https://bend-lang.com/install.sh | sh && export PATH="$HOME/.bend/bin:$PATH"
+# smoke test:         bend engine/hello.bend          (prints "Hello, world!")
+# check a file:       bend engine/<file>.bend --check-only
+# check laws:         TODO (bend PROOF.bend, once laws exist; see milestone 1 summary)
+# build engine:       TODO (bend engine/<entry>.bend -o <binary>; run with --threads N)
 # run simulation:     TODO
 # generate params:    TODO
 # exact calculator:   TODO
