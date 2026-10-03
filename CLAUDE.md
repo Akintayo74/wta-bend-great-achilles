@@ -75,9 +75,11 @@ Bend 2.0.35 is installed automatically at session start by `.claude/hooks/sessio
 # install Lean:       curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain leanprover/lean4:v4.34.0 --no-modify-path && export PATH="$HOME/.elan/bin:$PATH"
 #                     (only at milestone end; ~25 s and 3 GB)
 # verdict gate:       bend engine/PROOF.bend --verdict  (milestone end; first run builds the kernel, ~30 s)
-# build engine:       TODO (bend engine/<entry>.bend -o <binary>; run with --threads N)
-# run simulation:     TODO
-# generate params:    TODO
-# exact calculator:   TODO
-# tests:              TODO
+# build engine:       bend engine/simulate.bend -o build/simulate
+# run simulation:     ./build/simulate SEED BITS CHANCE_A CHANCE_B [--threads N]
+#                     (2^BITS matches; chances out of 10,000; e.g. 20261108 20 6000 5650)
+# generate params:    TODO (milestone 5)
+# exact calculator:   prep/exact.ts (library); checked against the engine by:
+# validate:           node prep/validate.ts   (64-match-up grid, 2^20 runs each, ~6 min)
+# tests:              node --test prep/*.test.ts
 ```

@@ -204,3 +204,39 @@ export PATH="$HOME/.elan/bin:$PATH"
   `S.Game.point`).
 - `match a b:` accepts `Nat` literal patterns with a fallback:
   `case 6n 0n:` ... `case _ _:`.
+- **The checker computes whole equations on any mismatch.** When the two
+  sides of an equation differ anywhere, even in a constant's name
+  (`Sim.Match.cap()` vs `Laws.Rule.cap()`, both `1000n`), the checker
+  evaluates both sides in full. For L27 that meant playing 1,000 points
+  symbolically: the proof took 22 s instead of 0.6 s. A rewrite (`%e : P`)
+  triggers it too. Fix: split the proof with `Equal.trans(T, a, b, c, ab,
+  bc)` so the expensive side is only ever compared with an identical copy of
+  itself, and the step that needs computing has nothing expensive in it.
+  Syntactically identical sides are compared instantly.
+- Tuple patterns work only as the sole pattern: `match hh: case (h1, h2):`
+  is fine, `match n hh: case 1n+p (h1, h2):` is a syntax error. Nest the
+  matches.
+- After `match x y z:`, a further `match` on fields bound in that case
+  (`xs ys zs`) is refused ("can't be matched in this position"). Write the
+  nested patterns in one go instead:
+  `case Sim.Tally{xa, xb, xu, Sim.SetCounts{x1, ...}} ...`.
+- `match` can't scrutinize a computed value in IO code either
+  (`match U32.read(s):`); pass it to a helper def.
+- In a `do` block, binds can't be marked reusable (`+x : U32 <- ...` is a
+  syntax error). Bind plainly, then hand the values to a pure def whose
+  parameters are `+`.
+- `++` joins Strings only; to build a `List<String>` use `<>` (cons).
+- `List.append(&2, T, xs, ys)` needs the quantity and type spelled out in
+  laws and proofs.
+- `bend --check-only` on PROOF.bend takes ~0.6 s with all milestone 4
+  proofs.
+
+## Measured in milestone 4
+
+- Simulator binary (`bend engine/simulate.bend -o build/simulate`) builds in
+  a few seconds.
+- 2^20 = 1,048,576 best-of-three matches (60% vs 56.5% servers): **5.0 s on
+  4 cores, 21 s on 1 core** (4.2x), with byte-identical output.
+- `U32` arithmetic compiles to native operations (the hash costs little);
+  unary `Nat` scores and counters are cheap at tennis sizes, and adding up
+  the `Nat` tallies of a million runs is not noticeable.
