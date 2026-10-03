@@ -24,7 +24,9 @@ A WTA match and tournament simulator. Tennis scoring and tournament rules are wr
 ## Bend rules (most important section)
 
 - **Never weaken, delete or work around a law to make code compile.** If a law won't prove, stop and report: the law may be wrong, or the code may be. The owner decides which.
-- **Write laws before implementation.** For each layer (game, tiebreak, set, match, standings, knockouts), add its laws from the spec's Laws section first, then write code that satisfies them.
+- **Write laws before implementation, and get them approved.** For each layer (game, tiebreak, set, match, standings, knockouts), draft its laws in `engine/LAWS.bend` from the spec's Laws section, push them, and stop for the owner's review. Write no implementation until the owner approves. Proofs go in `engine/PROOF.bend`, which imports `LAWS.bend`.
+- **`engine/LAWS.bend` is locked once merged to `main`.** Never edit it without the owner's explicit approval, not even to fix a typo. If a law looks wrong, report it and propose the change.
+- **Bend is pinned to 2.0.35.** The session-start hook (`.claude/hooks/session-start.sh`) installs exactly that version and warns if it finds another. Never upgrade Bend (no `bend update`, no `install.sh`) without the owner's approval. An upgrade changes the version and checksum in the hook, gets its own commit, and is noted in `docs/bend-notes.md`.
 - **Bend 2 is not Bend 1.** Most older examples online, and much of what you may remember, are for the earlier Bend on HVM2, which had different syntax and features. Check Bend 2's own guide and docs before writing code. If unsure, write a tiny test file and compile it.
 - **No decimals in the engine.** Probabilities are whole numbers out of 10,000 (60% = 6000).
 - **Every recursion must end.** Each match draws from at most 1,000 points. A match that hits the cap is reported as unfinished, never silently counted.
@@ -40,7 +42,7 @@ A WTA match and tournament simulator. Tennis scoring and tournament rules are wr
 
 ## Validation (before calling a milestone done)
 
-- All laws in `engine/LAWS.bend` prove.
+- All laws in `engine/LAWS.bend` prove. While working, `bend engine/PROOF.bend` is enough. Before calling a milestone done, `bend engine/PROOF.bend --verdict` must also print `ALL PROOFS CHECK`. It re-checks every proof with Bend's small kernel, which has itself been proven correct in Lean; Bend's everyday checker has no such proof.
 - From milestone 4 on: the simulator matches the exact calculator within 0.2 percentage points across the input grid in the spec.
 - Sanity cases pass: equal players give 50/50; swapping players swaps the result; the same seed gives identical output.
 
@@ -56,19 +58,22 @@ Don't build these, even if they seem easy: opponent-strength adjustment, shrinka
 
 ## Git
 
-- One branch per milestone (`m1-setup`, `m2-game-layer`, and so on), small commits with clear messages.
-- Each pull request description repeats the milestone summary.
+- One branch per milestone, using whatever name the cloud session assigns. Small commits with clear messages.
+- One pull request per milestone, titled `M<n>: <name>` (for example `M1: setup`, `M2: game layer`). Its description repeats the milestone summary.
 - Commit results CSVs only for published runs, named with date and seed.
 
 ## Commands
 
-Filled in at milestone 1 (Bend 2.0.35). The cloud container is wiped between sessions, so reinstall Bend at the start of each one. More detail in `docs/bend-notes.md`.
+Bend 2.0.35 is installed automatically at session start by `.claude/hooks/session-start.sh` (pinned version, ~2 s). More detail in `docs/bend-notes.md`.
 
 ```
-# install Bend:       curl -fsSL https://bend-lang.com/install.sh | sh && export PATH="$HOME/.bend/bin:$PATH"
+# install Bend:       automatic (session-start hook); by hand: CLAUDE_CODE_REMOTE=true .claude/hooks/session-start.sh
 # smoke test:         bend engine/hello.bend          (prints "Hello, world!")
 # check a file:       bend engine/<file>.bend --check-only
-# check laws:         TODO (bend PROOF.bend, once laws exist; see milestone 1 summary)
+# check laws:         bend engine/PROOF.bend          (while working)
+# install Lean:       curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain leanprover/lean4:v4.34.0 --no-modify-path && export PATH="$HOME/.elan/bin:$PATH"
+#                     (only at milestone end; ~25 s and 3 GB)
+# verdict gate:       bend engine/PROOF.bend --verdict  (milestone end; first run builds the kernel, ~30 s)
 # build engine:       TODO (bend engine/<entry>.bend -o <binary>; run with --threads N)
 # run simulation:     TODO
 # generate params:    TODO

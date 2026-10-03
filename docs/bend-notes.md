@@ -21,8 +21,15 @@ export BEND_NO_TELEMETRY=1   # optional: stops the once-a-day version check
 - `tar` prints dozens of harmless `Ignoring unknown extended header keyword
   'LIBARCHIVE.xattr.com.apple.provenance'` warnings (the tarball was made on a Mac).
 - **The cloud container is wiped between sessions**, and `~/.bend` is outside
-  the repo, so Bend must be reinstalled at the start of each new session
-  (takes a few seconds). A SessionStart hook could automate this.
+  the repo. `.claude/hooks/session-start.sh` reinstalls Bend at every session
+  start (~2 s). It does **not** use `install.sh`, which always fetches the
+  latest version. It downloads the pinned 2.0.35 archive from GitHub and checks
+  its sha256 itself. If it finds another version, it warns and replaces it.
+  To upgrade on purpose, change `BEND_VERSION` and `BEND_SHA256` in the hook
+  together. The checksums for each platform are listed in that version's
+  `install.sh`.
+- The hook also sets `BEND_NO_TELEMETRY=1`, so the installed bend does not
+  check bend-lang.com for newer versions.
 - Native builds need clang 14+ (19+ only for GPU `!` calls). The container has
   **clang 18.1.3**, which works for CPU builds. The install card's "install
   clang 19+" hint only matters for the GPU.
@@ -38,7 +45,7 @@ export BEND_NO_TELEMETRY=1   # optional: stops the once-a-day version check
 | Build a native binary | `bend file.bend -o out` | ~1.7 s for hello-world. Binary is ~1 MB. |
 | Run on N threads | `./out --threads N` | Defaults to all cores. |
 | Check the laws | `bend PROOF.bend` | Convention: `LAWS.bend` states laws, `PROOF.bend` proves them. |
-| Recheck with the proven kernel | `bend PROOF.bend --verdict` | **Needs Lean 4 (v4.34.0)** — not installed here, see quirks. |
+| Recheck with the proven kernel | `bend PROOF.bend --verdict` | Needs Lean 4 v4.34.0 (see below). Required before a milestone is done. |
 
 Smoke test for a fresh session: `bend engine/hello.bend` should print `Hello, world!`.
 
@@ -59,12 +66,29 @@ Smoke test for a fresh session: `bend engine/hello.bend` should print `Hello, wo
   printed `ALL PROOFS CHECK`; a false one (`double(2) = 5`) printed
   `SOME PROOFS FAIL` with expected `4n`, observed `5n`, and exit code 1.
 
+## Lean and `--verdict`
+
+`--verdict` re-checks proofs with BendTT, a small kernel whose soundness is
+proven in Lean. Bend's everyday checker is faster but has no such proof, so
+`--verdict` is the gate before a milestone is called done.
+
+```sh
+curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+  | sh -s -- -y --default-toolchain leanprover/lean4:v4.34.0 --no-modify-path
+export PATH="$HOME/.elan/bin:$PATH"
+```
+
+- Without Lean, `--verdict` fails with `lean: Executable not found in $PATH`.
+- Measured cost in a fresh container: ~25 s to install elan plus the toolchain,
+  **3 GB** of disk; the first `--verdict` then builds the kernel into
+  `~/.bend/bendtt/` in ~27 s, and later runs are instant. That is too slow
+  for every session start, so it is not in the hook: install it at
+  milestone end.
+- elan prints harmless `could not canonicalize path` and `could not check for
+  elan self-update` warnings.
+
 ## Quirks and bugs
 
-- `--verdict` fails without Lean: `lean: Executable not found in $PATH`. It
-  needs the elan toolchain `leanprover/lean4:v4.34.0` (or `$BENDTT` pointing to
-  a built kernel). Plain `bend PROOF.bend` still checks every proof with Bend's
-  own checker; `--verdict` is a second, independent check.
 - Bend's convention puts `LAWS.bend` and `PROOF.bend` side by side, and `bend`
   refuses a `PROOF.bend` that sits beside a `LAWS.bend` without importing it.
 - Things to remember from the guide (Bend 2 differs a lot from Bend 1):

@@ -209,7 +209,8 @@ wta-sim/
     rules/             official format and tiebreak rules, copied in
   prep/                TypeScript: builds params, exact calculator, checks
   engine/              Bend
-    LAWS.bend
+    LAWS.bend          the laws; approved by the owner, then locked
+    PROOF.bend         proves each law in LAWS.bend (imports it)
     scoring.bend       point, game, tiebreak, set, match
     tournament.bend    groups, standings, knockouts
     sim.bend           random numbers and the run loop
