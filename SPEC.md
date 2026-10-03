@@ -123,7 +123,7 @@ The two serve-order rows are easy to get wrong and hard to notice when wrong: th
 
 ## Simulation
 
-The simulator plays one million tournaments from a fixed, published seed, so anyone re-running it gets identical numbers.
+The simulator plays 2²⁰ = 1,048,576 tournaments ("one million" below) from a fixed, published seed, **20261108**, so anyone re-running it gets identical numbers. Runs come in a power of two because Bend splits work in halves, and that shape is what lets L14 be proven.
 
 **Numbers are whole numbers out of 10,000.** A 60% chance is stored as 6000. Bend can prove things about whole numbers but not about decimals, so this keeps laws like "a probability is never above 100%" provable. Resolution is 0.01%, finer than the data deserves.
 
@@ -263,7 +263,7 @@ These are the choices that are easy to make without noticing, each with my recom
 | 8 | Probability units | Whole numbers out of 10,000; decimals | Out of 10,000 | Needed for Bend to prove anything about chances | Agreed |
 | 9 | Point cap per match | 1,000 points; none | 1,000, with capped matches reported | Bend requires every function to finish | Agreed |
 | 10 | Random numbers | Counter-based hash per simulation; one shared generator | Counter-based hash | Lets simulations run in parallel and stay reproducible | Agreed |
-| 11 | Number of runs | 100,000; 1,000,000 | 1,000,000 | Noise of about 0.1 points versus 0.3 | Agreed |
+| 11 | Number of runs | 100,000; 1,000,000 | 1,000,000, run as 2²⁰ = 1,048,576 (milestone 4) | Noise of about 0.1 points versus 0.3 | Agreed |
 | 12 | Deciding-set format | 7-point tiebreak at 6–6; 10-point | 7-point, confirmed against the 2026 rulebook | A wrong format slightly changes every three-set result | Agreed |
 | 13 | First server | Coin toss; higher-ranked player | Coin toss | Serving first is a small edge; a fixed choice biases toward one player | Agreed |
 | 14 | Groups before the draw | Seeded random; real groups; custom groups | Seeded random until drawn, then real groups; custom for what-ifs | Fully random groups would sometimes pair the top two seeds, which the real draw never does | Agreed&#32; |
@@ -272,7 +272,7 @@ These are the choices that are easy to make without noticing, each with my recom
 | 17 | Passing inputs to Bend | Prep script writes a generated `.bend` parameters file; Bend reads CSV | Generated `.bend` file | Bend has no JSON support and slow text handling | Agreed |
 | 18 | Where to run | Claude Code cloud; local PC; both | Build in the cloud; run full simulations there if session limits allow, else locally from the same repo | Bend needs Linux or macOS, which the cloud provides with no setup; local runs have no session time limits. CPU only; GPUs are out of scope | Agreed |
 | 19 | Display precision? | Whole percentages; two decimals | Whole percentages | Decimals suggest accuracy the model does not have | Agreed |
-| 20 | Seed | Fixed and published; random each run | Fixed and published | Anyone can reproduce the exact numbers | Agreed |
+| 20 | Seed | Fixed and published; random each run | Fixed and published: 20261108 (milestone 4) | Anyone can reproduce the exact numbers | Agreed |
 
 ## Open questions and roadmap
 

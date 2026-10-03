@@ -3,8 +3,8 @@
 # STATUS: Milestone 2 (game layer: L2-L5, L20): approved by the owner.
 #         Milestone 3 (tiebreak, set, match: L6-L13, L21-L25): approved by
 #         the owner.
-#         Milestone 4 (simulation: L1, L14, L26, L27): DRAFT for owner
-#         review, at the end of this file.
+#         Milestone 4 (simulation: L1, L14, L26, L27): approved by the
+#         owner.
 # Still to come: L15-L19 (tournament, milestone 6).
 # Once merged to main, this file is locked; see CLAUDE.md.
 #
@@ -752,7 +752,7 @@ law L11_same_server_within_game:
   {S.Match.server(S.Match.point(fmt, S.Match{first, done, S.TennisSet{a, b, S.InGame{g}}}, s)) == S.Match.server(S.Match{first, done, S.TennisSet{a, b, S.InGame{g}}}) : S.Side}
 
 # ===========================================================================
-# MILESTONE 4: simulation. DRAFT for owner review.
+# MILESTONE 4: simulation. Approved by the owner.
 # ===========================================================================
 #
 # How this section is organised:
