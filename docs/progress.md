@@ -17,3 +17,27 @@ expected 4. That refusal is the whole point of the project: tennis scoring rules
 will be checked the same way.
 
 **Machine:** 4 CPU cores (Intel Xeon, 2.1 GHz), 15 GB memory, no GPU.
+
+## Milestone 2 — the game layer, proven (2026-10-03)
+
+**What works now:** the engine can score a tennis game: who has won, and what
+happens after each point, deuces and advantages included. Nine laws describe
+the rules, and Bend has checked a proof of every one, so they hold for every
+possible score, not just the ones a test happens to try. That includes deuce
+after 3 points each, after 30, or after a million.
+
+**Interesting finding:** I planted five realistic bugs in the scoring code, one
+at a time. Bend rejected every one and named the law it broke:
+
+| Planted bug | Caught by |
+| --- | --- |
+| Game won with a 1-point lead | L2 (game rule) |
+| Game won with only 3 points | L2 (game rule) |
+| Point given to the wrong player | L20 (each point goes to its winner) |
+| Points still counted after the game ended | L5 (a won game is final) |
+| Player B's win reported as player A's | L2 (game rule) |
+
+The third one is the best part. That bug would have slipped past the four
+laws in the original plan, because they only check who has won and that a
+finished game stays finished. Reviewing the laws before writing any code
+exposed the gap, and the new law (L20) was added before the code existed.

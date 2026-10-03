@@ -119,3 +119,28 @@ export PATH="$HOME/.elan/bin:$PATH"
   its imports, even if `main` doesn't use the unfinished parts.
 - `Nat` is unary (`Zero`/`Succ`), and `3n+n` is the term "3 plus n". As a law
   parameter, `for n: Nat` with `3n+n` means "every number from 3 up".
+- **Use-once law parameters.** If a law says `for n: Nat` (not `for +n`), its
+  proof may use `n` only once in running code, so it can't call three lemmas
+  that each take `n`. Mentioning `n` in types and rewrites doesn't count. A
+  proof can't relax this either (`def Laws.x(+n)` is a syntax error).
+  Workaround used in PROOF.bend: one lemma proves all the facts by a single
+  induction and returns them as a tuple (`deuce_comparisons`), and the other
+  lemmas take the fact they need as an argument, with `n` erased (`-n`).
+- A destructuring let, `(x, y) = f(n)`, counts as a `match`, so it can't
+  unpack a computed value. Pass the value to a helper def and match on its
+  parameter there.
+- A def can return a `Type`, which gives a long proposition a short name:
+  `def DeuceFacts(-n: Nat) -> Type: {..} & {..}`.
+- **Rewriting.** `%e : P` with `e : {a == b : T}` treats `P` as the current
+  goal with `_` where `b` appears, and leaves `P` with `a` there as the new
+  goal. To replace a computed expression `X` by its value `V`, you need
+  `e : {V == X}`, so wrap the lemma in `Equal.sym(T, X, V, lemma)`. One `P` can
+  hold several `_`, and `P` may be written in partly evaluated form, because
+  it is compared by computing.
+- Bend matches tuples of constructors directly
+  (`match p q r t: case True{} False{} ...`), which makes "check every
+  combination of Bools" lemmas quick to write.
+- `--verdict` takes 0 s once the kernel is built and Lean is installed.
+- Checking `engine/LAWS.bend` on its own always reports its laws as TODOs,
+  because it only states them. The gate is `bend engine/PROOF.bend`, which
+  imports the laws and proves them.
