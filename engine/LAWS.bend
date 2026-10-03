@@ -1,6 +1,6 @@
 # LAWS.bend: the rules the engine must never break (SPEC.md, Laws L1-L19).
 #
-# STATUS: DRAFT for owner review, milestone 2 (game layer: L2-L5, L20).
+# STATUS: Approved by the owner, milestone 2 (game layer: L2-L5, L20).
 # Still to come, with their layers: L1 (point chances, milestone 4 or 5)
 # and L6-L19 (tiebreak, set, match, simulation, tournament).
 # Once merged to main, this file is locked; see CLAUDE.md.
