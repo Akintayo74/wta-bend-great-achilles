@@ -1,6 +1,8 @@
 # LAWS.bend: the rules the engine must never break (SPEC.md, Laws L1-L19).
 #
-# STATUS: DRAFT for owner review, milestone 2 (game layer: L2-L5).
+# STATUS: DRAFT for owner review, milestone 2 (game layer: L2-L5, L20).
+# Still to come, with their layers: L1 (point chances, milestone 4 or 5)
+# and L6-L19 (tiebreak, set, match, simulation, tournament).
 # Once merged to main, this file is locked; see CLAUDE.md.
 #
 # How to read a law:
@@ -117,20 +119,20 @@ law L5_won_game_is_final:
   {S.Game.point(g, s) == g : S.Game}
 
 # ---------------------------------------------------------------------------
-# PROPOSED, not in SPEC.md: owner to accept or drop
+# Game layer: L20 (added to SPEC.md in milestone 2)
 # ---------------------------------------------------------------------------
 
-# X1. While a game is live, each point goes to the player who won it.
-# Without this, an engine that credited points to the wrong player (or not at
-# all, early in a game) would still satisfy L2-L5: they only constrain the
-# verdict and the end of a game.
-law X1_live_point_goes_to_a:
+# L20. While a game is in progress, each point is added to the player who won
+# it. Without this, an engine that credited points to the wrong player (or
+# not at all) would still satisfy L2-L5: they only constrain who has won and
+# that a won game stays won.
+law L20_live_point_goes_to_a:
   for a: Nat
   for b: Nat
   for live: {S.Game.winner(S.Game{a, b}) == None{} : Maybe<S.Side>}
   {S.Game.point(S.Game{a, b}, S.A{}) == S.Game{1n+a, b} : S.Game}
 
-law X1_live_point_goes_to_b:
+law L20_live_point_goes_to_b:
   for a: Nat
   for b: Nat
   for live: {S.Game.winner(S.Game{a, b}) == None{} : Maybe<S.Side>}

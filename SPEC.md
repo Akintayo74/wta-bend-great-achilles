@@ -186,8 +186,11 @@ These are the rules the code must never break, written in plain words; each beco
 | L17 | Standings | Exactly two players advance from each group. |
 | L18 | Knockouts | The champion won both her semifinal and the final. |
 | L19 | Knockouts | Semifinal pairings always cross groups. |
+| L20 | Game | While a game is in progress, each point is added to the player who won it. |
 
 L3, L4 and L7 follow from L2 and L6, but they get their own laws anyway: deuce is where scoring bugs hide, and it is the reason every match needs a point cap.
+
+L20 was added during milestone 2. L2–L5 only constrain who has won a game and that a won game stays won, so without L20 an engine that credited a point to the wrong player would still pass them.
 
 Two things Bend will not prove: that the point model reflects real tennis, and that the input numbers are right. Those are checked by validation, below.
 
