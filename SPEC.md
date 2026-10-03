@@ -190,10 +190,12 @@ These are the rules the code must never break, written in plain words; each beco
 | L21 | Tiebreak | While a tiebreak is in progress, each point is added to the player who won it; a finished tiebreak does not change. |
 | L22 | Set | While a set is in progress, each finished game or tiebreak adds one game to its winner and changes nothing else; a finished set does not change. |
 | L23 | Match | While a match is in progress, each finished set adds one set to its winner, and the next set starts at 0–0 with the correct server. |
+| L24 | Set | Who has won a set follows the set rule at every score: first to 6 games with a 2-game lead, or 7–6 via the tiebreak. |
+| L25 | Match | Who has won a match follows the match rule: the first player to win 2 sets (the sets-to-win setting). |
 
 L3, L4 and L7 follow from L2 and L6, but they get their own laws anyway: deuce is where scoring bugs hide, and it is the reason every match needs a point cap.
 
-L20 was added during milestone 2. L2–L5 only constrain who has won a game and that a won game stays won, so without L20 an engine that credited a point to the wrong player would still pass them. L21–L23 were added in milestone 3 to close the same gap for tiebreaks, sets and matches.
+L20 was added during milestone 2. L2–L5 only constrain who has won a game and that a won game stays won, so without L20 an engine that credited a point to the wrong player would still pass them. L21–L23 were added in milestone 3 to close the same gap for tiebreaks, sets and matches. L24 and L25 were added for the same reason: L9 and L12 only describe a finished set or match, so without them an engine that never ended a set or match would pass.
 
 Two things Bend will not prove: that the point model reflects real tennis, and that the input numbers are right. Those are checked by validation, below.
 

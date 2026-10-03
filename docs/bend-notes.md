@@ -141,8 +141,8 @@ export PATH="$HOME/.elan/bin:$PATH"
   (`match p q r t: case True{} False{} ...`), which makes "check every
   combination of Bools" lemmas quick to write.
 - `--verdict` takes 0 s once the kernel is built and Lean is installed.
-- Checking `engine/LAWS.bend` on its own always reports its laws as TODOs,
-  because it only states them. The gate is `bend engine/PROOF.bend`, which
+- Checking `engine/LAWS.bend` (or `engine/proof_tables.bend`, which imports
+  it) on its own always reports the laws as TODOs, because it only states them. The gate is `bend engine/PROOF.bend`, which
   imports the laws and proves them.
 
 ## Found in milestone 3
@@ -157,3 +157,27 @@ export PATH="$HOME/.elan/bin:$PATH"
   definition (an unfilled law is a dead claim: live code cannot use it)".
 - `Set` is taken: Base defines `Set.new`, `Set.add` and so on, so the tennis
   set type is called `TennisSet`.
+- **Type-only inputs can't be branched on.** A proof can't `match` on an
+  input marked `-` (erased): "a live scrutinee (a - scrutinee matches only in
+  a dead region)". Several laws take the winner as `-w`. The fix is the
+  standard one: the proof computes the winner itself as a live value,
+  branches on that, and uses the assumption `m == Some{w}` to show it is `w`
+  (`some_injective`, `none_is_not_some`).
+- **Two functions with identical bodies are still different.** Bend compares
+  stuck terms by name, so `f(w, a, b)` and `g(w, a, b)` aren't equal when `w`
+  is unknown, even if f and g are written the same way. Each engine helper
+  that mirrors a spec helper (`Match.same` vs `Rule.same`, and so on) needs a
+  small lemma saying they agree. Functions that end in the same Base calls
+  (`Nat.is_ge`, `Bool.and`) do compare equal.
+- **Assumptions are use-once too.** A proof of `x == y` can be used only once.
+  `dup_eq` turns one proof into a pair; a helper then unpacks the pair.
+- A `match` can't come after a rewrite step (`%e : P`) in the same body.
+  Branch first, then rewrite inside each branch.
+- **Proof by computation.** With concrete numbers, Bend just computes, so
+  `{==}` proves any true claim about them. `prep/gen-proof-tables.ts`
+  generates lemmas that split on every small score (0-0 to 6-6, plus "7 or
+  more") and finish each case with `{==}`. Writing the claim as
+  `Imp(premise, conclusion) == True` keeps every case uniform: out-of-range
+  cases make the premise false, so they compute to True as well.
+- The whole proof set (about 3,900 lines across LAWS, PROOF, proof_tables and
+  scoring) checks in 0.3 s, and `--verdict` in under 1 s.
