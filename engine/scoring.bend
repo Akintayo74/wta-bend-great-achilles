@@ -1,7 +1,10 @@
 # scoring.bend: point, game, tiebreak, set and match scoring.
 #
 # Milestone 2: the game layer. Its laws (L2-L5, L20) are in LAWS.bend and
-# proven in PROOF.bend. Tiebreak, set and match come in milestone 3.
+# proven in PROOF.bend.
+# Milestone 3: tiebreak, set and match. INTERFACE ONLY for now: the types and
+# signatures at the end of this file are what the draft M3 laws talk about.
+# Their bodies are `?TODO` until the owner approves those laws.
 
 import Base
 
@@ -65,3 +68,73 @@ def Game.point(g: Game, s: Side) -> Game:
   match g:
     case Game{+a, +b}:
       Game.point.go(Game.winner(Game{a, b}), a, b, s)
+
+# ---------------------------------------------------------------------------
+# Tiebreak, set and match (milestone 3: interface only)
+# ---------------------------------------------------------------------------
+
+# A tiebreak, as raw points: `a` for player A, `b` for player B.
+type Tiebreak is Data:
+  Tiebreak{a: Nat, b: Nat}
+
+# What is being played inside a set: an ordinary game, or the tiebreak.
+type Play is Data:
+  InGame{game: Game}
+  InTiebreak{tiebreak: Tiebreak}
+
+# A set: games won by A and B, and the game or tiebreak being played.
+# (Called TennisSet because Bend's Base library already has a Set.)
+type TennisSet is Data:
+  TennisSet{a: Nat, b: Nat, play: Play}
+
+# The final game score of a finished set, such as Score{6n, 4n}.
+type Score is Data:
+  Score{a: Nat, b: Nat}
+
+# The format settings from SPEC.md: games to win a set, tiebreak target, sets
+# to win the match, and the deciding set's tiebreak target.
+type Format is Data:
+  Format{games: Nat, tiebreak: Nat, sets: Nat, final_tiebreak: Nat}
+
+# A match: who served first, the finished sets' scores (most recent first),
+# and the set in progress.
+type Match is Data:
+  Match{first: Side, done: List<&2, Score>, set: TennisSet}
+
+# Who has won a tiebreak played to `target` points, if anyone.
+def Tiebreak.winner(target: Nat, t: Tiebreak) -> Maybe<Side>:
+  ?TODO
+
+# The tiebreak after one more point, won by player `s`.
+def Tiebreak.point(target: Nat, t: Tiebreak, s: Side) -> Tiebreak:
+  ?TODO
+
+# Who serves the next tiebreak point, given who served its first point and how
+# many points have been played.
+def Tiebreak.server(first: Side, played: Nat) -> Side:
+  ?TODO
+
+# Who has won the set, if anyone, when `games` games win a set.
+def TennisSet.winner(games: Nat, st: TennisSet) -> Maybe<Side>:
+  ?TODO
+
+# The set after one more point, won by player `s`.
+def TennisSet.point(games: Nat, target: Nat, st: TennisSet, s: Side) -> TennisSet:
+  ?TODO
+
+# A new match, with player `first` serving first.
+def Match.start(first: Side) -> Match:
+  ?TODO
+
+# Who has won the match, if anyone.
+def Match.winner(fmt: Format, m: Match) -> Maybe<Side>:
+  ?TODO
+
+# The match after one more point, won by player `s`.
+def Match.point(fmt: Format, m: Match, s: Side) -> Match:
+  ?TODO
+
+# Who serves the next point. The simulator uses this to pick whose serve
+# chance applies, so the serve-order laws (L8, L11) are about it.
+def Match.server(m: Match) -> Side:
+  ?TODO

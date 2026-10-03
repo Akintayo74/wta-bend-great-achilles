@@ -144,3 +144,16 @@ export PATH="$HOME/.elan/bin:$PATH"
 - Checking `engine/LAWS.bend` on its own always reports its laws as TODOs,
   because it only states them. The gate is `bend engine/PROOF.bend`, which
   imports the laws and proves them.
+
+## Found in milestone 3
+
+- A `+` (reusable) input must have a copyable (`Data`) type. `List<S.Side>`
+  is short for `List<&1, S.Side>`, which is not copyable, so `for +pts:
+  List<S.Side>` is refused ("+pts can be used many times, so its type must
+  be Data"). Write `List<&2, S.Side>` instead. The same goes for a list
+  stored inside a `Data` record: `done: List<&2, Score>`.
+- A def must appear above every def that calls it. Calling one defined
+  further down fails with the confusing message "expected : a filled
+  definition (an unfilled law is a dead claim: live code cannot use it)".
+- `Set` is taken: Base defines `Set.new`, `Set.add` and so on, so the tennis
+  set type is called `TennisSet`.
