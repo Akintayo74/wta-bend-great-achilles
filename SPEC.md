@@ -24,7 +24,7 @@ v0 covers WTA singles, one surface (hard court), the two-number player model and
 - Point, game, tiebreak, set and match scoring, with laws proven in Bend.
 - Monte Carlo simulation of single matches and of the full WTA Finals (round robin, semifinals, final).
 - An exact calculator for single matches, used only to check the simulator.
-- Hand-collected hard-court stats for the eight qualified players.
+- Hard-court stats for the Race top 30 (the eight qualifiers among them), computed from Tennis Abstract data and spot-checked by hand.
 - A results page in Astro.
 
 **Out of v0 (planned upgrades, in rough order)**
@@ -48,27 +48,37 @@ v0 covers WTA singles, one surface (hard court), the two-number player model and
 
 ## Inputs and data
 
-Each player needs two hard-court numbers: the share of points she wins on her own serve, and the share she wins when returning. For eight players that is 16 numbers, few enough to collect by hand.
+Each player needs two hard-court numbers: the share of points she wins on her own serve, and the share she wins when returning. We collect them for the **top 30 of the Race to the WTA Finals** (decided in milestone 5), so any eight who qualify are covered and the rest are there for what-if match-ups.
+
+**How the numbers are collected (milestone 5).** Tennis Abstract keeps a data file per player (`jsmatches/<Name>.js`) with raw counts for every tour-level match: serve points, first- and second-serve points won, and the same for the opponent. `prep/fetch.ts` downloads these files, keeps the hard-court matches in the window, and commits a trimmed extract to `data/raw/<date>/`; `prep/collect.ts` turns the extract into the counts in `data/players.csv`. No number is typed from memory. The owner then reads SPW and RPW off each player's Tennis Abstract page ("Last 52 Weeks Tour-Level Splits", Hard row) and types them into `checked_spw` and `checked_rpw`; prep refuses to continue if a computed figure is more than 0.5 percentage points from the typed one. The check is required for the Race top 20 plus Anisimova (21st) and optional for the rest; from milestone 6, a tournament field may not include an unchecked player.
+
+**Window and filters.** The 52 weeks (364 days) ending on the snapshot (download) date, counted by Tennis Abstract's match date (the tournament's start date). Hard courts, indoor and outdoor. Tour-level main-draw matches including Slams and the Finals; qualifying, team events (BJK Cup, United Cup), retirements, walkovers and matches without stats are left out. Two snapshots: provisional (milestone 5) and final, after the last qualifying event.
 
 | Field | Meaning | Example |
 | --- | --- | --- |
-| `name` | Player name as displayed | Player A |
-| `serve_won` | Hard-court serve points won, last 52 weeks | 62.0% |
-| `return_won` | Hard-court return points won, last 52 weeks | 45.0% |
-| `serve_points` | Serve points behind `serve_won` (sample size) | 3,200 |
-| `return_points` | Return points behind `return_won` | 3,150 |
-| `source` | Where the numbers came from, and the date read | Tennis Abstract, 2026-10-xx |
+| `name` | Player name as Tennis Abstract prints it (ASCII) | Player A |
+| `serve_points_won` | Hard-court serve points won in the window | 1,984 |
+| `serve_points` | Serve points played (the sample size) | 3,200 |
+| `return_points_won` | Hard-court return points won | 1,418 |
+| `return_points` | Return points played | 3,150 |
+| `matches` | Matches counted | 46 |
+| `window_start`, `window_end` | The window, as dates | 2025-10-06, 2026-10-04 |
+| `checked_spw`, `checked_rpw` | SPW and RPW typed from the player's page by the owner (percent, one decimal) | 62.0, 45.0 |
+| `source` | File, download date and SHA-256 | Tennis Abstract jsmatches/PlayerA.js read 2026-10-04 sha256:... |
 
-The sample-size columns are not used in v0. They are recorded now because the shrinkage upgrade needs them, and re-collecting later is wasted work.
+The serve share is `serve_points_won / serve_points`. The point counts are also what the shrinkage upgrade will need.
+
+**Tour average.** `data/tour.csv` holds the hard-court tour average for the additive formula, from Tennis Abstract's leaderboard data file (`jsmatches/leadersource_wta.js`): every hard-court match in that file's latest 52 weeks, both players' serve points pooled, each match counted once, with the same filters as above. That file covers every tour-level match involving a current top-50 player, so matches between two lower-ranked players are missing; by tournament level the pooled figure moves by under a point (WTA 250s lowest), which moves a match prediction by about 0.1 points. Do not use the leaderboard's own "Average" row: it is the top 50's own serve record, about two points higher.
 
 **Sources**
 
 | Source | Coverage | Problem |
 | --- | --- | --- |
-| Tennis Abstract player pages | Current, with surface splits | Manual reading; site layout can change |
+| Tennis Abstract per-player data files and player pages | Current (updated after each match), raw counts per match, surface known | Unofficial files; site layout can change |
+| Tennis Abstract leaderboard data file | Every tour-level match of the current top 50, raw counts | Updated every few weeks, so it lags; used only for the tour average |
 | [Match Charting Project](https://github.com/JeffSackmann/tennis_MatchChartingProject) | Shot-by-shot, volunteer-charted | Only some matches are charted; thin for any one player on one surface |
 | Archive mirror of the removed `tennis_wta` repo | Match-level stats, all tour matches | Snapshot ends June 2026, missing the summer hard-court season |
-| WTA official stats | Current | Season totals, usually without surface splits |
+| WTA official stats | Current | Season totals, usually without surface splits; per-match stats used to spot-check a few matches |
 
 All Sackmann-derived data is CC BY-NC-SA: credit it on the page and keep the project non-commercial.
 
@@ -253,13 +263,13 @@ These are the choices that are easy to make without noticing, each with my recom
 
 | # | Decision | Options | Recommendation | Why it matters | Your call |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Data source | Hand-collect from Tennis Abstract; archive mirror; Match Charting; WTA official | Hand-collect from Tennis Abstract | The mirror stops in June 2026 and misses the summer hard-court season | Agreed |
+| 1 | Data source | Hand-collect from Tennis Abstract; archive mirror; Match Charting; WTA official | Tennis Abstract per-player data files, counts computed by prep, SPW and RPW checked by hand against the player pages (milestone 5) | The mirror stops in June 2026 and misses the summer hard-court season; the pages show no point counts and include retirements | Agreed |
 | 2 | Time window | Last 52 weeks; this season; career | Last 52 weeks | Shorter is more current but noisier; can shift a player's numbers by several points | Agreed |
 | 3 | Surface bucket | All hard courts; outdoor hard only | All hard courts | Indian Wells is outdoor, but outdoor-only shrinks samples a lot | Agreed |
 | 4 | Which matches count | Tour-level main draw incl. Slams; add qualifying; drop retirements | Tour-level main draw incl. Slams, retirements and walkovers excluded | Retired matches record points played while injured | Agreed |
 | 5 | Pooling | Total points across matches; average of each match's percentage | Total points | Averaging percentages gives a short blowout the same weight as a three-hour match | Agreed |
 | 6 | Combination formula | Average; additive | Average first, additive from milestone 5 | Moved our example favourite from 68% to 82% | Agreed |
-| 7 | Tour average (additive method) | All tour-level hard-court matches; top-50 players only | All tour-level hard-court matches, same 52 weeks | Shifts every additive match-up | Agreed |
+| 7 | Tour average (additive method) | All tour-level hard-court matches; top-50 players only | All tour-level hard-court matches involving a top-50 player (Tennis Abstract leaderboard file), latest 52 weeks, both players' serve points pooled (milestone 5) | Shifts both servers equally, so it moves match odds little (about 0.3 points per 1.6 points of average) | Agreed |
 | 8 | Probability units | Whole numbers out of 10,000; decimals | Out of 10,000 | Needed for Bend to prove anything about chances | Agreed |
 | 9 | Point cap per match | 1,000 points; none | 1,000, with capped matches reported | Bend requires every function to finish | Agreed |
 | 10 | Random numbers | Counter-based hash per simulation; one shared generator | Counter-based hash | Lets simulations run in parallel and stay reproducible | Agreed |
@@ -281,7 +291,7 @@ The biggest unknown is the toolchain: Bend 2 is young, so milestone 1 should pro
 - [ ] Does Bend 2 install and run in Claude Code cloud, and how much CPU and run time does a session allow?
 - [ ] Official 2026 WTA Finals match format and round-robin tiebreak rules (rulebook text, safoved in the repo).
 - [ ] When is the group draw, and when is the eight-player field final?
-- [ ] Does Tennis Abstract show 52-week hard-court serve and return points won for each player, with point counts?
+- [x] Does Tennis Abstract show 52-week hard-court serve and return points won for each player, with point counts? The player pages show the percentages but no point counts; the per-player data files behind them have the raw counts (milestone 5).
 - [ ] Repo name, and public or private?
 
 **After v0, in order:** switch to the additive formula (if not already), opponent-strength adjustment, shrinkage using the sample sizes, recency weighting, big-point behaviour from Match Charting data, then backtesting on past tournaments. Fun spin-offs once the engine is trusted: replaying a real Slam draw, cross-era matchups, and player what-ifs.
