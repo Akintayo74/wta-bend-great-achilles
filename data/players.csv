@@ -1,1 +1,31 @@
-name,serve_won,return_won,serve_points,return_points,source
+name,serve_points_won,serve_points,return_points_won,return_points,matches,window_start,window_end,checked_spw,checked_rpw,source
+Elena Rybakina,2545,3877,1727,4056,55,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/ElenaRybakina.js read 2026-10-04 sha256:82d49c41385bcb66
+Aryna Sabalenka,2086,3214,1473,3333,48,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/ArynaSabalenka.js read 2026-10-04 sha256:d57c880873ed3f7d
+Jessica Pegula,2168,3529,1713,3799,50,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/JessicaPegula.js read 2026-10-04 sha256:806adfaeaac5a24a
+Mirra Andreeva,1517,2523,1232,2591,36,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/MirraAndreeva.js read 2026-10-04 sha256:fff6fa1519035aa8
+Coco Gauff,1715,2883,1434,3015,42,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/CocoGauff.js read 2026-10-04 sha256:0a3138224acb81bf
+Elina Svitolina,1528,2602,1187,2549,35,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/ElinaSvitolina.js read 2026-10-04 sha256:dea4864f51d83153
+Karolina Muchova,1225,1952,940,2126,30,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/KarolinaMuchova.js read 2026-10-04 sha256:3737bbe2101a2f12
+Linda Noskova,1477,2418,926,2296,31,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/LindaNoskova.js read 2026-10-04 sha256:40fe1e82cb6332bd
+Marta Kostyuk,988,1635,721,1637,23,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/MartaKostyuk.js read 2026-10-04 sha256:5f7d7d3c6f6ee2a9
+Iga Swiatek,1382,2242,1033,2193,34,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/IgaSwiatek.js read 2026-10-04 sha256:4465094140058871
+Iva Jovic,1463,2460,1124,2458,37,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/IvaJovic.js read 2026-10-04 sha256:e7ac0d179acd4fc9
+Victoria Mboko,1415,2290,1034,2401,32,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/VictoriaMboko.js read 2026-10-04 sha256:470f05ad257dd9b7
+Sorana Cirstea,1506,2490,1115,2480,35,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/SoranaCirstea.js read 2026-10-04 sha256:222fb1932b6822cb
+Diana Shnaider,1526,2525,1126,2583,36,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/DianaShnaider.js read 2026-10-04 sha256:539c9897819586ee
+Alexandra Eala,1374,2426,1167,2584,33,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/AlexandraEala.js read 2026-10-04 sha256:3d58c7f2fb585e73
+Naomi Osaka,988,1566,663,1587,21,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/NaomiOsaka.js read 2026-10-04 sha256:5bd5a04c77949b2d
+Elise Mertens,1077,1787,853,1927,28,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/EliseMertens.js read 2026-10-04 sha256:c230fa63bc1ec11c
+Madison Keys,1119,1883,825,1923,25,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/MadisonKeys.js read 2026-10-04 sha256:a21886e4e1e41143
+Belinda Bencic,1215,1969,880,1939,27,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/BelindaBencic.js read 2026-10-04 sha256:6da8ae6b845bc214
+Anna Kalinskaya,1255,2165,982,2209,31,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/AnnaKalinskaya.js read 2026-10-04 sha256:a0776ab9d5d7c8a2
+Amanda Anisimova,1203,2040,931,2038,29,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/AmandaAnisimova.js read 2026-10-04 sha256:6ca2fa282abee291
+Anastasia Potapova,924,1724,678,1537,21,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/AnastasiaPotapova.js read 2026-10-04 sha256:ad667d94965e7c29
+Emma Navarro,1037,1789,727,1715,23,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/EmmaNavarro.js read 2026-10-04 sha256:f4a5f7396809a2ca
+Maja Chwalinska,435,775,307,703,13,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/MajaChwalinska.js read 2026-10-04 sha256:761fe02ca3408a66
+Marie Bouzkova,1038,1834,842,1891,27,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/MarieBouzkova.js read 2026-10-04 sha256:8a976397e05251c7
+Leylah Fernandez,1506,2507,1080,2539,37,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/LeylahFernandez.js read 2026-10-04 sha256:f610069d43f116f2
+Sara Bejlek,1038,1821,869,1880,28,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/SaraBejlek.js read 2026-10-04 sha256:92288e93d07fb90e
+Jelena Ostapenko,846,1521,686,1581,21,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/JelenaOstapenko.js read 2026-10-04 sha256:25194cd44387b8ec
+Maria Sakkari,1110,1881,825,1840,28,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/MariaSakkari.js read 2026-10-04 sha256:028931ddf2aa0c02
+Diane Parry,1003,1708,698,1673,24,2025-10-06,2026-10-04,,,Tennis Abstract jsmatches/DianeParry.js read 2026-10-04 sha256:e82b9340922a2a43

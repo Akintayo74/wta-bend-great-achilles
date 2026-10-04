@@ -106,3 +106,39 @@ answer is 67.66% (the spec rounded it to 67.7%).
 **Also:** one proof took 22 seconds to check because Bend was quietly
 playing out all 1,000 points of a match symbolically. Rearranging it brought
 the whole proof set back to under a second.
+
+## Milestone 5 — real players (2026-10-04)
+
+**What works now:** the simulator plays real players. For the top 30 of the
+Race to the WTA Finals, prep downloads each player's match-by-match data from
+Tennis Abstract and adds up her last 52 weeks on hard courts. That means
+serve points won and played, and return points won and played, with
+qualifying, team events, retirements and walkovers left out. It turns those
+into a point chance for every pairing (30 x 30, two formulas each, 1,800
+numbers) and writes them into a Bend file. Bend checks every one of them is
+between 0% and 100% before it will build. `./build/matchup 20261108 20
+Sabalenka Rybakina` plays a million Sabalenka-Rybakina matches in about 7
+seconds.
+
+**Interesting finding:** the choice of formula matters as much as the spec
+warned. Over all 435 pairs of these 30 players, the additive formula gives
+the favourite **7.8 points more on average** than the average formula, and
+up to **16 points more**: Andreeva against Potapova is 75% one way and 91%
+the other. Close match-ups barely move, and lopsided ones move a lot. The
+additive formula is the standard in tennis modelling and is the one we'll
+use.
+
+**A number:** a hard-court serve point is won by the server **57.6%** of the
+time on the WTA tour (154,795 points in 1,076 matches over the last 52
+weeks). Sabalenka wins 64.9% of hers, and Rybakina 65.6%.
+
+**Checking the data:** for four matches, the points in Tennis Abstract's
+data were compared with the official WTA match statistics. They agreed
+exactly in all four. The adding-up code caught one of my own bugs on its
+first run: a rule meant to skip qualifying rounds (Q1, Q2, Q3) also skipped
+quarter-finals (QF), because both start with "Q".
+
+*These are provisional inputs: the final run will use fresh data after the
+last qualifying events, and each player's numbers are being checked by hand
+against her Tennis Abstract page. Data: Tennis Abstract (Jeff Sackmann),
+CC BY-NC-SA 4.0.*
