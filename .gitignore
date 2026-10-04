@@ -7,3 +7,5 @@ node_modules/
 results/*.csv
 # Compiled simulator binaries
 build/
+# Downloaded Tennis Abstract files (prep/fetch.ts); only the trimmed extracts in data/raw/ are committed
+data/downloads/
