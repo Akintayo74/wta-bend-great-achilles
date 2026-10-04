@@ -240,3 +240,33 @@ export PATH="$HOME/.elan/bin:$PATH"
 - `U32` arithmetic compiles to native operations (the hash costs little);
   unary `Nat` scores and counters are cheap at tennis sizes, and adding up
   the `Nat` tallies of a million runs is not noticeable.
+
+## Found in milestone 5
+
+- **Proof-carrying literals are checked when the file is read.** A generated
+  `Sim.Chance{6474, {==}}` makes the checker compute `U32.is_le(6474, 10000)`
+  and confirm it is `True`. A value of 10500 fails `--check-only` with
+  `SOME PROOFS FAIL`, `expected : False{}` / `observed : True{}`, pointing at
+  that line. So generated data can carry its own range check (law L1)
+  without any new law. Cost: params.bend with 30 players (1,800 chances,
+  3,900 lines) checks in 0.8 s, and `--verdict` on matchup.bend, which
+  imports it, takes 2.2 s. A test file with 50 players (5,000 chances)
+  checked in 1.6 s and built in 6.5 s.
+- A two-argument `match server receiver:` with 900 constructor pairs is
+  fine. Bend doesn't complain about the size.
+- **Importing a file that has its own `main` works.** matchup.bend imports
+  simulate.bend `as Cli` to reuse `Cli.number`, `Cli.bits`, `Cli.show_tally`
+  and `Cli.wta`, and the imported `main` is simply not used.
+- `String.eq(a, b)` exists in Base, along with `String.order`, `String.is_lt`
+  and the rest, so the command line can name players.
+- No mutual recursion, so "search a list, stop at the first hit" is written as
+  one recursive def that builds both outcomes and picks with a helper:
+  `first(when(String.eq(s, id(p)), p), find(rest, s))`. That searches the
+  whole list (30 players), which costs nothing here.
+- An optional command-line argument is two `match args:` cases, one per
+  length (`Con{.., Con{b_s, Nil{}}}` and `Con{.., Con{m_s, Nil{}}}`).
+- `Con{+p, rest}` in a pattern makes the head reusable when the element type
+  is `Data`.
+- Constructors are per module: params.bend's test fixtures had players
+  called `A{}` and `B{}`, and that does not clash with scoring.bend's `S.A{}`
+  and `S.B{}`.
