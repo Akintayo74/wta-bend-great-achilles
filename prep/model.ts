@@ -14,11 +14,14 @@
 import { parseCsv } from "./csv.ts";
 import { add, cmp, half, ONE, parseDecimal, percent, type Ratio, ratio, sub, toTenThousandths, ZERO } from "./ratio.ts";
 
-export const PLAYER_COLUMNS = ["name", "serve_points_won", "serve_points", "return_points_won", "return_points", "matches", "window_start", "window_end", "checked_spw", "checked_rpw", "source"];
+export const PLAYER_COLUMNS = ["name", "serve_points_won", "serve_points", "return_points_won", "return_points", "matches", "window_start", "window_end", "checked_rpw", "checked_dr", "source"];
 export const TOUR_COLUMNS = ["surface", "serve_points_won", "serve_points", "matches", "window_start", "window_end", "source"];
 
 // How far (in percentage points) a computed SPW or RPW may be from the one
-// typed from the player's page.
+// read off the player's page. The page shows RPW and DR (dominance ratio,
+// RPW divided by the share of serve points lost) but not SPW, so the page's
+// SPW is worked out as 100 - RPW / DR. DR is shown to two decimals, which
+// moves that SPW by at most about 0.15 points.
 export const CHECK_TOLERANCE = ratio(1, 2);
 
 export type Player = {
@@ -29,7 +32,7 @@ export type Player = {
   servePoints: number;
   returnPoints: number;
   matches: number;
-  checked: boolean; // SPW and RPW typed from her page, and they agree
+  checked: boolean; // RPW and DR typed from her page, and they agree
   source: string;
 };
 
@@ -127,25 +130,34 @@ export function readInputs(playersText: string, tourText: string): { inputs: Inp
 
         const serve = ratio(BigInt(r.serve_points_won), BigInt(r.serve_points));
         const ret = ratio(BigInt(r.return_points_won), BigInt(r.return_points));
-        // The hand check against her Tennis Abstract page.
-        let checked = true;
-        for (const [col, value, label] of [["checked_spw", serve, "SPW"], ["checked_rpw", ret, "RPW"]] as const) {
-          if (r[col].trim() === "") {
-            checked = false;
-            continue;
+        // The hand check against her Tennis Abstract page: RPW and DR as
+        // typed from it, giving RPW directly and SPW as 100 - RPW / DR.
+        const typed = (col: string, max: Ratio | null): Ratio | null | undefined => {
+          if (r[col].trim() === "") return undefined;
+          const v = parseDecimal(r[col]);
+          if (v === null || cmp(v, ZERO) <= 0 || (max !== null && cmp(v, max) > 0)) {
+            say(where, `${col} must be a ${max === null ? "positive number such as 1.26" : "percentage such as 62.4"}, got "${r[col]}"`);
+            return null;
           }
-          const typed = parseDecimal(r[col]);
-          if (typed === null || cmp(typed, ZERO) < 0 || cmp(typed, ratio(100)) > 0) {
-            say(where, `${col} must be a percentage such as 62.4, got "${r[col]}"`);
-            continue;
-          }
-          const computed = ratio(value.n * 100n, value.d);
-          const gap = sub(computed, typed);
-          const off = cmp(gap, ZERO) < 0 ? ratio(-gap.n, gap.d) : gap;
-          if (cmp(off, CHECK_TOLERANCE) > 0) {
-            say(where, `${label} from the data is ${percent(value, 1)}%, the page says ${r[col]}% (more than 0.5 points apart)`);
+          return v;
+        };
+        const near = (computed: Ratio, page: Ratio) => {
+          const gap = sub(ratio(computed.n * 100n, computed.d), page);
+          return cmp(cmp(gap, ZERO) < 0 ? ratio(-gap.n, gap.d) : gap, CHECK_TOLERANCE) <= 0;
+        };
+        const rpw = typed("checked_rpw", ratio(100));
+        const dr = typed("checked_dr", null);
+        if (rpw && !near(ret, rpw)) {
+          say(where, `RPW from the data is ${percent(ret, 1)}%, the page says ${r.checked_rpw}% (more than 0.5 points apart)`);
+        }
+        if (dr && rpw === undefined) say(where, "checked_dr needs checked_rpw too: the page's SPW is 100 - RPW / DR");
+        if (dr && rpw) {
+          const pageSpw = sub(ratio(100), ratio(rpw.n * dr.d, rpw.d * dr.n));
+          if (!near(serve, pageSpw)) {
+            say(where, `SPW from the data is ${percent(serve, 1)}%, the page's RPW and DR give ${percent(ratio(pageSpw.n, pageSpw.d * 100n), 1)}% (more than 0.5 points apart)`);
           }
         }
+        const checked = rpw !== undefined && rpw !== null && dr !== undefined && dr !== null;
         players.push({
           name: r.name, id: ids[k], serve, ret, servePoints: +r.serve_points, returnPoints: +r.return_points,
           matches: +r.matches, checked, source: r.source,

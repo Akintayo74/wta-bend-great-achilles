@@ -3,7 +3,7 @@
 #
 # Players: 30, hard courts, 2025-10-06 to 2026-10-04 (30 not yet checked by hand)
 # Tour serve average: 57.59% of 154795 serve points in 1076 matches, 2025-09-23 to 2026-09-21
-# Inputs: data/players.csv sha256:0035b5087b642aeb, data/tour.csv sha256:ae0e9e0e8e5d32f5
+# Inputs: data/players.csv sha256:0b15c91f046ae411, data/tour.csv sha256:ae0e9e0e8e5d32f5
 # Source: Tennis Abstract (Jeff Sackmann), CC BY-NC-SA 4.0.
 #
 # Every chance is out of 10,000 and written as Sim.Chance{p, {==}}: the {==}
@@ -183,7 +183,7 @@ def Player.id(p: Player) -> String:
     case Parry{}:
       "Parry"
 
-# Were her SPW and RPW checked by hand against her Tennis Abstract page?
+# Were her RPW and DR checked by hand against her Tennis Abstract page?
 def Player.checked(p: Player) -> Bool:
   match p:
     case Rybakina{}:

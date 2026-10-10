@@ -69,7 +69,7 @@ export function render(inp: Inputs, ch: Chances, playersText: string, tourText: 
   };
   table("name", "String", (p) => bendString(p.name), "Her name as Tennis Abstract prints it.");
   table("id", "String", (p) => bendString(p.id), "Her name on the command line: the constructor's name.");
-  table("checked", "Bool", (p) => (p.checked ? "True{}" : "False{}"), "Were her SPW and RPW checked by hand against her Tennis Abstract page?");
+  table("checked", "Bool", (p) => (p.checked ? "True{}" : "False{}"), "Were her RPW and DR checked by hand against her Tennis Abstract page?");
   L.push(
     "def Method.name(m: Method) -> String:",
     "  match m:",

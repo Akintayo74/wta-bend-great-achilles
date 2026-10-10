@@ -126,11 +126,11 @@ test("files are read as JSON, never run, and columns land in the right place", (
 // A: 62% serve, 45% return; B: 58% serve, 42% return; tour average 56%
 // (SPEC.md, Point model). As counts out of 1,000 points.
 
-type P = { name: string; sw: string; sp: string; rw: string; rp: string; spw?: string; rpw?: string };
+type P = { name: string; sw: string; sp: string; rw: string; rp: string; rpw?: string; dr?: string };
 const playersCsv = (ps: P[]) =>
   formatCsv(PLAYER_COLUMNS, ps.map((p) => ({
     name: p.name, serve_points_won: p.sw, serve_points: p.sp, return_points_won: p.rw, return_points: p.rp, matches: "10",
-    window_start: "2025-10-06", window_end: "2026-10-04", checked_spw: p.spw ?? "", checked_rpw: p.rpw ?? "", source: "test",
+    window_start: "2025-10-06", window_end: "2026-10-04", checked_rpw: p.rpw ?? "", checked_dr: p.dr ?? "", source: "test",
   })));
 const tourCsv = (won = "560", pts = "1000") =>
   formatCsv(TOUR_COLUMNS, [{ surface: "Hard", serve_points_won: won, serve_points: pts, matches: "5", window_start: "2025-09-23", window_end: "2026-09-21", source: "test" }]);
@@ -188,20 +188,24 @@ test("refusal: every bad input is reported, not just the first", () => {
     { ...B, rw: "1200" },
     { ...A, name: "Player A" }, // same name again
     { ...B, name: "Player C", sp: "0" },
-    { ...B, name: "Player D", spw: "70.0" }, // page says 70.0, data says 58.0
+    { ...B, name: "Player D", rpw: "42.0", dr: "1.50" }, // page gives SPW 72.0, data says 58.0
     { ...B, name: "Player E", rpw: "42%" },
   ];
   const { inputs, problems } = readInputs(playersCsv(bad), tourCsv());
   assert.equal(inputs, null);
-  const want = ["serve_points_won is blank", "more return points won than played", "name appears twice", "serve_points is 0", "the page says 70.0%", "checked_rpw must be a percentage"];
+  const want = ["serve_points_won is blank", "more return points won than played", "name appears twice", "serve_points is 0", "the page's RPW and DR give 72.0%", "checked_rpw must be a percentage"];
   for (const w of want) assert.ok(problems.some((p) => p.includes(w)), `missing: ${w}\n${problems.join("\n")}`);
 });
 
 test("hand check: within 0.5 points passes and marks the player checked", () => {
-  const { inputs, problems } = readInputs(playersCsv([{ ...A, spw: "62.4", rpw: "44.5" }, B]), tourCsv());
+  // A: 62% serve, 45% return, so DR = 45 / 38 = 1.18 and the page's SPW is
+  // 100 - 44.5 / 1.18 = 62.3.
+  const { inputs, problems } = readInputs(playersCsv([{ ...A, rpw: "44.5", dr: "1.18" }, { ...B, rpw: "42.0" }]), tourCsv());
   assert.deepEqual(problems, []);
   assert.deepEqual(inputs!.players.map((p) => p.checked), [true, false]);
-  assert.ok(readInputs(playersCsv([{ ...A, spw: "62.6" }]), tourCsv()).problems.length === 1);
+  assert.ok(readInputs(playersCsv([{ ...A, rpw: "45.6", dr: "1.20" }]), tourCsv()).problems.length === 1);
+  assert.ok(readInputs(playersCsv([{ ...A, rpw: "45.0", dr: "1.30" }]), tourCsv()).problems.some((p) => p.includes("SPW from the data")));
+  assert.ok(readInputs(playersCsv([{ ...A, dr: "1.18" }]), tourCsv()).problems.some((p) => p.includes("needs checked_rpw")));
 });
 
 test("refusal: mixed snapshots and a bad tour.csv", () => {
