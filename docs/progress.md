@@ -178,3 +178,31 @@ cap.
 *No real-field odds yet: the players' numbers are still being checked by
 hand, and the field isn't final. Data: Tennis Abstract (Jeff Sackmann),
 CC BY-NC-SA 4.0.*
+
+## Milestone 7 — the results page (2026-10-10)
+
+**What works now:** one command, `node prep/final.ts`, takes the eight
+players in `data/field.csv` (and the groups, once they're drawn), plays the
+whole WTA Finals 1,048,576 times, plays every one of the 28 possible
+head-to-heads a million times each, checks that the totals add up (exactly
+one champion, two finalists and four semifinalists per tournament), and
+writes the numbers for a small web page. The page shows each player's chance
+of reaching the semifinals, the final and winning the title, a grid of
+head-to-head chances, how the model works, what it leaves out, and the seed
+needed to reproduce it. The whole run takes under five minutes.
+
+**Interesting finding:** in a test run, Mirra Andreeva (seed 7) has a lower
+chance than Coco Gauff (seed 4) of getting out of the group, 52.0% against
+54.6%, but a better chance of winning the title, 13.1% against 11.3%. The
+draw explains it: seeds 3 and 4 always go into different groups, so Gauff
+never meets Swiatek there, while seeds 7 and 8 are split too, so Andreeva
+never gets the weakest player, Keys, in her group. Once out of the group,
+Andreeva's slightly better numbers win more often.
+
+**A number:** Aryna Sabalenka wins **23.8%** of a million simulated
+tournaments in the test run, ahead of Iga Swiatek at 21.2%.
+
+*These are test numbers, not the published odds: the field below is a guess,
+the players' numbers haven't been checked by hand yet, and the data is from
+2026-10-04. The real run waits for the final field. Data: Tennis Abstract
+(Jeff Sackmann), CC BY-NC-SA 4.0.*

@@ -9,3 +9,7 @@ results/*.csv
 build/
 # Downloaded Tennis Abstract files (prep/fetch.ts); only the trimmed extracts in data/raw/ are committed
 data/downloads/
+# Results page build output; site/src/data/results.json is the latest run, committed only when published (git add -f)
+site/dist/
+site/.astro/
+site/src/data/results.json

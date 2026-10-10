@@ -1,0 +1,162 @@
+---
+// The 2026 WTA Finals odds. Every number on this page comes from
+// src/data/results.json, written by prep/final.ts; nothing is typed here.
+const files = import.meta.glob("../data/*.json", { eager: true });
+const r: any = (files["../data/results.json"] ?? files["../data/sample.json"] as any).default;
+
+const pct = (n: number, runs = r.runs) => (100 * n) / runs;
+const show = (x: number) => (x < 0.05 ? "<0.1" : x > 99.95 ? ">99.9" : x.toFixed(1));
+const players = [...r.players].sort((a: any, b: any) => b.titles - a.titles || a.seed - b.seed);
+const bySeed = [...r.players].sort((a: any, b: any) => a.seed - b.seed);
+const groups = r.draw === "seeded" ? null : { A: bySeed.filter((p: any) => p.group === "A"), B: bySeed.filter((p: any) => p.group === "B") };
+
+// Chance that the row player beats the column player in one match.
+const beat = (a: any, b: any) => {
+  const m = r.matchups.find((m: any) => (m.a === a.id && m.b === b.id) || (m.a === b.id && m.b === a.id));
+  const done = m.aWins + m.bWins;
+  return m.a === a.id ? (100 * m.aWins) / done : (100 * m.bWins) / done;
+};
+const heat = (x: number) => `color-mix(in oklab, var(--win) ${Math.round(Math.max(0, x - 50) * 2)}%, color-mix(in oklab, var(--lose) ${Math.round(Math.max(0, 50 - x) * 2)}%, var(--even)))`;
+const runs = r.runs.toLocaleString("en");
+const surname = (n: string) => n.split(" ").at(-1);
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>2026 WTA Finals odds</title>
+    <meta name="description" content={`Each player's chance of reaching the semifinals, the final and winning the 2026 WTA Finals, from ${runs} simulated tournaments.`} />
+    <style>
+      :root {
+        --bg: #fbfaf7; --fg: #1c1c1e; --muted: #6b6b70; --line: #e4e2dc; --card: #ffffff;
+        --accent: #5b3fd1; --accent-soft: #e7e1ff; --warn-bg: #fff4d6; --warn-fg: #6b4b00;
+        --win: #2e9b5f; --lose: #c8493a; --even: #f3f1ec;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #141416; --fg: #ececee; --muted: #a0a0a8; --line: #2c2c31; --card: #1c1c20;
+          --accent: #a993ff; --accent-soft: #2e2754; --warn-bg: #3a2f10; --warn-fg: #f4d98a;
+          --win: #3fb877; --lose: #e06a5b; --even: #26262b;
+        }
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+      main { max-width: 860px; margin: 0 auto; padding: 32px 16px 64px; }
+      h1 { font-size: 1.9rem; line-height: 1.2; margin: 0 0 8px; letter-spacing: -0.01em; }
+      h2 { font-size: 1.2rem; margin: 40px 0 8px; }
+      p { margin: 8px 0; }
+      .lede { color: var(--muted); margin-bottom: 20px; }
+      .banner { background: var(--warn-bg); color: var(--warn-fg); border-radius: 10px; padding: 12px 14px; margin: 16px 0; font-weight: 500; }
+      .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 4px 0; overflow-x: auto; }
+      table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+      th, td { padding: 10px 12px; text-align: left; }
+      thead th { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--line); }
+      tbody tr + tr td { border-top: 1px solid var(--line); }
+      .seed { color: var(--muted); width: 2.5em; }
+      .num { text-align: right; white-space: nowrap; }
+      .title-cell { width: 34%; }
+      .bar { display: flex; align-items: center; gap: 8px; }
+      .bar span { display: block; height: 10px; border-radius: 5px; background: var(--accent); min-width: 2px; }
+      .bar b { font-weight: 600; min-width: 3.2em; text-align: right; }
+      .grid td, .grid th { padding: 8px 6px; text-align: center; font-size: 0.9rem; }
+      .grid th[scope="row"] { text-align: left; white-space: nowrap; }
+      .grid td.self { color: var(--muted); }
+      .groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+      .groups .card { padding: 10px 14px; }
+      ul { padding-left: 1.2em; }
+      li { margin: 4px 0; }
+      .small { font-size: 0.9rem; color: var(--muted); }
+      code { font-size: 0.9em; background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; }
+      a { color: var(--accent); }
+      .short { display: none; }
+      .grp { display: block; font-size: 0.8rem; }
+      @media (max-width: 560px) {
+        th, td { padding: 9px 7px; }
+        .seed, .bar span { display: none; }
+        .title-cell { width: auto; }
+        .long { display: none; }
+        .short { display: inline; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Who wins the 2026 WTA Finals?</h1>
+      <p class="lede">Each player's chances, from {runs} simulated tournaments. Every point is played out using the players' last 52 weeks on hard courts.</p>
+
+      {r.test && <div class="banner">Test run: these are not the published odds.{!r.allChecked && " Some players' numbers haven't been checked by hand yet."}</div>}
+
+      <h2>Title odds</h2>
+      <div class="card">
+        <table>
+          <thead><tr><th class="seed">Seed</th><th>Player</th><th class="num"><span class="long">Semifinal</span><span class="short">Semi</span></th><th class="num">Final</th><th class="title-cell">Title</th></tr></thead>
+          <tbody>
+            {players.map((p: any) => (
+              <tr>
+                <td class="seed">{p.seed}</td>
+                <td>{p.name}{groups && <span class="small grp">Group {p.group}</span>}</td>
+                <td class="num">{show(pct(p.semifinals))}%</td>
+                <td class="num">{show(pct(p.finals))}%</td>
+                <td class="title-cell"><div class="bar"><b>{show(pct(p.titles))}%</b><span style={`width:${(pct(p.titles) / pct(players[0].titles)) * 70}%`}></span></div></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="small">"Semifinal" is the chance of getting out of the group. {r.draw === "seeded" ? "The groups haven't been drawn yet, so each simulated tournament draws them by lot, as the rulebook does: seeds 1 and 2 are kept apart, and seeds 3 and 4, 5 and 6, and 7 and 8 are split between the groups." : "The groups are the real draw."}</p>
+
+      {groups && (
+        <>
+          <h2>Groups</h2>
+          <div class="groups">
+            {(["A", "B"] as const).map((g) => (
+              <div class="card"><strong>Group {g}</strong><ul>{groups[g].map((p: any) => <li>{p.name} <span class="small">({p.seed})</span></li>)}</ul></div>
+            ))}
+          </div>
+        </>
+      )}
+
+      <h2>Head to head</h2>
+      <p class="small">The chance that the player on the left beats the player on top in a single match.</p>
+      <div class="card">
+        <table class="grid">
+          <thead><tr><th></th>{bySeed.map((b: any) => <th>{surname(b.name)}</th>)}</tr></thead>
+          <tbody>
+            {bySeed.map((a: any) => (
+              <tr>
+                <th scope="row"><span class="long">{a.name}</span><span class="short">{surname(a.name)}</span></th>
+                {bySeed.map((b: any) => a.id === b.id
+                  ? <td class="self">–</td>
+                  : <td style={`background:${heat(beat(a, b))}`}>{Math.round(beat(a, b))}%</td>)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h2>How it works</h2>
+      <p>Each player is described by two numbers from the last 52 weeks on hard courts ({r.window.start} to {r.window.end}): the share of points she won on her own serve, and the share she won when returning. When two players meet, the chance that the server wins a point starts from the tour average ({(100 * r.tourServe).toFixed(1)}%), plus the server's edge on serve, plus the returner's weakness on return.</p>
+      <p>From there, every point of every match is played out: games, tiebreaks, best-of-three sets, then the round robin, the group tables with the rulebook's tiebreaks, the semifinals and the final. This is done {runs} times. The scoring and tournament rules are written in <a href="https://bend-lang.com">Bend</a>, and 30 laws about them, such as "a group's places are always 1st, 2nd, 3rd and 4th", are mathematically proven, not just tested.</p>
+      <div class="card" style="padding: 4px 14px">
+        <table>
+          <thead><tr><th>Player</th><th class="num"><span class="long">Serve points won</span><span class="short">Serve</span></th><th class="num"><span class="long">Return points won</span><span class="short">Return</span></th></tr></thead>
+          <tbody>{bySeed.map((p: any) => <tr><td>{p.name}</td><td class="num">{(100 * p.serve).toFixed(1)}%</td><td class="num">{(100 * p.ret).toFixed(1)}%</td></tr>)}</tbody>
+        </table>
+      </div>
+
+      <h2>What it leaves out</h2>
+      <ul>
+        <li>Withdrawals and alternates. Players often pull out of the Finals; here everyone plays every match.</li>
+        <li>Fatigue across the week, form, injuries and big-point nerves.</li>
+        <li>Who the points were won against: a strong record against weak opponents counts the same as against strong ones.</li>
+      </ul>
+      <p>Betting odds also reflect news and money; these numbers reflect only the stats above.</p>
+
+      <h2>Reproduce it</h2>
+      <p class="small">Seed {r.seed}, {runs} tournaments ({r.bits} bits), {r.method} method, draw {r.draw}, run on {r.date} from commit {r.commit}{r.unfinished > 0 ? `; ${r.unfinished} unfinished` : ""}. The same seed always gives the same numbers: <code>node prep/final.ts --seed {r.seed}</code>.</p>
+
+      <p class="small" style="margin-top: 32px">Data: <a href="https://www.tennisabstract.com">Tennis Abstract</a> by Jeff Sackmann, licensed <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>. A non-commercial fan project, not affiliated with the WTA.</p>
+    </main>
+  </body>
+</html>

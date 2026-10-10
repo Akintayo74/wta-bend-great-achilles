@@ -11,6 +11,20 @@ simulator against an exact calculator. The first goal is title odds for the
 - `docs/progress.md`: progress, milestone by milestone.
 - `docs/bend-notes.md`: notes on the Bend toolchain.
 
+## The results page
+
+`node prep/final.ts` runs the whole 2026 WTA Finals a million times for the
+field in `data/field.csv`, plus every head-to-head match-up, and writes the
+numbers to `results/` and `site/src/data/results.json`. The page in `site/`
+(an [Astro](https://astro.build) static site) shows them:
+
+```
+cd site && npm install && npm run build   # then open site/dist/index.html
+```
+
+Until a published run exists, the page shows a sample from a test run,
+clearly marked as such.
+
 ## Data
 
 Player statistics come from [Tennis Abstract](https://www.tennisabstract.com)

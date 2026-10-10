@@ -86,6 +86,11 @@ Bend 2.0.35 is installed automatically at session start by `.claude/hooks/sessio
 # build the Finals:   bend engine/finals.bend -o build/finals
 # run the Finals:     ./build/finals SEED BITS DRAW P1..P8 [additive|average] [unchecked]
 #                     (DRAW is `seeded` or 8 letters A/B for seeds 1-8; e.g. 20261108 18 seeded ...)
+# final run:         node prep/final.ts [--test] [--bits 20] [--seed 20261108] [--field data/field.csv]
+#                     (field + groups from data/field.csv; finals + 28 match-ups, ~6 min at 2^20;
+#                     writes results/<date>-seed<seed>-*.csv and site/src/data/results.json;
+#                     --test allows unchecked players and marks the page as a test)
+# results page:       cd site && npm install && npm run build   (static page in site/dist/index.html)
 # compare formulas:   node prep/compare.ts [--simulate]       (exact odds for every pair; --simulate also checks the engine, ~1.5 min)
 # exact calculator:   prep/exact.ts (library); checked against the engine by:
 # validate:           node prep/validate.ts   (64-match-up grid, 2^20 runs each, ~6 min)

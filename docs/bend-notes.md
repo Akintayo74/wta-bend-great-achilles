@@ -316,3 +316,9 @@ export PATH="$HOME/.elan/bin:$PATH"
 - In this session, `--verdict` couldn't run: elan now downloads Lean from
   `releases.lean-lang.org`, and the session's network policy blocked that
   host (403 from the proxy).
+
+## Milestone 7 (2026-10-10)
+
+- No new Bend code: the final run drives the existing `build/finals` and
+  `build/matchup` binaries from `prep/final.ts`.
+- At 2^20 on 4 cores: the Finals take 113 s and the 28 match-ups 169 s.
