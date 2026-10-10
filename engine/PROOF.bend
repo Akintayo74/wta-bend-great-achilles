@@ -5072,3 +5072,491 @@ def L16_go(g, rr, x, y, ms):
 
 def Laws.L16_more_wins_ranks_higher(g, rr, x, y, more):
   L16_go(g, rr, x, y, dup4(Bool, Nat.is_gt(Laws.Rule.wins(x, rr), Laws.Rule.wins(y, rr)), True{}, more))
+
+# ---------------------------------------------------------------------------
+# L17: the places are a ranking. The places come from the twelve answers to
+# "is y above x?". They are 1, 2, 3 and 4 exactly when those answers are a
+# strict order: for each pair exactly one is above the other, and there is
+# no circle (a above b above c above a). The answers are concrete except
+# within a three-way tie, where they come from set and game percentages, the
+# Race and head-to-head. So the proof needs: percentages compare like
+# numbers (no circles, and comparing back gives the reverse), which takes
+# multiplication facts; the Race does too, since the four seeds differ.
+# ---------------------------------------------------------------------------
+
+# Small Bool and Cmp tools.
+
+def flip(c: Cmp) -> Cmp:
+  match c:
+    case LT{}:
+      GT{}
+    case EQ{}:
+      EQ{}
+    case GT{}:
+      LT{}
+
+def cmpeq(a: Cmp, b: Cmp) -> Bool:
+  match a b:
+    case LT{} LT{}:
+      True{}
+    case EQ{} EQ{}:
+      True{}
+    case GT{} GT{}:
+      True{}
+    case _ _:
+      False{}
+
+# Three comparisons, of a with b, b with c and a with c, that some three
+# numbers could give.
+def cons3(ab: Cmp, bc: Cmp, ac: Cmp) -> Bool:
+  match ab bc ac:
+    case LT{} LT{} LT{}:
+      True{}
+    case LT{} LT{} EQ{}:
+      False{}
+    case LT{} LT{} GT{}:
+      False{}
+    case LT{} EQ{} LT{}:
+      True{}
+    case LT{} EQ{} EQ{}:
+      False{}
+    case LT{} EQ{} GT{}:
+      False{}
+    case LT{} GT{} LT{}:
+      True{}
+    case LT{} GT{} EQ{}:
+      True{}
+    case LT{} GT{} GT{}:
+      True{}
+    case EQ{} LT{} LT{}:
+      True{}
+    case EQ{} LT{} EQ{}:
+      False{}
+    case EQ{} LT{} GT{}:
+      False{}
+    case EQ{} EQ{} LT{}:
+      False{}
+    case EQ{} EQ{} EQ{}:
+      True{}
+    case EQ{} EQ{} GT{}:
+      False{}
+    case EQ{} GT{} LT{}:
+      False{}
+    case EQ{} GT{} EQ{}:
+      False{}
+    case EQ{} GT{} GT{}:
+      True{}
+    case GT{} LT{} LT{}:
+      True{}
+    case GT{} LT{} EQ{}:
+      True{}
+    case GT{} LT{} GT{}:
+      True{}
+    case GT{} EQ{} LT{}:
+      False{}
+    case GT{} EQ{} EQ{}:
+      False{}
+    case GT{} EQ{} GT{}:
+      True{}
+    case GT{} GT{} LT{}:
+      False{}
+    case GT{} GT{} EQ{}:
+      False{}
+    case GT{} GT{} GT{}:
+      True{}
+
+# "a above b", "b above c", "a above c" with no circle.
+def acyc(ab: Bool, bc: Bool, ac: Bool) -> Bool:
+  match ab bc ac:
+    case True{} True{} False{}:
+      False{}
+    case False{} False{} True{}:
+      False{}
+    case _ _ _:
+      True{}
+
+law and_true_l:
+  for +p: Bool
+  for +q: Bool
+  for h: {Bool.and(p, q) == True{} : Bool}
+  {p == True{} : Bool}
+
+def and_true_l(p, q, h):
+  match p:
+    case True{}:
+      {==}
+    case False{}:
+      ex_falso({False{} == True{} : Bool}, false_is_not_true(h))
+
+law dup3:
+  for -A: Type
+  for -x: A
+  for -y: A
+  for e: {x == y : A}
+  {x == y : A} & {x == y : A} & {x == y : A}
+
+def dup3(A, x, y, e):
+  %e : {x == _ : A} & {x == _ : A} & {x == _ : A}
+  ({==}, {==}, {==})
+
+# Comparing numbers.
+
+law cmp_flip:
+  for +p: Nat
+  for +q: Nat
+  {cmpeq(Nat.cmp(q, p), flip(Nat.cmp(p, q))) == True{} : Bool}
+
+def cmp_flip(p, q):
+  match p q:
+    case 0n 0n:
+      {==}
+    case 0n 1n+qp:
+      {==}
+    case 1n+pp 0n:
+      {==}
+    case 1n+pp 1n+qp:
+      cmp_flip(pp, qp)
+
+law cons_a_least:
+  for +c: Cmp
+  {cons3(LT{}, c, LT{}) == True{} : Bool}
+
+def cons_a_least(c):
+  match c:
+    case LT{}:
+      {==}
+    case EQ{}:
+      {==}
+    case GT{}:
+      {==}
+
+law cons_b_least:
+  for +c: Cmp
+  {cons3(GT{}, LT{}, c) == True{} : Bool}
+
+def cons_b_least(c):
+  match c:
+    case LT{}:
+      {==}
+    case EQ{}:
+      {==}
+    case GT{}:
+      {==}
+
+law cons_c_least:
+  for +c: Cmp
+  {cons3(c, GT{}, GT{}) == True{} : Bool}
+
+def cons_c_least(c):
+  match c:
+    case LT{}:
+      {==}
+    case EQ{}:
+      {==}
+    case GT{}:
+      {==}
+
+law nat_cons:
+  for +x: Nat
+  for +y: Nat
+  for +z: Nat
+  {cons3(Nat.cmp(x, y), Nat.cmp(y, z), Nat.cmp(x, z)) == True{} : Bool}
+
+def nat_cons(x, y, z):
+  match x y z:
+    case 0n 0n 0n:
+      {==}
+    case 0n 0n 1n+zp:
+      {==}
+    case 0n 1n+yp 0n:
+      {==}
+    case 0n 1n+yp 1n+zp:
+      cons_a_least(Nat.cmp(yp, zp))
+    case 1n+xp 0n 0n:
+      {==}
+    case 1n+xp 0n 1n+zp:
+      cons_b_least(Nat.cmp(xp, zp))
+    case 1n+xp 1n+yp 0n:
+      cons_c_least(Nat.cmp(xp, yp))
+    case 1n+xp 1n+yp 1n+zp:
+      nat_cons(xp, yp, zp)
+
+# Adding and multiplying.
+
+law add_succ_r:
+  for +a: Nat
+  for +b: Nat
+  {Nat.add(a, 1n+b) == 1n+Nat.add(a, b) : Nat}
+
+def add_succ_r(a, b):
+  match a:
+    case 0n:
+      {==}
+    case 1n+p:
+      %Equal.sym(Nat, Nat.add(p, 1n+b), 1n+Nat.add(p, b), add_succ_r(p, b)) : {1n+_ == 1n+1n+Nat.add(p, b) : Nat}
+      {==}
+
+law add_comm:
+  for +a: Nat
+  for +b: Nat
+  {Nat.add(a, b) == Nat.add(b, a) : Nat}
+
+def add_comm(a, b):
+  match a:
+    case 0n:
+      Equal.sym(Nat, Nat.add(b, 0n), b, nat_add_zero(b))
+    case 1n+p:
+      %Equal.sym(Nat, Nat.add(b, 1n+p), 1n+Nat.add(b, p), add_succ_r(b, p)) : {1n+Nat.add(p, b) == _ : Nat}
+      %add_comm(p, b) : {1n+Nat.add(p, b) == 1n+_ : Nat}
+      {==}
+
+# b + (p + x) = p + (b + x)
+law add_left_swap:
+  for +b: Nat
+  for +p: Nat
+  for +x: Nat
+  {Nat.add(b, Nat.add(p, x)) == Nat.add(p, Nat.add(b, x)) : Nat}
+
+def add_left_swap(b, p, x):
+  %nat_add_assoc(b, p, x) : {_ == Nat.add(p, Nat.add(b, x)) : Nat}
+  %nat_add_assoc(p, b, x) : {Nat.add(Nat.add(b, p), x) == _ : Nat}
+  %add_comm(b, p) : {Nat.add(Nat.add(b, p), x) == Nat.add(_, x) : Nat}
+  {==}
+
+law mul_zero_r:
+  for +a: Nat
+  {Nat.mul(a, 0n) == 0n : Nat}
+
+def mul_zero_r(a):
+  match a:
+    case 0n:
+      {==}
+    case 1n+p:
+      mul_zero_r(p)
+
+law mul_succ_r:
+  for +a: Nat
+  for +b: Nat
+  {Nat.mul(a, 1n+b) == Nat.add(a, Nat.mul(a, b)) : Nat}
+
+def mul_succ_r(a, b):
+  match a:
+    case 0n:
+      {==}
+    case 1n+p:
+      %Equal.sym(Nat, Nat.mul(p, 1n+b), Nat.add(p, Nat.mul(p, b)), mul_succ_r(p, b)) : {1n+Nat.add(b, _) == 1n+Nat.add(p, Nat.add(b, Nat.mul(p, b))) : Nat}
+      %add_left_swap(b, p, Nat.mul(p, b)) : {1n+Nat.add(b, Nat.add(p, Nat.mul(p, b))) == 1n+_ : Nat}
+      {==}
+
+law mul_comm:
+  for +a: Nat
+  for +b: Nat
+  {Nat.mul(a, b) == Nat.mul(b, a) : Nat}
+
+def mul_comm(a, b):
+  match a:
+    case 0n:
+      Equal.sym(Nat, Nat.mul(b, 0n), 0n, mul_zero_r(b))
+    case 1n+p:
+      %Equal.sym(Nat, Nat.mul(b, 1n+p), Nat.add(b, Nat.mul(b, p)), mul_succ_r(b, p)) : {Nat.add(b, Nat.mul(p, b)) == _ : Nat}
+      %mul_comm(p, b) : {Nat.add(b, Nat.mul(p, b)) == Nat.add(b, _) : Nat}
+      {==}
+
+law mul_distrib_r:
+  for +a: Nat
+  for +b: Nat
+  for +c: Nat
+  {Nat.mul(Nat.add(a, b), c) == Nat.add(Nat.mul(a, c), Nat.mul(b, c)) : Nat}
+
+def mul_distrib_r(a, b, c):
+  match a:
+    case 0n:
+      {==}
+    case 1n+p:
+      %Equal.sym(Nat, Nat.mul(Nat.add(p, b), c), Nat.add(Nat.mul(p, c), Nat.mul(b, c)), mul_distrib_r(p, b, c)) : {Nat.add(c, _) == Nat.add(Nat.add(c, Nat.mul(p, c)), Nat.mul(b, c)) : Nat}
+      Equal.sym(Nat, Nat.add(Nat.add(c, Nat.mul(p, c)), Nat.mul(b, c)), Nat.add(c, Nat.add(Nat.mul(p, c), Nat.mul(b, c))), nat_add_assoc(c, Nat.mul(p, c), Nat.mul(b, c)))
+
+law mul_assoc:
+  for +a: Nat
+  for +b: Nat
+  for +c: Nat
+  {Nat.mul(Nat.mul(a, b), c) == Nat.mul(a, Nat.mul(b, c)) : Nat}
+
+def mul_assoc(a, b, c):
+  match a:
+    case 0n:
+      {==}
+    case 1n+p:
+      %Equal.sym(Nat, Nat.mul(Nat.add(b, Nat.mul(p, b)), c), Nat.add(Nat.mul(b, c), Nat.mul(Nat.mul(p, b), c)), mul_distrib_r(b, Nat.mul(p, b), c)) : {_ == Nat.add(Nat.mul(b, c), Nat.mul(p, Nat.mul(b, c))) : Nat}
+      %mul_assoc(p, b, c) : {Nat.add(Nat.mul(b, c), Nat.mul(Nat.mul(p, b), c)) == Nat.add(Nat.mul(b, c), _) : Nat}
+      {==}
+
+# (a * b) * c = (a * c) * b
+law mul_swap23:
+  for +a: Nat
+  for +b: Nat
+  for +c: Nat
+  {Nat.mul(Nat.mul(a, b), c) == Nat.mul(Nat.mul(a, c), b) : Nat}
+
+def mul_swap23(a, b, c):
+  %Equal.sym(Nat, Nat.mul(Nat.mul(a, b), c), Nat.mul(a, Nat.mul(b, c)), mul_assoc(a, b, c)) : {_ == Nat.mul(Nat.mul(a, c), b) : Nat}
+  %Equal.sym(Nat, Nat.mul(Nat.mul(a, c), b), Nat.mul(a, Nat.mul(c, b)), mul_assoc(a, c, b)) : {Nat.mul(a, Nat.mul(b, c)) == _ : Nat}
+  %mul_comm(b, c) : {Nat.mul(a, Nat.mul(b, c)) == Nat.mul(a, _) : Nat}
+  {==}
+
+# Comparing after adding the same number, or multiplying by the same
+# positive number, gives the same answer.
+law cmp_add_l:
+  for +n: Nat
+  for +a: Nat
+  for +b: Nat
+  {Nat.cmp(Nat.add(n, a), Nat.add(n, b)) == Nat.cmp(a, b) : Cmp}
+
+def cmp_add_l(n, a, b):
+  match n:
+    case 0n:
+      {==}
+    case 1n+p:
+      cmp_add_l(p, a, b)
+
+law cmp_mul_pos:
+  for +x: Nat
+  for +y: Nat
+  for +k: Nat
+  {Nat.cmp(Nat.mul(x, 1n+k), Nat.mul(y, 1n+k)) == Nat.cmp(x, y) : Cmp}
+
+def cmp_mul_pos(x, y, k):
+  match x y:
+    case 0n 0n:
+      {==}
+    case 0n 1n+yp:
+      {==}
+    case 1n+xp 0n:
+      {==}
+    case 1n+xp 1n+yp:
+      Equal.trans(Cmp, Nat.cmp(Nat.add(1n+k, Nat.mul(xp, 1n+k)), Nat.add(1n+k, Nat.mul(yp, 1n+k))), Nat.cmp(Nat.mul(xp, 1n+k), Nat.mul(yp, 1n+k)), Nat.cmp(xp, yp), cmp_add_l(1n+k, Nat.mul(xp, 1n+k), Nat.mul(yp, 1n+k)), cmp_mul_pos(xp, yp, k))
+
+law cmp_mul_max:
+  for +x: Nat
+  for +y: Nat
+  for +n: Nat
+  {Nat.cmp(Nat.mul(x, Nat.max(1n, n)), Nat.mul(y, Nat.max(1n, n))) == Nat.cmp(x, y) : Cmp}
+
+def cmp_mul_max(x, y, n):
+  match n:
+    case 0n:
+      cmp_mul_pos(x, y, 0n)
+    case 1n+p:
+      cmp_mul_pos(x, y, p)
+
+# Shares compare like numbers: no circles.
+law share_cons:
+  for +w1: Nat
+  for +l1: Nat
+  for +w2: Nat
+  for +l2: Nat
+  for +w3: Nat
+  for +l3: Nat
+  {cons3(Laws.Rule.share_cmp(w1, l1, w2, l2), Laws.Rule.share_cmp(w2, l2, w3, l3), Laws.Rule.share_cmp(w1, l1, w3, l3)) == True{} : Bool}
+
+def share_cons(w1, l1, w2, l2, w3, l3):
+  %cmp_mul_max(Nat.mul(w1, Nat.max(1n, Nat.add(w2, l2))), Nat.mul(w2, Nat.max(1n, Nat.add(w1, l1))), Nat.add(w3, l3)) : {cons3(_, Nat.cmp(Nat.mul(w2, Nat.max(1n, Nat.add(w3, l3))), Nat.mul(w3, Nat.max(1n, Nat.add(w2, l2)))), Nat.cmp(Nat.mul(w1, Nat.max(1n, Nat.add(w3, l3))), Nat.mul(w3, Nat.max(1n, Nat.add(w1, l1))))) == True{} : Bool}
+  %cmp_mul_max(Nat.mul(w2, Nat.max(1n, Nat.add(w3, l3))), Nat.mul(w3, Nat.max(1n, Nat.add(w2, l2))), Nat.add(w1, l1)) : {cons3(Nat.cmp(Nat.mul(Nat.mul(w1, Nat.max(1n, Nat.add(w2, l2))), Nat.max(1n, Nat.add(w3, l3))), Nat.mul(Nat.mul(w2, Nat.max(1n, Nat.add(w1, l1))), Nat.max(1n, Nat.add(w3, l3)))), _, Nat.cmp(Nat.mul(w1, Nat.max(1n, Nat.add(w3, l3))), Nat.mul(w3, Nat.max(1n, Nat.add(w1, l1))))) == True{} : Bool}
+  %cmp_mul_max(Nat.mul(w1, Nat.max(1n, Nat.add(w3, l3))), Nat.mul(w3, Nat.max(1n, Nat.add(w1, l1))), Nat.add(w2, l2)) : {cons3(Nat.cmp(Nat.mul(Nat.mul(w1, Nat.max(1n, Nat.add(w2, l2))), Nat.max(1n, Nat.add(w3, l3))), Nat.mul(Nat.mul(w2, Nat.max(1n, Nat.add(w1, l1))), Nat.max(1n, Nat.add(w3, l3)))), Nat.cmp(Nat.mul(Nat.mul(w2, Nat.max(1n, Nat.add(w3, l3))), Nat.max(1n, Nat.add(w1, l1))), Nat.mul(Nat.mul(w3, Nat.max(1n, Nat.add(w2, l2))), Nat.max(1n, Nat.add(w1, l1)))), _) == True{} : Bool}
+  %mul_swap23(w2, Nat.max(1n, Nat.add(w1, l1)), Nat.max(1n, Nat.add(w3, l3))) : {cons3(Nat.cmp(Nat.mul(Nat.mul(w1, Nat.max(1n, Nat.add(w2, l2))), Nat.max(1n, Nat.add(w3, l3))), Nat.mul(Nat.mul(w2, Nat.max(1n, Nat.add(w1, l1))), Nat.max(1n, Nat.add(w3, l3)))), Nat.cmp(_, Nat.mul(Nat.mul(w3, Nat.max(1n, Nat.add(w2, l2))), Nat.max(1n, Nat.add(w1, l1)))), Nat.cmp(Nat.mul(Nat.mul(w1, Nat.max(1n, Nat.add(w3, l3))), Nat.max(1n, Nat.add(w2, l2))), Nat.mul(Nat.mul(w3, Nat.max(1n, Nat.add(w1, l1))), Nat.max(1n, Nat.add(w2, l2))))) == True{} : Bool}
+  %mul_swap23(w1, Nat.max(1n, Nat.add(w2, l2)), Nat.max(1n, Nat.add(w3, l3))) : {cons3(Nat.cmp(Nat.mul(Nat.mul(w1, Nat.max(1n, Nat.add(w2, l2))), Nat.max(1n, Nat.add(w3, l3))), Nat.mul(Nat.mul(w2, Nat.max(1n, Nat.add(w1, l1))), Nat.max(1n, Nat.add(w3, l3)))), Nat.cmp(Nat.mul(Nat.mul(w2, Nat.max(1n, Nat.add(w1, l1))), Nat.max(1n, Nat.add(w3, l3))), Nat.mul(Nat.mul(w3, Nat.max(1n, Nat.add(w2, l2))), Nat.max(1n, Nat.add(w1, l1)))), Nat.cmp(_, Nat.mul(Nat.mul(w3, Nat.max(1n, Nat.add(w1, l1))), Nat.max(1n, Nat.add(w2, l2))))) == True{} : Bool}
+  %mul_swap23(w3, Nat.max(1n, Nat.add(w2, l2)), Nat.max(1n, Nat.add(w1, l1))) : {cons3(Nat.cmp(Nat.mul(Nat.mul(w1, Nat.max(1n, Nat.add(w2, l2))), Nat.max(1n, Nat.add(w3, l3))), Nat.mul(Nat.mul(w2, Nat.max(1n, Nat.add(w1, l1))), Nat.max(1n, Nat.add(w3, l3)))), Nat.cmp(Nat.mul(Nat.mul(w2, Nat.max(1n, Nat.add(w1, l1))), Nat.max(1n, Nat.add(w3, l3))), Nat.mul(Nat.mul(w3, Nat.max(1n, Nat.add(w2, l2))), Nat.max(1n, Nat.add(w1, l1)))), Nat.cmp(Nat.mul(Nat.mul(w1, Nat.max(1n, Nat.add(w2, l2))), Nat.max(1n, Nat.add(w3, l3))), _)) == True{} : Bool}
+  nat_cons(Nat.mul(Nat.mul(w1, Nat.max(1n, Nat.add(w2, l2))), Nat.max(1n, Nat.add(w3, l3))), Nat.mul(Nat.mul(w2, Nat.max(1n, Nat.add(w1, l1))), Nat.max(1n, Nat.add(w3, l3))), Nat.mul(Nat.mul(w3, Nat.max(1n, Nat.add(w2, l2))), Nat.max(1n, Nat.add(w1, l1))))
+
+# The Race: seeds compare like numbers, and two different seeds compare
+# one way or the other.
+law lt_flip:
+  for +p: Nat
+  for +q: Nat
+  for h: {Nat.is_ne(p, q) == True{} : Bool}
+  {T.BoolEq(Nat.is_lt(q, p), Bool.not(Nat.is_lt(p, q))) == True{} : Bool}
+
+def lt_flip(p, q, h):
+  match p q:
+    case 0n 0n:
+      ex_falso({T.BoolEq(Nat.is_lt(0n, 0n), Bool.not(Nat.is_lt(0n, 0n))) == True{} : Bool}, false_is_not_true(h))
+    case 0n 1n+qp:
+      {==}
+    case 1n+pp 0n:
+      {==}
+    case 1n+pp 1n+qp:
+      lt_flip(pp, qp, h)
+
+law acyc_of_cons:
+  for +c1: Cmp
+  for +c2: Cmp
+  for +c3: Cmp
+  for h: {cons3(c1, c2, c3) == True{} : Bool}
+  {acyc(Cmp.is_lt(c1), Cmp.is_lt(c2), Cmp.is_lt(c3)) == True{} : Bool}
+
+def acyc_of_cons(c1, c2, c3, h):
+  match c1 c2 c3:
+    case LT{} LT{} LT{}:
+      {==}
+    case LT{} LT{} EQ{}:
+      ex_falso({acyc(Cmp.is_lt(LT{}), Cmp.is_lt(LT{}), Cmp.is_lt(EQ{})) == True{} : Bool}, false_is_not_true(h))
+    case LT{} LT{} GT{}:
+      ex_falso({acyc(Cmp.is_lt(LT{}), Cmp.is_lt(LT{}), Cmp.is_lt(GT{})) == True{} : Bool}, false_is_not_true(h))
+    case LT{} EQ{} LT{}:
+      {==}
+    case LT{} EQ{} EQ{}:
+      ex_falso({acyc(Cmp.is_lt(LT{}), Cmp.is_lt(EQ{}), Cmp.is_lt(EQ{})) == True{} : Bool}, false_is_not_true(h))
+    case LT{} EQ{} GT{}:
+      ex_falso({acyc(Cmp.is_lt(LT{}), Cmp.is_lt(EQ{}), Cmp.is_lt(GT{})) == True{} : Bool}, false_is_not_true(h))
+    case LT{} GT{} LT{}:
+      {==}
+    case LT{} GT{} EQ{}:
+      {==}
+    case LT{} GT{} GT{}:
+      {==}
+    case EQ{} LT{} LT{}:
+      {==}
+    case EQ{} LT{} EQ{}:
+      ex_falso({acyc(Cmp.is_lt(EQ{}), Cmp.is_lt(LT{}), Cmp.is_lt(EQ{})) == True{} : Bool}, false_is_not_true(h))
+    case EQ{} LT{} GT{}:
+      ex_falso({acyc(Cmp.is_lt(EQ{}), Cmp.is_lt(LT{}), Cmp.is_lt(GT{})) == True{} : Bool}, false_is_not_true(h))
+    case EQ{} EQ{} LT{}:
+      ex_falso({acyc(Cmp.is_lt(EQ{}), Cmp.is_lt(EQ{}), Cmp.is_lt(LT{})) == True{} : Bool}, false_is_not_true(h))
+    case EQ{} EQ{} EQ{}:
+      {==}
+    case EQ{} EQ{} GT{}:
+      ex_falso({acyc(Cmp.is_lt(EQ{}), Cmp.is_lt(EQ{}), Cmp.is_lt(GT{})) == True{} : Bool}, false_is_not_true(h))
+    case EQ{} GT{} LT{}:
+      ex_falso({acyc(Cmp.is_lt(EQ{}), Cmp.is_lt(GT{}), Cmp.is_lt(LT{})) == True{} : Bool}, false_is_not_true(h))
+    case EQ{} GT{} EQ{}:
+      ex_falso({acyc(Cmp.is_lt(EQ{}), Cmp.is_lt(GT{}), Cmp.is_lt(EQ{})) == True{} : Bool}, false_is_not_true(h))
+    case EQ{} GT{} GT{}:
+      {==}
+    case GT{} LT{} LT{}:
+      {==}
+    case GT{} LT{} EQ{}:
+      {==}
+    case GT{} LT{} GT{}:
+      {==}
+    case GT{} EQ{} LT{}:
+      ex_falso({acyc(Cmp.is_lt(GT{}), Cmp.is_lt(EQ{}), Cmp.is_lt(LT{})) == True{} : Bool}, false_is_not_true(h))
+    case GT{} EQ{} EQ{}:
+      ex_falso({acyc(Cmp.is_lt(GT{}), Cmp.is_lt(EQ{}), Cmp.is_lt(EQ{})) == True{} : Bool}, false_is_not_true(h))
+    case GT{} EQ{} GT{}:
+      {==}
+    case GT{} GT{} LT{}:
+      ex_falso({acyc(Cmp.is_lt(GT{}), Cmp.is_lt(GT{}), Cmp.is_lt(LT{})) == True{} : Bool}, false_is_not_true(h))
+    case GT{} GT{} EQ{}:
+      ex_falso({acyc(Cmp.is_lt(GT{}), Cmp.is_lt(GT{}), Cmp.is_lt(EQ{})) == True{} : Bool}, false_is_not_true(h))
+    case GT{} GT{} GT{}:
+      {==}
+
+law lt_acyc:
+  for +p: Nat
+  for +q: Nat
+  for +r: Nat
+  {acyc(Nat.is_lt(p, q), Nat.is_lt(q, r), Nat.is_lt(p, r)) == True{} : Bool}
+
+def lt_acyc(p, q, r):
+  acyc_of_cons(Nat.cmp(p, q), Nat.cmp(q, r), Nat.cmp(p, r), nat_cons(p, q, r))
+
