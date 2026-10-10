@@ -3,7 +3,7 @@
 //
 // Run: node prep/collect.ts [data/raw/<date>]     (default: the newest)
 //
-// Player names, their order, and the hand-typed checked_spw / checked_rpw
+// Player names, their order, and the hand-typed checked_rpw / checked_dr
 // columns in data/players.csv are kept; every other column is rewritten from
 // the snapshot. Prints, for each player, the matches counted and why the
 // others were left out.
@@ -61,7 +61,7 @@ for (const p of existing) {
     serve_points_won: String(t.servePointsWon), serve_points: String(t.servePoints),
     return_points_won: String(t.returnPointsWon), return_points: String(t.returnPoints),
     matches: String(t.matches), window_start: m.window_start, window_end: m.window_end,
-    checked_spw: p.checked_spw ?? "", checked_rpw: p.checked_rpw ?? "",
+    checked_rpw: p.checked_rpw ?? "", checked_dr: p.checked_dr ?? "",
     source: describe(m),
   });
   const pc = (a: number, b: number) => (b === 0 ? "  -  " : percent(ratio(a, b), 1));

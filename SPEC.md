@@ -50,7 +50,7 @@ v0 covers WTA singles, one surface (hard court), the two-number player model and
 
 Each player needs two hard-court numbers: the share of points she wins on her own serve, and the share she wins when returning. We collect them for the **top 30 of the Race to the WTA Finals** (decided in milestone 5), so any eight who qualify are covered and the rest are there for what-if match-ups.
 
-**How the numbers are collected (milestone 5).** Tennis Abstract keeps a data file per player (`jsmatches/<Name>.js`) with raw counts for every tour-level match: serve points, first- and second-serve points won, and the same for the opponent. `prep/fetch.ts` downloads these files, keeps the hard-court matches in the window, and commits a trimmed extract to `data/raw/<date>/`; `prep/collect.ts` turns the extract into the counts in `data/players.csv`. No number is typed from memory. The owner then reads SPW and RPW off each player's Tennis Abstract page ("Last 52 Weeks Tour-Level Splits", Hard row) and types them into `checked_spw` and `checked_rpw`; prep refuses to continue if a computed figure is more than 0.5 percentage points from the typed one. The check is required for the Race top 20 plus Anisimova (21st) and optional for the rest; from milestone 6, a tournament field may not include an unchecked player.
+**How the numbers are collected (milestone 5).** Tennis Abstract keeps a data file per player (`jsmatches/<Name>.js`) with raw counts for every tour-level match: serve points, first- and second-serve points won, and the same for the opponent. `prep/fetch.ts` downloads these files, keeps the hard-court matches in the window, and commits a trimmed extract to `data/raw/<date>/`; `prep/collect.ts` turns the extract into the counts in `data/players.csv`. No number is typed from memory. The owner then reads RPW and DR off each player's Tennis Abstract page ("Last 52 Weeks Tour-Level Splits", Hard row) and types them into `checked_rpw` and `checked_dr`. The page has no SPW column, so prep works out the page's SPW as 100 − RPW ÷ DR (DR, the dominance ratio, is RPW divided by the share of serve points lost; its two decimals move that SPW by at most about 0.15 points). Prep refuses to continue if a computed SPW or RPW is more than 0.5 percentage points from the page's. The check is required only for the eight players in the field, once it is known (agreed 2026-10-10, instead of the Race top 20 plus Anisimova), and optional for the rest; from milestone 6, a tournament field may not include an unchecked player.
 
 **Window and filters.** The 52 weeks (364 days) ending on the snapshot (download) date, counted by Tennis Abstract's match date (the tournament's start date). Hard courts, indoor and outdoor. Tour-level main-draw matches including Slams and the Finals; qualifying, team events (BJK Cup, United Cup), retirements, walkovers and matches without stats are left out. Two snapshots: provisional (milestone 5) and final, after the last qualifying event.
 
@@ -63,7 +63,7 @@ Each player needs two hard-court numbers: the share of points she wins on her ow
 | `return_points` | Return points played | 3,150 |
 | `matches` | Matches counted | 46 |
 | `window_start`, `window_end` | The window, as dates | 2025-10-06, 2026-10-04 |
-| `checked_spw`, `checked_rpw` | SPW and RPW typed from the player's page by the owner (percent, one decimal) | 62.0, 45.0 |
+| `checked_rpw`, `checked_dr` | RPW (percent, one decimal) and DR (two decimals) typed from the player's page by the owner | 45.0, 1.18 |
 | `source` | File, download date and SHA-256 | Tennis Abstract jsmatches/PlayerA.js read 2026-10-04 sha256:... |
 
 The serve share is `serve_points_won / serve_points`. The point counts are also what the shrinkage upgrade will need.
@@ -268,7 +268,7 @@ These are the choices that are easy to make without noticing, each with my recom
 
 | # | Decision | Options | Recommendation | Why it matters | Your call |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Data source | Hand-collect from Tennis Abstract; archive mirror; Match Charting; WTA official | Tennis Abstract per-player data files, counts computed by prep, SPW and RPW checked by hand against the player pages (milestone 5) | The mirror stops in June 2026 and misses the summer hard-court season; the pages show no point counts and include retirements | Agreed |
+| 1 | Data source | Hand-collect from Tennis Abstract; archive mirror; Match Charting; WTA official | Tennis Abstract per-player data files, counts computed by prep, SPW and RPW checked by hand against the player pages (milestone 5; RPW and DR typed, SPW derived, agreed 2026-10-10) | The mirror stops in June 2026 and misses the summer hard-court season; the pages show no point counts and include retirements | Agreed |
 | 2 | Time window | Last 52 weeks; this season; career | Last 52 weeks | Shorter is more current but noisier; can shift a player's numbers by several points | Agreed |
 | 3 | Surface bucket | All hard courts; outdoor hard only | All hard courts | Indian Wells is outdoor, but outdoor-only shrinks samples a lot | Agreed |
 | 4 | Which matches count | Tour-level main draw incl. Slams; add qualifying; drop retirements | Tour-level main draw incl. Slams, retirements and walkovers excluded | Retired matches record points played while injured | Agreed |

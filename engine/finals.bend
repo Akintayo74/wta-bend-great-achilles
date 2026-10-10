@@ -124,7 +124,7 @@ def check_field(ok: Bool, unchecked: Bool) -> IO(Unit):
     case False{} True{}:
       IO.pure(Unit, Unit{})
     case False{} False{}:
-      IO.die(Unit, 2, "the field includes a player whose stats haven't been checked by hand (data/players.csv, checked_spw and checked_rpw); add `unchecked` to run anyway for testing")
+      IO.die(Unit, 2, "the field includes a player whose stats haven't been checked by hand (data/players.csv, checked_rpw and checked_dr); add `unchecked` to run anyway for testing")
 
 # ---------------------------------------------------------------------------
 # Output
