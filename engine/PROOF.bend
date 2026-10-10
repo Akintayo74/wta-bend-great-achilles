@@ -1883,3 +1883,35 @@ def Laws.L14_every_run_counted_once(d, fmt, ca, cb, seed, prefix):
       %Laws.L14_every_run_counted_once(p, fmt, ca, cb, seed, (prefix * 2 + 0 : U32)) : {Sim.Run.add(Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 0 : U32)), Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 1 : U32))) == Laws.Rule.add(_, Laws.Rule.sum(Laws.Rule.results(fmt, ca, cb, seed, (prefix * 2 + 1 : U32), Laws.Rule.paths(p)))) : Sim.Tally}
       %Laws.L14_every_run_counted_once(p, fmt, ca, cb, seed, (prefix * 2 + 1 : U32)) : {Sim.Run.add(Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 0 : U32)), Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 1 : U32))) == Laws.Rule.add(Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 0 : U32)), _) : Sim.Tally}
       run_add_same(Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 0 : U32)), Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 1 : U32)))
+
+# ===========================================================================
+# Milestone 6 (draft): the worked examples. The laws L15-L19 and L28-L30
+# are left open until the owner approves them.
+# ===========================================================================
+
+def Laws.ex_seeded_draw():
+  {==}
+
+def Laws.ex_wins_decide():
+  {==}
+
+def Laws.ex_two_way_ties_go_to_head_to_head():
+  {==}
+
+def Laws.ex_three_way_tie_by_sets():
+  {==}
+
+def Laws.ex_three_way_tie_then_head_to_head():
+  {==}
+
+def Laws.ex_three_way_tie_by_games():
+  {==}
+
+def Laws.ex_three_way_tie_by_race():
+  {==}
+
+def Laws.ex_three_way_tie_for_second():
+  {==}
+
+def Laws.ex_semis():
+  {==}

@@ -270,3 +270,16 @@ export PATH="$HOME/.elan/bin:$PATH"
 - Constructors are per module: params.bend's test fixtures had players
   called `A{}` and `B{}`, and that does not clash with scoring.bend's `S.A{}`
   and `S.B{}`.
+
+## Found in milestone 6
+
+- Base already declares a type `Result` and a constructor `Done`, so a
+  module can't reuse those names ("duplicate declaration"). The tournament
+  types are `Finished` (one match result) and `Complete` (a finished
+  tournament).
+- `LAWS.bend` can declare its own `type` (`GroupRecord`), not only defs, so
+  a rule can keep its working figures in a record of its own instead of
+  borrowing an engine type.
+- Worked examples catch slips in the examples themselves: one of my
+  hand-worked three-way ties had a set count wrong, and `{==}` refused it
+  with the rule's actual answer in "observed".
