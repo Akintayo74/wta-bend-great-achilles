@@ -1,0 +1,369 @@
+{
+  "test": true,
+  "allChecked": false,
+  "date": "2026-10-10",
+  "seed": 20261108,
+  "bits": 20,
+  "runs": 1048576,
+  "method": "additive",
+  "draw": "seeded",
+  "commit": "14246c1 (with uncommitted changes)",
+  "window": {
+    "start": "2025-10-06",
+    "end": "2026-10-04"
+  },
+  "tourServe": 0.5758713136729222,
+  "players": [
+    {
+      "seed": 1,
+      "name": "Aryna Sabalenka",
+      "id": "Sabalenka",
+      "group": "",
+      "checked": false,
+      "semifinals": 734513,
+      "finals": 431227,
+      "titles": 249515,
+      "serve": 0.6490354698195395,
+      "ret": 0.44194419441944194
+    },
+    {
+      "seed": 2,
+      "name": "Elena Rybakina",
+      "id": "Rybakina",
+      "group": "",
+      "checked": false,
+      "semifinals": 673121,
+      "finals": 353295,
+      "titles": 185452,
+      "serve": 0.6564353881867423,
+      "ret": 0.42578895463510846
+    },
+    {
+      "seed": 3,
+      "name": "Iga Swiatek",
+      "id": "Swiatek",
+      "group": "",
+      "checked": false,
+      "semifinals": 696538,
+      "finals": 401851,
+      "titles": 221985,
+      "serve": 0.6164139161462979,
+      "ret": 0.47104423164614684
+    },
+    {
+      "seed": 4,
+      "name": "Coco Gauff",
+      "id": "Gauff",
+      "group": "",
+      "checked": false,
+      "semifinals": 572382,
+      "finals": 262415,
+      "titles": 118474,
+      "serve": 0.5948664585501214,
+      "ret": 0.47562189054726367
+    },
+    {
+      "seed": 5,
+      "name": "Jessica Pegula",
+      "id": "Pegula",
+      "group": "",
+      "checked": false,
+      "semifinals": 464325,
+      "finals": 209584,
+      "titles": 88729,
+      "serve": 0.6143383394729385,
+      "ret": 0.45090813371939986
+    },
+    {
+      "seed": 6,
+      "name": "Amanda Anisimova",
+      "id": "Anisimova",
+      "group": "",
+      "checked": false,
+      "semifinals": 326786,
+      "finals": 112998,
+      "titles": 37112,
+      "serve": 0.5897058823529412,
+      "ret": 0.45682041216879293
+    },
+    {
+      "seed": 7,
+      "name": "Mirra Andreeva",
+      "id": "Andreeva",
+      "group": "",
+      "checked": false,
+      "semifinals": 545322,
+      "finals": 282476,
+      "titles": 137326,
+      "serve": 0.6012683313515655,
+      "ret": 0.4754920879969124
+    },
+    {
+      "seed": 8,
+      "name": "Madison Keys",
+      "id": "Keys",
+      "group": "",
+      "checked": false,
+      "semifinals": 181317,
+      "finals": 43306,
+      "titles": 9983,
+      "serve": 0.5942644715878916,
+      "ret": 0.4290171606864275
+    }
+  ],
+  "unfinished": 0,
+  "matchups": [
+    {
+      "a": "Sabalenka",
+      "b": "Rybakina",
+      "chanceA": 6474,
+      "chanceB": 6386,
+      "aWins": 568760,
+      "bWins": 479816,
+      "unfinished": 0
+    },
+    {
+      "a": "Sabalenka",
+      "b": "Swiatek",
+      "chanceA": 6021,
+      "chanceB": 5986,
+      "aWins": 544436,
+      "bWins": 504140,
+      "unfinished": 0
+    },
+    {
+      "a": "Sabalenka",
+      "b": "Gauff",
+      "chanceA": 5975,
+      "chanceB": 5771,
+      "aWins": 634617,
+      "bWins": 413959,
+      "unfinished": 0
+    },
+    {
+      "a": "Sabalenka",
+      "b": "Pegula",
+      "chanceA": 6223,
+      "chanceB": 5965,
+      "aWins": 660577,
+      "bWins": 387999,
+      "unfinished": 0
+    },
+    {
+      "a": "Sabalenka",
+      "b": "Anisimova",
+      "chanceA": 6163,
+      "chanceB": 5719,
+      "aWins": 752535,
+      "bWins": 296041,
+      "unfinished": 0
+    },
+    {
+      "a": "Sabalenka",
+      "b": "Andreeva",
+      "chanceA": 5977,
+      "chanceB": 5835,
+      "aWins": 601287,
+      "bWins": 447289,
+      "unfinished": 0
+    },
+    {
+      "a": "Sabalenka",
+      "b": "Keys",
+      "chanceA": 6441,
+      "chanceB": 5764,
+      "aWins": 845675,
+      "bWins": 202901,
+      "unfinished": 0
+    },
+    {
+      "a": "Rybakina",
+      "b": "Swiatek",
+      "chanceA": 6095,
+      "chanceB": 6148,
+      "aWins": 496206,
+      "bWins": 552370,
+      "unfinished": 0
+    },
+    {
+      "a": "Rybakina",
+      "b": "Gauff",
+      "chanceA": 6049,
+      "chanceB": 5932,
+      "aWins": 588110,
+      "bWins": 460466,
+      "unfinished": 0
+    },
+    {
+      "a": "Rybakina",
+      "b": "Pegula",
+      "chanceA": 6297,
+      "chanceB": 6127,
+      "aWins": 614162,
+      "bWins": 434414,
+      "unfinished": 0
+    },
+    {
+      "a": "Rybakina",
+      "b": "Anisimova",
+      "chanceA": 6237,
+      "chanceB": 5880,
+      "aWins": 709679,
+      "bWins": 338897,
+      "unfinished": 0
+    },
+    {
+      "a": "Rybakina",
+      "b": "Andreeva",
+      "chanceA": 6051,
+      "chanceB": 5996,
+      "aWins": 554576,
+      "bWins": 494000,
+      "unfinished": 0
+    },
+    {
+      "a": "Rybakina",
+      "b": "Keys",
+      "chanceA": 6515,
+      "chanceB": 5926,
+      "aWins": 809360,
+      "bWins": 239216,
+      "unfinished": 0
+    },
+    {
+      "a": "Swiatek",
+      "b": "Gauff",
+      "chanceA": 5649,
+      "chanceB": 5480,
+      "aWins": 616903,
+      "bWins": 431673,
+      "unfinished": 0
+    },
+    {
+      "a": "Swiatek",
+      "b": "Pegula",
+      "chanceA": 5896,
+      "chanceB": 5674,
+      "aWins": 644461,
+      "bWins": 404115,
+      "unfinished": 0
+    },
+    {
+      "a": "Swiatek",
+      "b": "Anisimova",
+      "chanceA": 5837,
+      "chanceB": 5428,
+      "aWins": 740508,
+      "bWins": 308068,
+      "unfinished": 0
+    },
+    {
+      "a": "Swiatek",
+      "b": "Andreeva",
+      "chanceA": 5651,
+      "chanceB": 5544,
+      "aWins": 583240,
+      "bWins": 465336,
+      "unfinished": 0
+    },
+    {
+      "a": "Swiatek",
+      "b": "Keys",
+      "chanceA": 6115,
+      "chanceB": 5473,
+      "aWins": 839228,
+      "bWins": 209348,
+      "unfinished": 0
+    },
+    {
+      "a": "Gauff",
+      "b": "Pegula",
+      "chanceA": 5681,
+      "chanceB": 5628,
+      "aWins": 553191,
+      "bWins": 495385,
+      "unfinished": 0
+    },
+    {
+      "a": "Gauff",
+      "b": "Anisimova",
+      "chanceA": 5622,
+      "chanceB": 5382,
+      "aWins": 656205,
+      "bWins": 392371,
+      "unfinished": 0
+    },
+    {
+      "a": "Gauff",
+      "b": "Andreeva",
+      "chanceA": 5435,
+      "chanceB": 5498,
+      "aWins": 489304,
+      "bWins": 559272,
+      "unfinished": 0
+    },
+    {
+      "a": "Gauff",
+      "b": "Keys",
+      "chanceA": 5900,
+      "chanceB": 5428,
+      "aWins": 770056,
+      "bWins": 278520,
+      "unfinished": 0
+    },
+    {
+      "a": "Pegula",
+      "b": "Anisimova",
+      "chanceA": 5816,
+      "chanceB": 5629,
+      "aWins": 626430,
+      "bWins": 422146,
+      "unfinished": 0
+    },
+    {
+      "a": "Pegula",
+      "b": "Andreeva",
+      "chanceA": 5630,
+      "chanceB": 5745,
+      "aWins": 460204,
+      "bWins": 588372,
+      "unfinished": 0
+    },
+    {
+      "a": "Pegula",
+      "b": "Keys",
+      "chanceA": 6094,
+      "chanceB": 5675,
+      "aWins": 741488,
+      "bWins": 307088,
+      "unfinished": 0
+    },
+    {
+      "a": "Anisimova",
+      "b": "Andreeva",
+      "chanceA": 5383,
+      "chanceB": 5686,
+      "aWins": 359840,
+      "bWins": 688736,
+      "unfinished": 0
+    },
+    {
+      "a": "Anisimova",
+      "b": "Keys",
+      "chanceA": 5848,
+      "chanceB": 5616,
+      "aWins": 650319,
+      "bWins": 398257,
+      "unfinished": 0
+    },
+    {
+      "a": "Andreeva",
+      "b": "Keys",
+      "chanceA": 5964,
+      "chanceB": 5429,
+      "aWins": 796861,
+      "bWins": 251715,
+      "unfinished": 0
+    }
+  ]
+}
