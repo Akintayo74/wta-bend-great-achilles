@@ -142,3 +142,39 @@ quarter-finals (QF), because both start with "Q".
 last qualifying events, and each player's numbers are being checked by hand
 against her Tennis Abstract page. Data: Tennis Abstract (Jeff Sackmann),
 CC BY-NC-SA 4.0.*
+
+## Milestone 6 — the tournament (2026-10-10)
+
+**What works now:** the simulator plays the whole WTA Finals, not just one
+match. Eight players are drawn into two groups of four, as the 2026 rulebook
+says: seed 1 in one group, seed 2 in the other, and seeds 3 and 4, 5 and 6,
+and 7 and 8 split by lot. Everyone in a group plays everyone else. The group
+tables use the rulebook's tiebreaks: wins first, then head-to-head, and for
+three players level on wins, the percentage of sets won, then of games won,
+then the Race ranking. The top two in each group go to the semifinals
+(group A's winner against group B's runner-up, and the other way round), and
+then there's a final. `./build/finals` plays a quarter of a million whole
+tournaments in about 30 seconds on four cores and prints, for each player,
+how often she reached the semifinals, reached the final and won the title.
+
+**Interesting finding:** the hardest thing to prove was something everyone
+takes for granted, that a group table always comes out as 1st, 2nd, 3rd
+and 4th with no shared places and no circles. With a three-way tie, the
+rulebook compares percentages of sets won, and the engine compares them
+exactly (2/3 against 4/6 is a tie, with no rounding). To prove those
+comparisons can never go round in a circle, Bend had to be taught, from
+scratch, that multiplication can be done in any order. All 64 ways a group's
+six matches can fall were then checked one by one, including the 16 where
+three players finish level.
+
+**A number:** with eight identical players, each won between **12.4% and
+12.6%** of 262,144 simulated tournaments. A fair 1-in-8 would be 12.5%.
+
+**Checks:** all 30 laws are proven. The same seed gives the same output
+whether it runs on 1 core or 4. Swapping two players, along with their places
+in the draw, swaps their results exactly. No simulated match hit the point
+cap.
+
+*No real-field odds yet: the players' numbers are still being checked by
+hand, and the field isn't final. Data: Tennis Abstract (Jeff Sackmann),
+CC BY-NC-SA 4.0.*
