@@ -270,3 +270,49 @@ export PATH="$HOME/.elan/bin:$PATH"
 - Constructors are per module: params.bend's test fixtures had players
   called `A{}` and `B{}`, and that does not clash with scoring.bend's `S.A{}`
   and `S.B{}`.
+
+## Found in milestone 6
+
+- Base already declares a type `Result` and a constructor `Done`, so a
+  module can't reuse those names ("duplicate declaration"). The tournament
+  types are `Finished` (one match result) and `Complete` (a finished
+  tournament).
+- `LAWS.bend` can declare its own `type` (`GroupRecord`), not only defs, so
+  a rule can keep its working figures in a record of its own instead of
+  borrowing an engine type.
+- Worked examples catch slips in the examples themselves: one of my
+  hand-worked three-way ties had a set count wrong, and `{==}` refused it
+  with the rule's actual answer in "observed".
+- Rewriting with `%e : P`, where `e : {a == b}`: P is the current goal
+  with `_` where **b** appears, and the goal becomes P with **a** there. To
+  replace the left side of a lemma, rewrite with `Equal.sym(...)` of it. I
+  got this backwards often enough that it's worth writing down.
+- `match` has to come before any `%` rewrite in a def, and a variable can't
+  be matched after one bound later. To split a record and a field inside it
+  at once, match with a nested pattern: `case Tour.Finished{S.A{}, +t}:`.
+  When a rewrite has to come first, put it in a wrapper def that calls a
+  helper which does the matching (L16, L17).
+- Proofs are affine like any other value: a premise used four times has to
+  be copied first (`dup_eq`, `dup3`, `dup4` in PROOF.bend), and a law param
+  used twice needs `+`.
+- A false Bool premise only becomes `False == True` if the evaluator gets to
+  the false part. In `Bool.and(stuck, False)` it doesn't; take the right
+  side out with `and_true_r` first.
+- A Nat literal pattern with a `_` fallback (`case 1n: ... case _:`) left
+  the fallback stuck in proofs (`7n+_17`). Writing the fallback as explicit
+  `case 0n:` and `case 8n+p:` fixed it.
+- Base has no arithmetic laws for Nat. PROOF.bend now proves the ones L17
+  needed: commutativity and associativity of + and *, distributivity, and
+  that multiplying both sides by a positive number keeps a comparison.
+  Each is a few lines by induction.
+- Engine helpers and rule helpers with the same body are still different
+  names to the checker, so each needs a small "same" lemma. When the
+  engine's record type differs from the rule's (`Tour.Record` vs
+  `GroupRecord`), a `conv` function bridges them.
+- Long case splits (64 ways a group's matches can fall; the three-way-tie
+  lemma) were written by short throwaway scripts, then checked by Bend like
+  everything else. PROOF.bend is now 7,700 lines and checks in 3.5 s.
+- The finals CLI does 2^16 tournaments in 7.3 s and 2^18 in 29 s on 4 cores.
+- In this session, `--verdict` couldn't run: elan now downloads Lean from
+  `releases.lean-lang.org`, and the session's network policy blocked that
+  host (403 from the proxy).

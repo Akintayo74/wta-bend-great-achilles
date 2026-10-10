@@ -83,6 +83,9 @@ Bend 2.0.35 is installed automatically at session start by `.claude/hooks/sessio
 # generate params:    node prep/params.ts [--check]           (writes engine/params.bend; refuses bad inputs)
 # build match-ups:    bend engine/matchup.bend -o build/matchup
 # run a match-up:     ./build/matchup SEED BITS PLAYER_A PLAYER_B [additive|average]   (e.g. 20261108 20 Sabalenka Rybakina)
+# build the Finals:   bend engine/finals.bend -o build/finals
+# run the Finals:     ./build/finals SEED BITS DRAW P1..P8 [additive|average] [unchecked]
+#                     (DRAW is `seeded` or 8 letters A/B for seeds 1-8; e.g. 20261108 18 seeded ...)
 # compare formulas:   node prep/compare.ts [--simulate]       (exact odds for every pair; --simulate also checks the engine, ~1.5 min)
 # exact calculator:   prep/exact.ts (library); checked against the engine by:
 # validate:           node prep/validate.ts   (64-match-up grid, 2^20 runs each, ~6 min)

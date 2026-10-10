@@ -1,0 +1,129 @@
+Source: WTA 2026 Official Rulebook (Copyright 2026 WTA Tour, Inc.), supplied by the owner on 2026-10-10.
+Excerpt: Section VI.B (WTA Finals), rulebook pages 94-102: competition format, round robin seeding,
+final standings, semifinal seeding, withdrawals and scoring. Copied verbatim from a text extraction of
+the PDF; page headers and line breaks kept as extracted. Qualification and alternate rules omitted.
+----------------------------------------------------------------------
+B. WTA FINALS
+1. Singles and Doubles Competition Formats
+The singles and doubles competitions both are a draw of eight (8) players 
+and teams, respectively, in a round robin format with two (2) groups of 
+four (4) players and teams. The winner and runner-up from each group 
+qualify for a single-elimination-format semifinal and final.
+2. Qualification; Attendance; Alternates
+[... VI.B.2 qualification, attendance and alternates omitted ...]
+3. Round Robin Seeding
+a. Basis for Seeding
+Seeding for Finals Singles Qualified Players and Finals Qualified 
+Teams is according to the Race to the Finals Leaderboard.
+b. Seeding Procedures
+i. Place seed 1 in Group A and seed 2 in Group B.
+ii. Draw from and place the remaining seeds in pairs as follows:
+(a) Seeds 3 and 4 (place first drawn seed in Group A and 
+remaining seed in Group B);
+(b) Seeds 5 and 6 (place first drawn seed in Group A and 
+remaining seed in Group B); and
+(c) Seeds 7 and 8 (place first drawn seed in Group A and 
+remaining seed in Group B).
+c. Withdrawal of a Seed
+Seeds are not moved once the draw has been made; provided, 
+however, that the draw is remade if the two (2) top seeds from the 
+same group withdraw before the schedule is released.
+PLAYERS
+SECTION VI - WTA FINALS
+
+100
+4. Final Standings of Round Robin Competition
+a. Treatment of Defaults, Retirements, and Withdrawals
+i. In determining the final standings of each round robin group, 
+(a) the result of a default or withdrawal for which a Finals 
+Alternate or Finals Alternate Team is unavailable to replace 
+the defaulting or withdrawing player or team is a straight-set 
+win or loss.
+(b) the result of a default or retirement for which the defaulting or 
+retiring player or team has won a set is two (2) sets won and 
+one (1) set lost for the advancing player or team, but games 
+won or lost in such matches do not count in calculating the 
+percentage of games won.
+ii. A player or team who retires during a round robin match 
+because of illness or injury may continue in the competition if the 
+Tournament Physician approves.
+iii. A player or team who withdraws from any round robin match is 
+eliminated from the competition and a Finals Alternate or Finals 
+Alternate Team will replace her or them. If no Finals Alternate or 
+Finals Alternate Team is available as a replacement, the nonwithdrawing player or team in such match receives a walkover 
+win for such match.
+b. Final Standings
+The first of the following methods that applies determines the final 
+standings of each group in the round robin competition:
+i. Greatest number of wins; then
+ii. Greatest number of matches played; then
+iii. Head-to-head results if only two (2) players or teams are tied; or
+iv. If three (3) players or teams are tied:
+(a) Highest percentage of sets won (the doubles match tiebreak counts as one (1) set); if after the calculation two (2) 
+players or teams remain tied, head-to-head results; then
+PLAYERS
+SECTION VI - WTA FINALS
+
+101
+(b) If after applying (a) all three (3) players or teams remain tied, 
+a player or team completing less than all three (3) round 
+robin matches is automatically eliminated; if two (2) players 
+or teams remain tied, head-to-head results; then
+(c) If after applying (a) and (b) all three (3) players or teams 
+remain tied, highest percentage of games won (the doubles 
+match tie-break counts as one (1) game); if after the 
+calculation two (2) players or teams remain tied, head-tohead results; then
+(d) If after applying (a), (b), and (c) all three (3) players or teams 
+remain tied, the Race to the Finals Leaderboard.
+c. Semifinal Seeding
+The winners of Group A and B are placed on lines 1 and 4, 
+respectively. The runners-up of Group A and B are placed on lines 3 
+and 2, respectively.
+5. Semifinal/Final Withdrawal
+a. Match Format after Withdrawal
+i. Semifinals
+On the day of the semifinals, the third player and team in the final 
+standings of each round robin group must be on site and ready 
+to replace a semifinalist from her or their round robin group if that 
+semifinalist is unable to play.
+A replacement player or team in the semifinals is eligible to 
+advance in the competition.
+ii. Finals
+On the day of the finals, each losing semifinalist player and team 
+must be on site and ready to play an exhibition match if her/their 
+opponent in the semifinals withdraws from the finals.
+If any player or team withdraws from the finals, the remaining 
+finalist must play the exhibition match or the finalist also will 
+be subject to the forfeiture of prize money for withdrawing in 
+accordance with sub-section c below. Any match with any 
+replacement player or team is a best of three (3) sets exhibition 
+PLAYERS
+SECTION VI - WTA FINALS
+
+102
+with No-Ad scoring in the first two (2) sets and a 10-point match 
+tie-break as the third set.
+b. Penalty
+i. Semifinals
+If a Finals Singles or Doubles Qualified Player who is required to 
+be on site and ready to replace a withdrawing semifinalist is not 
+on site and ready to play, she must pay a fine of 50% of the prize 
+money she earns at the WTA Finals.
+ii. Finals
+If a Finals Singles or Doubles Qualified Player who is required to 
+be on site and ready to play an exhibition match for a withdrawing 
+finalist is not on site and ready to play, she must pay a fine of 
+50% of the prize money she earns at the WTA Finals.
+c. Prize Money
+If a player or team withdraws from the finals, she or they forfeit(s) 
+the following amount of prize money to which she or they otherwise 
+would have been entitled for reaching the finals:
+Prize Money Forfeited
+Competition Finals
+Singles $100,000
+Doubles $25,000 (per player)
+Forfeited prize money will be paid to the replacement player or team.
+6. Scoring
+The singles competition is the best of three (3) tie-break sets. The 
+doubles competition is the best of three (3) sets with No-Ad scoring in the 
+first two (2) sets and a 10-point match tie-break as the third set.

@@ -2,6 +2,8 @@ import Base
 import ./scoring.bend as S
 import ./sim.bend as Sim
 import ./LAWS.bend as Laws
+import ./tournament.bend as Tour
+import ./params.bend as P
 import ./proof_tables.bend as T
 
 def Laws.ex_40_15_is_not_over():
@@ -1883,3 +1885,5827 @@ def Laws.L14_every_run_counted_once(d, fmt, ca, cb, seed, prefix):
       %Laws.L14_every_run_counted_once(p, fmt, ca, cb, seed, (prefix * 2 + 0 : U32)) : {Sim.Run.add(Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 0 : U32)), Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 1 : U32))) == Laws.Rule.add(_, Laws.Rule.sum(Laws.Rule.results(fmt, ca, cb, seed, (prefix * 2 + 1 : U32), Laws.Rule.paths(p)))) : Sim.Tally}
       %Laws.L14_every_run_counted_once(p, fmt, ca, cb, seed, (prefix * 2 + 1 : U32)) : {Sim.Run.add(Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 0 : U32)), Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 1 : U32))) == Laws.Rule.add(Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 0 : U32)), _) : Sim.Tally}
       run_add_same(Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 0 : U32)), Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 1 : U32)))
+
+
+# ===========================================================================
+# MILESTONE 6: groups, standings and knockouts
+# ===========================================================================
+
+def Laws.ex_seeded_draw():
+  {==}
+
+def Laws.ex_wins_decide():
+  {==}
+
+def Laws.ex_two_way_ties_go_to_head_to_head():
+  {==}
+
+def Laws.ex_three_way_tie_by_sets():
+  {==}
+
+def Laws.ex_three_way_tie_then_head_to_head():
+  {==}
+
+def Laws.ex_three_way_tie_by_games():
+  {==}
+
+def Laws.ex_three_way_tie_by_race():
+  {==}
+
+def Laws.ex_three_way_tie_for_second():
+  {==}
+
+def Laws.ex_semis():
+  {==}
+
+# ---------------------------------------------------------------------------
+# L15: the draw. Three lots, eight cases, each computed.
+# ---------------------------------------------------------------------------
+
+def Laws.L15_seeded_draw_follows_rule(l34, l56, l78):
+  match l34 l56 l78:
+    case True{} True{} True{}:
+      {==}
+    case True{} True{} False{}:
+      {==}
+    case True{} False{} True{}:
+      {==}
+    case True{} False{} False{}:
+      {==}
+    case False{} True{} True{}:
+      {==}
+    case False{} True{} False{}:
+      {==}
+    case False{} False{} True{}:
+      {==}
+    case False{} False{} False{}:
+      {==}
+
+# ---------------------------------------------------------------------------
+# L19: the semifinal lines
+# ---------------------------------------------------------------------------
+
+# Three nested choices agree, by trying every combination of the conditions.
+law choose3_same:
+  for b1: Bool
+  for b2: Bool
+  for b3: Bool
+  for s1: Nat
+  for s2: Nat
+  for s3: Nat
+  for s4: Nat
+  {S.Match.choose(b1, s1, S.Match.choose(b2, s2, S.Match.choose(b3, s3, s4))) == Laws.Rule.choose(b1, s1, Laws.Rule.choose(b2, s2, Laws.Rule.choose(b3, s3, s4))) : Nat}
+
+def choose3_same(b1, b2, b3, s1, s2, s3, s4):
+  match b1 b2 b3:
+    case True{} True{} True{}:
+      {==}
+    case True{} True{} False{}:
+      {==}
+    case True{} False{} True{}:
+      {==}
+    case True{} False{} False{}:
+      {==}
+    case False{} True{} True{}:
+      {==}
+    case False{} True{} False{}:
+      {==}
+    case False{} False{} True{}:
+      {==}
+    case False{} False{} False{}:
+      {==}
+
+law at_place_same:
+  for +n: Nat
+  for g: Tour.Group
+  for pl: Tour.Places
+  {Tour.Knockout.at_place(n, g, pl) == Laws.Rule.at_place(n, g, pl) : Nat}
+
+def at_place_same(n, g, pl):
+  match g pl:
+    case Tour.Group{s1, s2, s3, s4} Tour.Places{+p1, +p2, +p3, _}:
+      choose3_same(Nat.is_eq(p1, n), Nat.is_eq(p2, n), Nat.is_eq(p3, n), s1, s2, s3, s4)
+
+def Laws.L19_semis_cross_groups(ga, pa, gb, pb):
+  %at_place_same(1n, ga, pa) : {Tour.Knockout.semis(ga, pa, gb, pb) == Tour.Semis{_, Laws.Rule.at_place(2n, gb, pb), Laws.Rule.at_place(2n, ga, pa), Laws.Rule.at_place(1n, gb, pb)} : Tour.Semis}
+  %at_place_same(2n, gb, pb) : {Tour.Knockout.semis(ga, pa, gb, pb) == Tour.Semis{Tour.Knockout.at_place(1n, ga, pa), _, Laws.Rule.at_place(2n, ga, pa), Laws.Rule.at_place(1n, gb, pb)} : Tour.Semis}
+  %at_place_same(2n, ga, pa) : {Tour.Knockout.semis(ga, pa, gb, pb) == Tour.Semis{Tour.Knockout.at_place(1n, ga, pa), Tour.Knockout.at_place(2n, gb, pb), _, Laws.Rule.at_place(1n, gb, pb)} : Tour.Semis}
+  %at_place_same(1n, gb, pb) : {Tour.Knockout.semis(ga, pa, gb, pb) == Tour.Semis{Tour.Knockout.at_place(1n, ga, pa), Tour.Knockout.at_place(2n, gb, pb), Tour.Knockout.at_place(2n, ga, pa), _} : Tour.Semis}
+  {==}
+
+
+# ---------------------------------------------------------------------------
+# L28: the standings. The engine's helpers follow the rule's one by one.
+# The two sides keep their records in different types (Tour.Record and
+# Laws.GroupRecord), so `conv` turns one into the other, and the lemmas say
+# that converting the engine's record gives the rule's.
+# ---------------------------------------------------------------------------
+
+def conv(r: Tour.Record) -> Laws.GroupRecord:
+  match r:
+    case Tour.Record{a, b, c, d, e}:
+      Laws.GroupRecord{a, b, c, d, e}
+
+law games_for_same:
+  for s: S.Side
+  for sc: S.Score
+  {Tour.Standings.games_for(s, sc) == Laws.Rule.games_for(s, sc) : Nat}
+
+def games_for_same(s, sc):
+  match s sc:
+    case S.A{} S.Score{a, b}:
+      {==}
+    case S.B{} S.Score{a, b}:
+      {==}
+
+law games_won_same:
+  for +s: S.Side
+  for done: List<&2, S.Score>
+  {Tour.Standings.games_won(s, done) == Laws.Rule.games_won(s, done) : Nat}
+
+def games_won_same(s, done):
+  match done:
+    case Nil{}:
+      {==}
+    case Con{+sc, +rest}:
+      %games_won_same(s, rest) : {Nat.add(Tour.Standings.games_for(s, sc), Tour.Standings.games_won(s, rest)) == Nat.add(Laws.Rule.games_for(s, sc), _) : Nat}
+      %games_for_same(s, sc) : {Nat.add(Tour.Standings.games_for(s, sc), Tour.Standings.games_won(s, rest)) == Nat.add(_, Tour.Standings.games_won(s, rest)) : Nat}
+      {==}
+
+law entry_conv:
+  for +s: S.Side
+  for r: Tour.Finished
+  {conv(Tour.Standings.entry(s, r)) == Laws.Rule.entry(s, r) : Laws.GroupRecord}
+
+def entry_conv(s, r):
+  match r:
+    case Tour.Finished{+w, +sets}:
+      %other_same(s) : {conv(Tour.Standings.entry(s, Tour.Finished{w, sets})) == Laws.GroupRecord{Laws.Rule.count(Laws.Rule.same(w, s), 0n), Laws.Rule.sets_won(s, sets), Laws.Rule.sets_won(_, sets), Laws.Rule.games_won(s, sets), Laws.Rule.games_won(_, sets)} : Laws.GroupRecord}
+      %sets_won_same(s, sets) : {conv(Tour.Standings.entry(s, Tour.Finished{w, sets})) == Laws.GroupRecord{Laws.Rule.count(Laws.Rule.same(w, s), 0n), _, Laws.Rule.sets_won(S.Side.other(s), sets), Laws.Rule.games_won(s, sets), Laws.Rule.games_won(S.Side.other(s), sets)} : Laws.GroupRecord}
+      %sets_won_same(S.Side.other(s), sets) : {conv(Tour.Standings.entry(s, Tour.Finished{w, sets})) == Laws.GroupRecord{Laws.Rule.count(Laws.Rule.same(w, s), 0n), S.Match.sets_won(s, sets), _, Laws.Rule.games_won(s, sets), Laws.Rule.games_won(S.Side.other(s), sets)} : Laws.GroupRecord}
+      %games_won_same(s, sets) : {conv(Tour.Standings.entry(s, Tour.Finished{w, sets})) == Laws.GroupRecord{Laws.Rule.count(Laws.Rule.same(w, s), 0n), S.Match.sets_won(s, sets), S.Match.sets_won(S.Side.other(s), sets), _, Laws.Rule.games_won(S.Side.other(s), sets)} : Laws.GroupRecord}
+      %games_won_same(S.Side.other(s), sets) : {conv(Tour.Standings.entry(s, Tour.Finished{w, sets})) == Laws.GroupRecord{Laws.Rule.count(Laws.Rule.same(w, s), 0n), S.Match.sets_won(s, sets), S.Match.sets_won(S.Side.other(s), sets), Tour.Standings.games_won(s, sets), _} : Laws.GroupRecord}
+      %same_same(w, s) : {conv(Tour.Standings.entry(s, Tour.Finished{w, sets})) == Laws.GroupRecord{Laws.Rule.count(_, 0n), S.Match.sets_won(s, sets), S.Match.sets_won(S.Side.other(s), sets), Tour.Standings.games_won(s, sets), Tour.Standings.games_won(S.Side.other(s), sets)} : Laws.GroupRecord}
+      %count_same(S.Match.same(w, s), 0n) : {conv(Tour.Standings.entry(s, Tour.Finished{w, sets})) == Laws.GroupRecord{_, S.Match.sets_won(s, sets), S.Match.sets_won(S.Side.other(s), sets), Tour.Standings.games_won(s, sets), Tour.Standings.games_won(S.Side.other(s), sets)} : Laws.GroupRecord}
+      {==}
+
+law plus3_conv:
+  for a: Tour.Record
+  for b: Tour.Record
+  for c: Tour.Record
+  {conv(Tour.Standings.plus3(a, b, c)) == Laws.Rule.plus3(conv(a), conv(b), conv(c)) : Laws.GroupRecord}
+
+def plus3_conv(a, b, c):
+  match a b c:
+    case Tour.Record{a1, a2, a3, a4, a5} Tour.Record{b1, b2, b3, b4, b5} Tour.Record{c1, c2, c3, c4, c5}:
+      {==}
+
+law record_conv:
+  for x: Tour.Pos
+  for rr: Tour.RoundRobin
+  {conv(Tour.Standings.record(x, rr)) == Laws.Rule.record(x, rr) : Laws.GroupRecord}
+
+def record_conv(x, rr):
+  match x rr:
+    case Tour.P1{} Tour.RoundRobin{+r12, +r13, +r14, _, _, _}:
+      %entry_conv(S.A{}, r12) : {conv(Tour.Standings.plus3(Tour.Standings.entry(S.A{}, r12), Tour.Standings.entry(S.A{}, r13), Tour.Standings.entry(S.A{}, r14))) == Laws.Rule.plus3(_, Laws.Rule.entry(S.A{}, r13), Laws.Rule.entry(S.A{}, r14)) : Laws.GroupRecord}
+      %entry_conv(S.A{}, r13) : {conv(Tour.Standings.plus3(Tour.Standings.entry(S.A{}, r12), Tour.Standings.entry(S.A{}, r13), Tour.Standings.entry(S.A{}, r14))) == Laws.Rule.plus3(conv(Tour.Standings.entry(S.A{}, r12)), _, Laws.Rule.entry(S.A{}, r14)) : Laws.GroupRecord}
+      %entry_conv(S.A{}, r14) : {conv(Tour.Standings.plus3(Tour.Standings.entry(S.A{}, r12), Tour.Standings.entry(S.A{}, r13), Tour.Standings.entry(S.A{}, r14))) == Laws.Rule.plus3(conv(Tour.Standings.entry(S.A{}, r12)), conv(Tour.Standings.entry(S.A{}, r13)), _) : Laws.GroupRecord}
+      plus3_conv(Tour.Standings.entry(S.A{}, r12), Tour.Standings.entry(S.A{}, r13), Tour.Standings.entry(S.A{}, r14))
+    case Tour.P2{} Tour.RoundRobin{+r12, _, _, +r23, +r24, _}:
+      %entry_conv(S.B{}, r12) : {conv(Tour.Standings.plus3(Tour.Standings.entry(S.B{}, r12), Tour.Standings.entry(S.A{}, r23), Tour.Standings.entry(S.A{}, r24))) == Laws.Rule.plus3(_, Laws.Rule.entry(S.A{}, r23), Laws.Rule.entry(S.A{}, r24)) : Laws.GroupRecord}
+      %entry_conv(S.A{}, r23) : {conv(Tour.Standings.plus3(Tour.Standings.entry(S.B{}, r12), Tour.Standings.entry(S.A{}, r23), Tour.Standings.entry(S.A{}, r24))) == Laws.Rule.plus3(conv(Tour.Standings.entry(S.B{}, r12)), _, Laws.Rule.entry(S.A{}, r24)) : Laws.GroupRecord}
+      %entry_conv(S.A{}, r24) : {conv(Tour.Standings.plus3(Tour.Standings.entry(S.B{}, r12), Tour.Standings.entry(S.A{}, r23), Tour.Standings.entry(S.A{}, r24))) == Laws.Rule.plus3(conv(Tour.Standings.entry(S.B{}, r12)), conv(Tour.Standings.entry(S.A{}, r23)), _) : Laws.GroupRecord}
+      plus3_conv(Tour.Standings.entry(S.B{}, r12), Tour.Standings.entry(S.A{}, r23), Tour.Standings.entry(S.A{}, r24))
+    case Tour.P3{} Tour.RoundRobin{_, +r13, _, +r23, _, +r34}:
+      %entry_conv(S.B{}, r13) : {conv(Tour.Standings.plus3(Tour.Standings.entry(S.B{}, r13), Tour.Standings.entry(S.B{}, r23), Tour.Standings.entry(S.A{}, r34))) == Laws.Rule.plus3(_, Laws.Rule.entry(S.B{}, r23), Laws.Rule.entry(S.A{}, r34)) : Laws.GroupRecord}
+      %entry_conv(S.B{}, r23) : {conv(Tour.Standings.plus3(Tour.Standings.entry(S.B{}, r13), Tour.Standings.entry(S.B{}, r23), Tour.Standings.entry(S.A{}, r34))) == Laws.Rule.plus3(conv(Tour.Standings.entry(S.B{}, r13)), _, Laws.Rule.entry(S.A{}, r34)) : Laws.GroupRecord}
+      %entry_conv(S.A{}, r34) : {conv(Tour.Standings.plus3(Tour.Standings.entry(S.B{}, r13), Tour.Standings.entry(S.B{}, r23), Tour.Standings.entry(S.A{}, r34))) == Laws.Rule.plus3(conv(Tour.Standings.entry(S.B{}, r13)), conv(Tour.Standings.entry(S.B{}, r23)), _) : Laws.GroupRecord}
+      plus3_conv(Tour.Standings.entry(S.B{}, r13), Tour.Standings.entry(S.B{}, r23), Tour.Standings.entry(S.A{}, r34))
+    case Tour.P4{} Tour.RoundRobin{_, _, +r14, _, +r24, +r34}:
+      %entry_conv(S.B{}, r14) : {conv(Tour.Standings.plus3(Tour.Standings.entry(S.B{}, r14), Tour.Standings.entry(S.B{}, r24), Tour.Standings.entry(S.B{}, r34))) == Laws.Rule.plus3(_, Laws.Rule.entry(S.B{}, r24), Laws.Rule.entry(S.B{}, r34)) : Laws.GroupRecord}
+      %entry_conv(S.B{}, r24) : {conv(Tour.Standings.plus3(Tour.Standings.entry(S.B{}, r14), Tour.Standings.entry(S.B{}, r24), Tour.Standings.entry(S.B{}, r34))) == Laws.Rule.plus3(conv(Tour.Standings.entry(S.B{}, r14)), _, Laws.Rule.entry(S.B{}, r34)) : Laws.GroupRecord}
+      %entry_conv(S.B{}, r34) : {conv(Tour.Standings.plus3(Tour.Standings.entry(S.B{}, r14), Tour.Standings.entry(S.B{}, r24), Tour.Standings.entry(S.B{}, r34))) == Laws.Rule.plus3(conv(Tour.Standings.entry(S.B{}, r14)), conv(Tour.Standings.entry(S.B{}, r24)), _) : Laws.GroupRecord}
+      plus3_conv(Tour.Standings.entry(S.B{}, r14), Tour.Standings.entry(S.B{}, r24), Tour.Standings.entry(S.B{}, r34))
+
+law wins_of_conv:
+  for r: Tour.Record
+  {Tour.Standings.wins_of(r) == Laws.Rule.wins_of(conv(r)) : Nat}
+
+def wins_of_conv(r):
+  match r:
+    case Tour.Record{a, b, c, d, e}:
+      {==}
+
+law wins_same:
+  for +x: Tour.Pos
+  for +rr: Tour.RoundRobin
+  {Tour.Standings.wins(x, rr) == Laws.Rule.wins(x, rr) : Nat}
+
+def wins_same(x, rr):
+  %record_conv(x, rr) : {Tour.Standings.wins(x, rr) == Laws.Rule.wins_of(_) : Nat}
+  wins_of_conv(Tour.Standings.record(x, rr))
+
+law set_go_conv:
+  for y: Tour.Record
+  for x: Tour.Record
+  {Tour.Standings.set_cmp.go(y, x) == Laws.Rule.set_cmp.go(conv(y), conv(x)) : Cmp}
+
+def set_go_conv(y, x):
+  match y x:
+    case Tour.Record{a1, a2, a3, a4, a5} Tour.Record{b1, b2, b3, b4, b5}:
+      {==}
+
+law game_go_conv:
+  for y: Tour.Record
+  for x: Tour.Record
+  {Tour.Standings.game_cmp.go(y, x) == Laws.Rule.game_cmp.go(conv(y), conv(x)) : Cmp}
+
+def game_go_conv(y, x):
+  match y x:
+    case Tour.Record{a1, a2, a3, a4, a5} Tour.Record{b1, b2, b3, b4, b5}:
+      {==}
+
+law set_cmp_same:
+  for +y: Tour.Pos
+  for +x: Tour.Pos
+  for +rr: Tour.RoundRobin
+  {Tour.Standings.set_cmp(y, x, rr) == Laws.Rule.set_cmp(y, x, rr) : Cmp}
+
+def set_cmp_same(y, x, rr):
+  %record_conv(y, rr) : {Tour.Standings.set_cmp(y, x, rr) == Laws.Rule.set_cmp.go(_, Laws.Rule.record(x, rr)) : Cmp}
+  %record_conv(x, rr) : {Tour.Standings.set_cmp(y, x, rr) == Laws.Rule.set_cmp.go(conv(Tour.Standings.record(y, rr)), _) : Cmp}
+  set_go_conv(Tour.Standings.record(y, rr), Tour.Standings.record(x, rr))
+
+law game_cmp_same:
+  for +y: Tour.Pos
+  for +x: Tour.Pos
+  for +rr: Tour.RoundRobin
+  {Tour.Standings.game_cmp(y, x, rr) == Laws.Rule.game_cmp(y, x, rr) : Cmp}
+
+def game_cmp_same(y, x, rr):
+  %record_conv(y, rr) : {Tour.Standings.game_cmp(y, x, rr) == Laws.Rule.game_cmp.go(_, Laws.Rule.record(x, rr)) : Cmp}
+  %record_conv(x, rr) : {Tour.Standings.game_cmp(y, x, rr) == Laws.Rule.game_cmp.go(conv(Tour.Standings.record(y, rr)), _) : Cmp}
+  game_go_conv(Tour.Standings.record(y, rr), Tour.Standings.record(x, rr))
+
+law won_as_same:
+  for s: S.Side
+  for r: Tour.Finished
+  {Tour.Standings.won_as(s, r) == Laws.Rule.won_as(s, r) : Bool}
+
+def won_as_same(s, r):
+  match s r:
+    case S.A{} Tour.Finished{S.A{}, _}:
+      {==}
+    case S.A{} Tour.Finished{S.B{}, _}:
+      {==}
+    case S.B{} Tour.Finished{S.A{}, _}:
+      {==}
+    case S.B{} Tour.Finished{S.B{}, _}:
+      {==}
+
+law beat_same:
+  for y: Tour.Pos
+  for x: Tour.Pos
+  for rr: Tour.RoundRobin
+  {Tour.Standings.beat(y, x, rr) == Laws.Rule.beat(y, x, rr) : Bool}
+
+def beat_same(y, x, rr):
+  match y x rr:
+    case Tour.P1{} Tour.P1{} _:
+      {==}
+    case Tour.P1{} Tour.P2{} Tour.RoundRobin{r, _, _, _, _, _}:
+      won_as_same(S.A{}, r)
+    case Tour.P1{} Tour.P3{} Tour.RoundRobin{_, r, _, _, _, _}:
+      won_as_same(S.A{}, r)
+    case Tour.P1{} Tour.P4{} Tour.RoundRobin{_, _, r, _, _, _}:
+      won_as_same(S.A{}, r)
+    case Tour.P2{} Tour.P1{} Tour.RoundRobin{r, _, _, _, _, _}:
+      won_as_same(S.B{}, r)
+    case Tour.P2{} Tour.P2{} _:
+      {==}
+    case Tour.P2{} Tour.P3{} Tour.RoundRobin{_, _, _, r, _, _}:
+      won_as_same(S.A{}, r)
+    case Tour.P2{} Tour.P4{} Tour.RoundRobin{_, _, _, _, r, _}:
+      won_as_same(S.A{}, r)
+    case Tour.P3{} Tour.P1{} Tour.RoundRobin{_, r, _, _, _, _}:
+      won_as_same(S.B{}, r)
+    case Tour.P3{} Tour.P2{} Tour.RoundRobin{_, _, _, r, _, _}:
+      won_as_same(S.B{}, r)
+    case Tour.P3{} Tour.P3{} _:
+      {==}
+    case Tour.P3{} Tour.P4{} Tour.RoundRobin{_, _, _, _, _, r}:
+      won_as_same(S.A{}, r)
+    case Tour.P4{} Tour.P1{} Tour.RoundRobin{_, _, r, _, _, _}:
+      won_as_same(S.B{}, r)
+    case Tour.P4{} Tour.P2{} Tour.RoundRobin{_, _, _, _, r, _}:
+      won_as_same(S.B{}, r)
+    case Tour.P4{} Tour.P3{} Tour.RoundRobin{_, _, _, _, _, r}:
+      won_as_same(S.B{}, r)
+    case Tour.P4{} Tour.P4{} _:
+      {==}
+
+law seed_same:
+  for x: Tour.Pos
+  for g: Tour.Group
+  {Tour.Standings.seed(x, g) == Laws.Rule.seed(x, g) : Nat}
+
+def seed_same(x, g):
+  match x g:
+    case Tour.P1{} Tour.Group{a, b, c, d}:
+      {==}
+    case Tour.P2{} Tour.Group{a, b, c, d}:
+      {==}
+    case Tour.P3{} Tour.Group{a, b, c, d}:
+      {==}
+    case Tour.P4{} Tour.Group{a, b, c, d}:
+      {==}
+
+law race_same:
+  for +y: Tour.Pos
+  for +x: Tour.Pos
+  for +g: Tour.Group
+  {Tour.Standings.race(y, x, g) == Laws.Rule.race(y, x, g) : Bool}
+
+def race_same(y, x, g):
+  %seed_same(y, g) : {Tour.Standings.race(y, x, g) == Nat.is_lt(_, Laws.Rule.seed(x, g)) : Bool}
+  %seed_same(x, g) : {Tour.Standings.race(y, x, g) == Nat.is_lt(Tour.Standings.seed(y, g), _) : Bool}
+  {==}
+
+law decide_same:
+  for c: Cmp
+  for l: Bool
+  {Tour.Standings.decide(c, l) == Laws.Rule.decide(c, l) : Bool}
+
+def decide_same(c, l):
+  match c:
+    case GT{}:
+      {==}
+    case LT{}:
+      {==}
+    case EQ{}:
+      {==}
+
+# The shape of the three-way rule, with its comparisons as inputs: every
+# combination of them gives the same answer on both sides.
+law three_way_shape:
+  for a: Cmp
+  for b: Bool
+  for c: Cmp
+  for d: Bool
+  for e: Bool
+  for +f: Bool
+  {Tour.Standings.decide(a, Tour.Standings.either(b, Tour.Standings.decide(c, Tour.Standings.either(d, e, f)), f)) == Laws.Rule.decide(a, Laws.Rule.either(b, Laws.Rule.decide(c, Laws.Rule.either(d, e, f)), f)) : Bool}
+
+def three_way_shape(a, b, c, d, e, f):
+  match a b c d:
+    case GT{} True{} GT{} True{}:
+      {==}
+    case GT{} True{} GT{} False{}:
+      {==}
+    case GT{} True{} LT{} True{}:
+      {==}
+    case GT{} True{} LT{} False{}:
+      {==}
+    case GT{} True{} EQ{} True{}:
+      {==}
+    case GT{} True{} EQ{} False{}:
+      {==}
+    case GT{} False{} GT{} True{}:
+      {==}
+    case GT{} False{} GT{} False{}:
+      {==}
+    case GT{} False{} LT{} True{}:
+      {==}
+    case GT{} False{} LT{} False{}:
+      {==}
+    case GT{} False{} EQ{} True{}:
+      {==}
+    case GT{} False{} EQ{} False{}:
+      {==}
+    case LT{} True{} GT{} True{}:
+      {==}
+    case LT{} True{} GT{} False{}:
+      {==}
+    case LT{} True{} LT{} True{}:
+      {==}
+    case LT{} True{} LT{} False{}:
+      {==}
+    case LT{} True{} EQ{} True{}:
+      {==}
+    case LT{} True{} EQ{} False{}:
+      {==}
+    case LT{} False{} GT{} True{}:
+      {==}
+    case LT{} False{} GT{} False{}:
+      {==}
+    case LT{} False{} LT{} True{}:
+      {==}
+    case LT{} False{} LT{} False{}:
+      {==}
+    case LT{} False{} EQ{} True{}:
+      {==}
+    case LT{} False{} EQ{} False{}:
+      {==}
+    case EQ{} True{} GT{} True{}:
+      {==}
+    case EQ{} True{} GT{} False{}:
+      {==}
+    case EQ{} True{} LT{} True{}:
+      {==}
+    case EQ{} True{} LT{} False{}:
+      {==}
+    case EQ{} True{} EQ{} True{}:
+      {==}
+    case EQ{} True{} EQ{} False{}:
+      {==}
+    case EQ{} False{} GT{} True{}:
+      {==}
+    case EQ{} False{} GT{} False{}:
+      {==}
+    case EQ{} False{} LT{} True{}:
+      {==}
+    case EQ{} False{} LT{} False{}:
+      {==}
+    case EQ{} False{} EQ{} True{}:
+      {==}
+    case EQ{} False{} EQ{} False{}:
+      {==}
+
+law three_way_same:
+  for +y: Tour.Pos
+  for +x: Tour.Pos
+  for +k: Tour.Pos
+  for +g: Tour.Group
+  for +rr: Tour.RoundRobin
+  {Tour.Standings.three_way(y, x, k, g, rr) == Laws.Rule.three_way(y, x, k, g, rr) : Bool}
+
+def three_way_same(y, x, k, g, rr):
+  %set_cmp_same(y, x, rr) : {Tour.Standings.three_way(y, x, k, g, rr) == Laws.Rule.decide(_, Laws.Rule.either(Cmp.is_eq(Laws.Rule.set_cmp(k, x, rr)), Laws.Rule.decide(Laws.Rule.game_cmp(y, x, rr), Laws.Rule.either(Cmp.is_eq(Laws.Rule.game_cmp(k, x, rr)), Laws.Rule.race(y, x, g), Laws.Rule.beat(y, x, rr))), Laws.Rule.beat(y, x, rr))) : Bool}
+  %set_cmp_same(k, x, rr) : {Tour.Standings.three_way(y, x, k, g, rr) == Laws.Rule.decide(Tour.Standings.set_cmp(y, x, rr), Laws.Rule.either(Cmp.is_eq(_), Laws.Rule.decide(Laws.Rule.game_cmp(y, x, rr), Laws.Rule.either(Cmp.is_eq(Laws.Rule.game_cmp(k, x, rr)), Laws.Rule.race(y, x, g), Laws.Rule.beat(y, x, rr))), Laws.Rule.beat(y, x, rr))) : Bool}
+  %game_cmp_same(y, x, rr) : {Tour.Standings.three_way(y, x, k, g, rr) == Laws.Rule.decide(Tour.Standings.set_cmp(y, x, rr), Laws.Rule.either(Cmp.is_eq(Tour.Standings.set_cmp(k, x, rr)), Laws.Rule.decide(_, Laws.Rule.either(Cmp.is_eq(Laws.Rule.game_cmp(k, x, rr)), Laws.Rule.race(y, x, g), Laws.Rule.beat(y, x, rr))), Laws.Rule.beat(y, x, rr))) : Bool}
+  %game_cmp_same(k, x, rr) : {Tour.Standings.three_way(y, x, k, g, rr) == Laws.Rule.decide(Tour.Standings.set_cmp(y, x, rr), Laws.Rule.either(Cmp.is_eq(Tour.Standings.set_cmp(k, x, rr)), Laws.Rule.decide(Tour.Standings.game_cmp(y, x, rr), Laws.Rule.either(Cmp.is_eq(_), Laws.Rule.race(y, x, g), Laws.Rule.beat(y, x, rr))), Laws.Rule.beat(y, x, rr))) : Bool}
+  %race_same(y, x, g) : {Tour.Standings.three_way(y, x, k, g, rr) == Laws.Rule.decide(Tour.Standings.set_cmp(y, x, rr), Laws.Rule.either(Cmp.is_eq(Tour.Standings.set_cmp(k, x, rr)), Laws.Rule.decide(Tour.Standings.game_cmp(y, x, rr), Laws.Rule.either(Cmp.is_eq(Tour.Standings.game_cmp(k, x, rr)), _, Laws.Rule.beat(y, x, rr))), Laws.Rule.beat(y, x, rr))) : Bool}
+  %beat_same(y, x, rr) : {Tour.Standings.three_way(y, x, k, g, rr) == Laws.Rule.decide(Tour.Standings.set_cmp(y, x, rr), Laws.Rule.either(Cmp.is_eq(Tour.Standings.set_cmp(k, x, rr)), Laws.Rule.decide(Tour.Standings.game_cmp(y, x, rr), Laws.Rule.either(Cmp.is_eq(Tour.Standings.game_cmp(k, x, rr)), Tour.Standings.race(y, x, g), _)), _)) : Bool}
+  three_way_shape(Tour.Standings.set_cmp(y, x, rr), Cmp.is_eq(Tour.Standings.set_cmp(k, x, rr)), Tour.Standings.game_cmp(y, x, rr), Cmp.is_eq(Tour.Standings.game_cmp(k, x, rr)), Tour.Standings.race(y, x, g), Tour.Standings.beat(y, x, rr))
+
+law tied_same:
+  for zt: Bool
+  for wt: Bool
+  for +y: Tour.Pos
+  for +x: Tour.Pos
+  for +z: Tour.Pos
+  for +w: Tour.Pos
+  for +g: Tour.Group
+  for +rr: Tour.RoundRobin
+  {Tour.Standings.tied(zt, wt, y, x, z, w, g, rr) == Laws.Rule.tied(zt, wt, y, x, z, w, g, rr) : Bool}
+
+def tied_same(zt, wt, y, x, z, w, g, rr):
+  match zt wt:
+    case False{} False{}:
+      beat_same(y, x, rr)
+    case True{} False{}:
+      three_way_same(y, x, z, g, rr)
+    case False{} True{}:
+      three_way_same(y, x, w, g, rr)
+    case True{} True{}:
+      race_same(y, x, g)
+
+law ahead_same:
+  for +y: Tour.Pos
+  for +x: Tour.Pos
+  for +z: Tour.Pos
+  for +w: Tour.Pos
+  for +g: Tour.Group
+  for +rr: Tour.RoundRobin
+  {Tour.Standings.ahead(y, x, z, w, g, rr) == Laws.Rule.ahead(y, x, z, w, g, rr) : Bool}
+
+def ahead_same(y, x, z, w, g, rr):
+  %wins_same(y, rr) : {Tour.Standings.ahead(y, x, z, w, g, rr) == Laws.Rule.decide(Nat.cmp(_, Laws.Rule.wins(x, rr)), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(z, rr), Laws.Rule.wins(x, rr)), Nat.is_eq(Laws.Rule.wins(w, rr), Laws.Rule.wins(x, rr)), y, x, z, w, g, rr)) : Bool}
+  %wins_same(x, rr) : {Tour.Standings.ahead(y, x, z, w, g, rr) == Laws.Rule.decide(Nat.cmp(Tour.Standings.wins(y, rr), _), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(z, rr), _), Nat.is_eq(Laws.Rule.wins(w, rr), _), y, x, z, w, g, rr)) : Bool}
+  %wins_same(z, rr) : {Tour.Standings.ahead(y, x, z, w, g, rr) == Laws.Rule.decide(Nat.cmp(Tour.Standings.wins(y, rr), Tour.Standings.wins(x, rr)), Laws.Rule.tied(Nat.is_eq(_, Tour.Standings.wins(x, rr)), Nat.is_eq(Laws.Rule.wins(w, rr), Tour.Standings.wins(x, rr)), y, x, z, w, g, rr)) : Bool}
+  %wins_same(w, rr) : {Tour.Standings.ahead(y, x, z, w, g, rr) == Laws.Rule.decide(Nat.cmp(Tour.Standings.wins(y, rr), Tour.Standings.wins(x, rr)), Laws.Rule.tied(Nat.is_eq(Tour.Standings.wins(z, rr), Tour.Standings.wins(x, rr)), Nat.is_eq(_, Tour.Standings.wins(x, rr)), y, x, z, w, g, rr)) : Bool}
+  %tied_same(Nat.is_eq(Tour.Standings.wins(z, rr), Tour.Standings.wins(x, rr)), Nat.is_eq(Tour.Standings.wins(w, rr), Tour.Standings.wins(x, rr)), y, x, z, w, g, rr) : {Tour.Standings.ahead(y, x, z, w, g, rr) == Laws.Rule.decide(Nat.cmp(Tour.Standings.wins(y, rr), Tour.Standings.wins(x, rr)), _) : Bool}
+  decide_same(Nat.cmp(Tour.Standings.wins(y, rr), Tour.Standings.wins(x, rr)), Tour.Standings.tied(Nat.is_eq(Tour.Standings.wins(z, rr), Tour.Standings.wins(x, rr)), Nat.is_eq(Tour.Standings.wins(w, rr), Tour.Standings.wins(x, rr)), y, x, z, w, g, rr))
+
+law count3_same:
+  for a: Bool
+  for b: Bool
+  for c: Bool
+  {S.Match.count(a, S.Match.count(b, S.Match.count(c, 1n))) == Laws.Rule.count(a, Laws.Rule.count(b, Laws.Rule.count(c, 1n))) : Nat}
+
+def count3_same(a, b, c):
+  match a b c:
+    case True{} True{} True{}:
+      {==}
+    case True{} True{} False{}:
+      {==}
+    case True{} False{} True{}:
+      {==}
+    case True{} False{} False{}:
+      {==}
+    case False{} True{} True{}:
+      {==}
+    case False{} True{} False{}:
+      {==}
+    case False{} False{} True{}:
+      {==}
+    case False{} False{} False{}:
+      {==}
+
+law place_same:
+  for +x: Tour.Pos
+  for +y: Tour.Pos
+  for +z: Tour.Pos
+  for +w: Tour.Pos
+  for +g: Tour.Group
+  for +rr: Tour.RoundRobin
+  {Tour.Standings.place(x, y, z, w, g, rr) == Laws.Rule.place(x, y, z, w, g, rr) : Nat}
+
+def place_same(x, y, z, w, g, rr):
+  %ahead_same(y, x, z, w, g, rr) : {Tour.Standings.place(x, y, z, w, g, rr) == Laws.Rule.count(_, Laws.Rule.count(Laws.Rule.ahead(z, x, y, w, g, rr), Laws.Rule.count(Laws.Rule.ahead(w, x, y, z, g, rr), 1n))) : Nat}
+  %ahead_same(z, x, y, w, g, rr) : {Tour.Standings.place(x, y, z, w, g, rr) == Laws.Rule.count(Tour.Standings.ahead(y, x, z, w, g, rr), Laws.Rule.count(_, Laws.Rule.count(Laws.Rule.ahead(w, x, y, z, g, rr), 1n))) : Nat}
+  %ahead_same(w, x, y, z, g, rr) : {Tour.Standings.place(x, y, z, w, g, rr) == Laws.Rule.count(Tour.Standings.ahead(y, x, z, w, g, rr), Laws.Rule.count(Tour.Standings.ahead(z, x, y, w, g, rr), Laws.Rule.count(_, 1n))) : Nat}
+  count3_same(Tour.Standings.ahead(y, x, z, w, g, rr), Tour.Standings.ahead(z, x, y, w, g, rr), Tour.Standings.ahead(w, x, y, z, g, rr))
+
+def Laws.L28_standings_follow_rule(g, rr):
+  %place_same(Tour.P1{}, Tour.P2{}, Tour.P3{}, Tour.P4{}, g, rr) : {Tour.Standings.places(g, rr) == Tour.Places{_, Laws.Rule.place(Tour.P2{}, Tour.P1{}, Tour.P3{}, Tour.P4{}, g, rr), Laws.Rule.place(Tour.P3{}, Tour.P1{}, Tour.P2{}, Tour.P4{}, g, rr), Laws.Rule.place(Tour.P4{}, Tour.P1{}, Tour.P2{}, Tour.P3{}, g, rr)} : Tour.Places}
+  %place_same(Tour.P2{}, Tour.P1{}, Tour.P3{}, Tour.P4{}, g, rr) : {Tour.Standings.places(g, rr) == Tour.Places{Tour.Standings.place(Tour.P1{}, Tour.P2{}, Tour.P3{}, Tour.P4{}, g, rr), _, Laws.Rule.place(Tour.P3{}, Tour.P1{}, Tour.P2{}, Tour.P4{}, g, rr), Laws.Rule.place(Tour.P4{}, Tour.P1{}, Tour.P2{}, Tour.P3{}, g, rr)} : Tour.Places}
+  %place_same(Tour.P3{}, Tour.P1{}, Tour.P2{}, Tour.P4{}, g, rr) : {Tour.Standings.places(g, rr) == Tour.Places{Tour.Standings.place(Tour.P1{}, Tour.P2{}, Tour.P3{}, Tour.P4{}, g, rr), Tour.Standings.place(Tour.P2{}, Tour.P1{}, Tour.P3{}, Tour.P4{}, g, rr), _, Laws.Rule.place(Tour.P4{}, Tour.P1{}, Tour.P2{}, Tour.P3{}, g, rr)} : Tour.Places}
+  %place_same(Tour.P4{}, Tour.P1{}, Tour.P2{}, Tour.P3{}, g, rr) : {Tour.Standings.places(g, rr) == Tour.Places{Tour.Standings.place(Tour.P1{}, Tour.P2{}, Tour.P3{}, Tour.P4{}, g, rr), Tour.Standings.place(Tour.P2{}, Tour.P1{}, Tour.P3{}, Tour.P4{}, g, rr), Tour.Standings.place(Tour.P3{}, Tour.P1{}, Tour.P2{}, Tour.P4{}, g, rr), _} : Tour.Places}
+  {==}
+
+# ---------------------------------------------------------------------------
+# L29: one whole tournament. The engine's helpers follow the rule's, step by
+# step, using L15, L19 and L28 for the draw, the semifinal lines and the
+# standings.
+# ---------------------------------------------------------------------------
+
+law pick8_same:
+  for n: Nat
+  for p1: P.Player
+  for p2: P.Player
+  for p3: P.Player
+  for p4: P.Player
+  for p5: P.Player
+  for p6: P.Player
+  for p7: P.Player
+  for p8: P.Player
+  {Tour.Event.pick8(n, p1, p2, p3, p4, p5, p6, p7, p8) == Laws.Rule.pick8(n, p1, p2, p3, p4, p5, p6, p7, p8) : P.Player}
+
+def pick8_same(n, p1, p2, p3, p4, p5, p6, p7, p8):
+  match n:
+    case 1n:
+      {==}
+    case 2n:
+      {==}
+    case 3n:
+      {==}
+    case 4n:
+      {==}
+    case 5n:
+      {==}
+    case 6n:
+      {==}
+    case 7n:
+      {==}
+    case 0n:
+      {==}
+    case 8n+p:
+      {==}
+
+law player_same:
+  for n: Nat
+  for f: Tour.Field
+  {Tour.Event.player(n, f) == Laws.Rule.player(n, f) : P.Player}
+
+def player_same(n, f):
+  match f:
+    case Tour.Field{m, p1, p2, p3, p4, p5, p6, p7, p8}:
+      pick8_same(n, p1, p2, p3, p4, p5, p6, p7, p8)
+
+law chance_same:
+  for +f: Tour.Field
+  for +x: Nat
+  for +y: Nat
+  {Tour.Event.chance(f, x, y) == Laws.Rule.chance(f, x, y) : Sim.Chance}
+
+def chance_same(f, x, y):
+  match f:
+    case Tour.Field{+m, +p1, +p2, +p3, +p4, +p5, +p6, +p7, +p8}:
+      %pick8_same(x, p1, p2, p3, p4, p5, p6, p7, p8) : {Tour.Event.chance(Tour.Field{m, p1, p2, p3, p4, p5, p6, p7, p8}, x, y) == P.Serve.chance(m, _, Laws.Rule.pick8(y, p1, p2, p3, p4, p5, p6, p7, p8)) : Sim.Chance}
+      %pick8_same(y, p1, p2, p3, p4, p5, p6, p7, p8) : {Tour.Event.chance(Tour.Field{m, p1, p2, p3, p4, p5, p6, p7, p8}, x, y) == P.Serve.chance(m, Tour.Event.pick8(x, p1, p2, p3, p4, p5, p6, p7, p8), _) : Sim.Chance}
+      {==}
+
+law finished_same:
+  for o: Sim.Outcome
+  {Tour.Event.finished(o) == Laws.Rule.finished(o) : Maybe<Tour.Finished>}
+
+def finished_same(o):
+  match o:
+    case Sim.Won{w, S.Match{a, b, c}}:
+      {==}
+    case Sim.Unfinished{m}:
+      {==}
+
+law match_at_same:
+  for +fmt: S.Format
+  for +f: Tour.Field
+  for +seed: U32
+  for +run: U32
+  for +slot: U32
+  for +x: Nat
+  for +y: Nat
+  {Tour.Event.match_at(fmt, f, seed, run, slot, x, y) == Laws.Rule.match_at(fmt, f, seed, run, slot, x, y) : Maybe<Tour.Finished>}
+
+def match_at_same(fmt, f, seed, run, slot, x, y):
+  %chance_same(f, x, y) : {Tour.Event.match_at(fmt, f, seed, run, slot, x, y) == Laws.Rule.finished(Sim.Match.simulate(fmt, _, Laws.Rule.chance(f, y, x), seed, run, slot, Sim.Rng.coin(seed, run, slot))) : Maybe<Tour.Finished>}
+  %chance_same(f, y, x) : {Tour.Event.match_at(fmt, f, seed, run, slot, x, y) == Laws.Rule.finished(Sim.Match.simulate(fmt, Tour.Event.chance(f, x, y), _, seed, run, slot, Sim.Rng.coin(seed, run, slot))) : Maybe<Tour.Finished>}
+  finished_same(Sim.Match.simulate(fmt, Tour.Event.chance(f, x, y), Tour.Event.chance(f, y, x), seed, run, slot, Sim.Rng.coin(seed, run, slot)))
+
+law all6_same:
+  for a: Maybe<Tour.Finished>
+  for b: Maybe<Tour.Finished>
+  for c: Maybe<Tour.Finished>
+  for d: Maybe<Tour.Finished>
+  for e: Maybe<Tour.Finished>
+  for h: Maybe<Tour.Finished>
+  {Tour.Event.all6(a, b, c, d, e, h) == Laws.Rule.all6(a, b, c, d, e, h) : Maybe<Tour.RoundRobin>}
+
+def all6_same(a, b, c, d, e, h):
+  match a:
+    case None{}:
+      {==}
+    case Some{x0}:
+      match b:
+        case None{}:
+          {==}
+        case Some{x1}:
+          match c:
+            case None{}:
+              {==}
+            case Some{x2}:
+              match d:
+                case None{}:
+                  {==}
+                case Some{x3}:
+                  match e:
+                    case None{}:
+                      {==}
+                    case Some{x4}:
+                      match h:
+                        case None{}:
+                          {==}
+                        case Some{x5}:
+                          {==}
+
+law group_play_same:
+  for +fmt: S.Format
+  for +f: Tour.Field
+  for +seed: U32
+  for +run: U32
+  for +base: U32
+  for g: Tour.Group
+  {Tour.Event.group_play(fmt, f, seed, run, base, g) == Laws.Rule.group_play(fmt, f, seed, run, base, g) : Maybe<Tour.RoundRobin>}
+
+def group_play_same(fmt, f, seed, run, base, g):
+  match g:
+    case Tour.Group{+s1, +s2, +s3, +s4}:
+      %match_at_same(fmt, f, seed, run, base, s1, s2) : {Tour.Event.group_play(fmt, f, seed, run, base, Tour.Group{s1, s2, s3, s4}) == Laws.Rule.all6(_, Laws.Rule.match_at(fmt, f, seed, run, (base + 1 : U32), s1, s3), Laws.Rule.match_at(fmt, f, seed, run, (base + 2 : U32), s1, s4), Laws.Rule.match_at(fmt, f, seed, run, (base + 3 : U32), s2, s3), Laws.Rule.match_at(fmt, f, seed, run, (base + 4 : U32), s2, s4), Laws.Rule.match_at(fmt, f, seed, run, (base + 5 : U32), s3, s4)) : Maybe<Tour.RoundRobin>}
+      %match_at_same(fmt, f, seed, run, (base + 1 : U32), s1, s3) : {Tour.Event.group_play(fmt, f, seed, run, base, Tour.Group{s1, s2, s3, s4}) == Laws.Rule.all6(Tour.Event.match_at(fmt, f, seed, run, base, s1, s2), _, Laws.Rule.match_at(fmt, f, seed, run, (base + 2 : U32), s1, s4), Laws.Rule.match_at(fmt, f, seed, run, (base + 3 : U32), s2, s3), Laws.Rule.match_at(fmt, f, seed, run, (base + 4 : U32), s2, s4), Laws.Rule.match_at(fmt, f, seed, run, (base + 5 : U32), s3, s4)) : Maybe<Tour.RoundRobin>}
+      %match_at_same(fmt, f, seed, run, (base + 2 : U32), s1, s4) : {Tour.Event.group_play(fmt, f, seed, run, base, Tour.Group{s1, s2, s3, s4}) == Laws.Rule.all6(Tour.Event.match_at(fmt, f, seed, run, base, s1, s2), Tour.Event.match_at(fmt, f, seed, run, (base + 1 : U32), s1, s3), _, Laws.Rule.match_at(fmt, f, seed, run, (base + 3 : U32), s2, s3), Laws.Rule.match_at(fmt, f, seed, run, (base + 4 : U32), s2, s4), Laws.Rule.match_at(fmt, f, seed, run, (base + 5 : U32), s3, s4)) : Maybe<Tour.RoundRobin>}
+      %match_at_same(fmt, f, seed, run, (base + 3 : U32), s2, s3) : {Tour.Event.group_play(fmt, f, seed, run, base, Tour.Group{s1, s2, s3, s4}) == Laws.Rule.all6(Tour.Event.match_at(fmt, f, seed, run, base, s1, s2), Tour.Event.match_at(fmt, f, seed, run, (base + 1 : U32), s1, s3), Tour.Event.match_at(fmt, f, seed, run, (base + 2 : U32), s1, s4), _, Laws.Rule.match_at(fmt, f, seed, run, (base + 4 : U32), s2, s4), Laws.Rule.match_at(fmt, f, seed, run, (base + 5 : U32), s3, s4)) : Maybe<Tour.RoundRobin>}
+      %match_at_same(fmt, f, seed, run, (base + 4 : U32), s2, s4) : {Tour.Event.group_play(fmt, f, seed, run, base, Tour.Group{s1, s2, s3, s4}) == Laws.Rule.all6(Tour.Event.match_at(fmt, f, seed, run, base, s1, s2), Tour.Event.match_at(fmt, f, seed, run, (base + 1 : U32), s1, s3), Tour.Event.match_at(fmt, f, seed, run, (base + 2 : U32), s1, s4), Tour.Event.match_at(fmt, f, seed, run, (base + 3 : U32), s2, s3), _, Laws.Rule.match_at(fmt, f, seed, run, (base + 5 : U32), s3, s4)) : Maybe<Tour.RoundRobin>}
+      %match_at_same(fmt, f, seed, run, (base + 5 : U32), s3, s4) : {Tour.Event.group_play(fmt, f, seed, run, base, Tour.Group{s1, s2, s3, s4}) == Laws.Rule.all6(Tour.Event.match_at(fmt, f, seed, run, base, s1, s2), Tour.Event.match_at(fmt, f, seed, run, (base + 1 : U32), s1, s3), Tour.Event.match_at(fmt, f, seed, run, (base + 2 : U32), s1, s4), Tour.Event.match_at(fmt, f, seed, run, (base + 3 : U32), s2, s3), Tour.Event.match_at(fmt, f, seed, run, (base + 4 : U32), s2, s4), _) : Maybe<Tour.RoundRobin>}
+      all6_same(Tour.Event.match_at(fmt, f, seed, run, base, s1, s2), Tour.Event.match_at(fmt, f, seed, run, (base + 1 : U32), s1, s3), Tour.Event.match_at(fmt, f, seed, run, (base + 2 : U32), s1, s4), Tour.Event.match_at(fmt, f, seed, run, (base + 3 : U32), s2, s3), Tour.Event.match_at(fmt, f, seed, run, (base + 4 : U32), s2, s4), Tour.Event.match_at(fmt, f, seed, run, (base + 5 : U32), s3, s4))
+
+law groups_same:
+  for d: Tour.Draw
+  for +seed: U32
+  for +run: U32
+  {Tour.Event.groups(d, seed, run) == Laws.Rule.groups(d, seed, run) : Tour.Group & Tour.Group}
+
+def groups_same(d, seed, run):
+  match d:
+    case Tour.Seeded{}:
+      %same_same(Sim.Rng.coin(seed, run, 15), S.A{}) : {Tour.Event.groups(Tour.Seeded{}, seed, run) == Laws.Rule.seeded_groups(_, Laws.Rule.lot(seed, run, 16), Laws.Rule.lot(seed, run, 17)) : Tour.Group & Tour.Group}
+      %same_same(Sim.Rng.coin(seed, run, 16), S.A{}) : {Tour.Event.groups(Tour.Seeded{}, seed, run) == Laws.Rule.seeded_groups(Tour.Event.lot(seed, run, 15), _, Laws.Rule.lot(seed, run, 17)) : Tour.Group & Tour.Group}
+      %same_same(Sim.Rng.coin(seed, run, 17), S.A{}) : {Tour.Event.groups(Tour.Seeded{}, seed, run) == Laws.Rule.seeded_groups(Tour.Event.lot(seed, run, 15), Tour.Event.lot(seed, run, 16), _) : Tour.Group & Tour.Group}
+      Laws.L15_seeded_draw_follows_rule(Tour.Event.lot(seed, run, 15), Tour.Event.lot(seed, run, 16), Tour.Event.lot(seed, run, 17))
+    case Tour.Fixed{a, b}:
+      {==}
+
+law on_line_same:
+  for n: Nat
+  for sm: Tour.Semis
+  {Tour.Knockout.on_line(n, sm) == Laws.Rule.on_line(n, sm) : Nat}
+
+def on_line_same(n, sm):
+  match n sm:
+    case 1n Tour.Semis{a, b, c, d}:
+      {==}
+    case 2n Tour.Semis{a, b, c, d}:
+      {==}
+    case 3n Tour.Semis{a, b, c, d}:
+      {==}
+    case 0n Tour.Semis{a, b, c, d}:
+      {==}
+    case 4n+p Tour.Semis{a, b, c, d}:
+      {==}
+
+law winner_of_same:
+  for r: Tour.Finished
+  for a: Nat
+  for b: Nat
+  {Tour.Knockout.winner_of(r, a, b) == Laws.Rule.winner_of(r, a, b) : Nat}
+
+def winner_of_same(r, a, b):
+  match r:
+    case Tour.Finished{S.A{}, s}:
+      {==}
+    case Tour.Finished{S.B{}, s}:
+      {==}
+
+law finish_same:
+  for +ga: Tour.Group
+  for +gb: Tour.Group
+  for +ra: Tour.RoundRobin
+  for +rb: Tour.RoundRobin
+  for +sm: Tour.Semis
+  for +r1: Tour.Finished
+  for +r2: Tour.Finished
+  for +f1: Nat
+  for +f2: Nat
+  for fr: Maybe<Tour.Finished>
+  {Tour.Event.finish(ga, gb, ra, rb, sm, r1, r2, f1, f2, fr) == Laws.Rule.finish(ga, gb, ra, rb, sm, r1, r2, f1, f2, fr) : Tour.Outcome}
+
+def finish_same(ga, gb, ra, rb, sm, r1, r2, f1, f2, fr):
+  match fr:
+    case Some{+r}:
+      %winner_of_same(r, f1, f2) : {Tour.Event.finish(ga, gb, ra, rb, sm, r1, r2, f1, f2, Some{r}) == Tour.Complete{ga, gb, ra, rb, sm, r1, r2, f1, f2, r, _} : Tour.Outcome}
+      {==}
+    case None{}:
+      {==}
+
+law final_stage_same:
+  for +fmt: S.Format
+  for +f: Tour.Field
+  for +seed: U32
+  for +run: U32
+  for +ga: Tour.Group
+  for +gb: Tour.Group
+  for +ra: Tour.RoundRobin
+  for +rb: Tour.RoundRobin
+  for +sm: Tour.Semis
+  for +r1: Tour.Finished
+  for +r2: Tour.Finished
+  for +f1: Nat
+  for +f2: Nat
+  {Tour.Event.final_stage(fmt, f, seed, run, ga, gb, ra, rb, sm, r1, r2, f1, f2) == Laws.Rule.final_stage(fmt, f, seed, run, ga, gb, ra, rb, sm, r1, r2, f1, f2) : Tour.Outcome}
+
+def final_stage_same(fmt, f, seed, run, ga, gb, ra, rb, sm, r1, r2, f1, f2):
+  %match_at_same(fmt, f, seed, run, 14, f1, f2) : {Tour.Event.final_stage(fmt, f, seed, run, ga, gb, ra, rb, sm, r1, r2, f1, f2) == Laws.Rule.finish(ga, gb, ra, rb, sm, r1, r2, f1, f2, _) : Tour.Outcome}
+  finish_same(ga, gb, ra, rb, sm, r1, r2, f1, f2, Tour.Event.match_at(fmt, f, seed, run, 14, f1, f2))
+
+law after_semis_same:
+  for +fmt: S.Format
+  for +f: Tour.Field
+  for +seed: U32
+  for +run: U32
+  for +ga: Tour.Group
+  for +gb: Tour.Group
+  for +ra: Tour.RoundRobin
+  for +rb: Tour.RoundRobin
+  for +sm: Tour.Semis
+  for s1: Maybe<Tour.Finished>
+  for s2: Maybe<Tour.Finished>
+  {Tour.Event.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, s1, s2) == Laws.Rule.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, s1, s2) : Tour.Outcome}
+
+def after_semis_same(fmt, f, seed, run, ga, gb, ra, rb, sm, s1, s2):
+  match s1 s2:
+    case Some{+r1} Some{+r2}:
+      %on_line_same(1n, sm) : {Tour.Event.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, Some{r1}, Some{r2}) == Laws.Rule.final_stage(fmt, f, seed, run, ga, gb, ra, rb, sm, r1, r2, Laws.Rule.winner_of(r1, _, Laws.Rule.on_line(2n, sm)), Laws.Rule.winner_of(r2, Laws.Rule.on_line(3n, sm), Laws.Rule.on_line(4n, sm))) : Tour.Outcome}
+      %on_line_same(2n, sm) : {Tour.Event.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, Some{r1}, Some{r2}) == Laws.Rule.final_stage(fmt, f, seed, run, ga, gb, ra, rb, sm, r1, r2, Laws.Rule.winner_of(r1, Tour.Knockout.on_line(1n, sm), _), Laws.Rule.winner_of(r2, Laws.Rule.on_line(3n, sm), Laws.Rule.on_line(4n, sm))) : Tour.Outcome}
+      %on_line_same(3n, sm) : {Tour.Event.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, Some{r1}, Some{r2}) == Laws.Rule.final_stage(fmt, f, seed, run, ga, gb, ra, rb, sm, r1, r2, Laws.Rule.winner_of(r1, Tour.Knockout.on_line(1n, sm), Tour.Knockout.on_line(2n, sm)), Laws.Rule.winner_of(r2, _, Laws.Rule.on_line(4n, sm))) : Tour.Outcome}
+      %on_line_same(4n, sm) : {Tour.Event.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, Some{r1}, Some{r2}) == Laws.Rule.final_stage(fmt, f, seed, run, ga, gb, ra, rb, sm, r1, r2, Laws.Rule.winner_of(r1, Tour.Knockout.on_line(1n, sm), Tour.Knockout.on_line(2n, sm)), Laws.Rule.winner_of(r2, Tour.Knockout.on_line(3n, sm), _)) : Tour.Outcome}
+      %winner_of_same(r1, Tour.Knockout.on_line(1n, sm), Tour.Knockout.on_line(2n, sm)) : {Tour.Event.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, Some{r1}, Some{r2}) == Laws.Rule.final_stage(fmt, f, seed, run, ga, gb, ra, rb, sm, r1, r2, _, Laws.Rule.winner_of(r2, Tour.Knockout.on_line(3n, sm), Tour.Knockout.on_line(4n, sm))) : Tour.Outcome}
+      %winner_of_same(r2, Tour.Knockout.on_line(3n, sm), Tour.Knockout.on_line(4n, sm)) : {Tour.Event.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, Some{r1}, Some{r2}) == Laws.Rule.final_stage(fmt, f, seed, run, ga, gb, ra, rb, sm, r1, r2, Tour.Knockout.winner_of(r1, Tour.Knockout.on_line(1n, sm), Tour.Knockout.on_line(2n, sm)), _) : Tour.Outcome}
+      final_stage_same(fmt, f, seed, run, ga, gb, ra, rb, sm, r1, r2, Tour.Knockout.winner_of(r1, Tour.Knockout.on_line(1n, sm), Tour.Knockout.on_line(2n, sm)), Tour.Knockout.winner_of(r2, Tour.Knockout.on_line(3n, sm), Tour.Knockout.on_line(4n, sm)))
+    case Some{r1} None{}:
+      {==}
+    case None{} Some{r2}:
+      {==}
+    case None{} None{}:
+      {==}
+
+law semis_stage_same:
+  for +fmt: S.Format
+  for +f: Tour.Field
+  for +seed: U32
+  for +run: U32
+  for +ga: Tour.Group
+  for +gb: Tour.Group
+  for +ra: Tour.RoundRobin
+  for +rb: Tour.RoundRobin
+  for +sm: Tour.Semis
+  {Tour.Event.semis_stage(fmt, f, seed, run, ga, gb, ra, rb, sm) == Laws.Rule.semis_stage(fmt, f, seed, run, ga, gb, ra, rb, sm) : Tour.Outcome}
+
+def semis_stage_same(fmt, f, seed, run, ga, gb, ra, rb, sm):
+  %on_line_same(1n, sm) : {Tour.Event.semis_stage(fmt, f, seed, run, ga, gb, ra, rb, sm) == Laws.Rule.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, Laws.Rule.match_at(fmt, f, seed, run, 12, _, Laws.Rule.on_line(2n, sm)), Laws.Rule.match_at(fmt, f, seed, run, 13, Laws.Rule.on_line(3n, sm), Laws.Rule.on_line(4n, sm))) : Tour.Outcome}
+  %on_line_same(2n, sm) : {Tour.Event.semis_stage(fmt, f, seed, run, ga, gb, ra, rb, sm) == Laws.Rule.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, Laws.Rule.match_at(fmt, f, seed, run, 12, Tour.Knockout.on_line(1n, sm), _), Laws.Rule.match_at(fmt, f, seed, run, 13, Laws.Rule.on_line(3n, sm), Laws.Rule.on_line(4n, sm))) : Tour.Outcome}
+  %on_line_same(3n, sm) : {Tour.Event.semis_stage(fmt, f, seed, run, ga, gb, ra, rb, sm) == Laws.Rule.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, Laws.Rule.match_at(fmt, f, seed, run, 12, Tour.Knockout.on_line(1n, sm), Tour.Knockout.on_line(2n, sm)), Laws.Rule.match_at(fmt, f, seed, run, 13, _, Laws.Rule.on_line(4n, sm))) : Tour.Outcome}
+  %on_line_same(4n, sm) : {Tour.Event.semis_stage(fmt, f, seed, run, ga, gb, ra, rb, sm) == Laws.Rule.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, Laws.Rule.match_at(fmt, f, seed, run, 12, Tour.Knockout.on_line(1n, sm), Tour.Knockout.on_line(2n, sm)), Laws.Rule.match_at(fmt, f, seed, run, 13, Tour.Knockout.on_line(3n, sm), _)) : Tour.Outcome}
+  %match_at_same(fmt, f, seed, run, 12, Tour.Knockout.on_line(1n, sm), Tour.Knockout.on_line(2n, sm)) : {Tour.Event.semis_stage(fmt, f, seed, run, ga, gb, ra, rb, sm) == Laws.Rule.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, _, Laws.Rule.match_at(fmt, f, seed, run, 13, Tour.Knockout.on_line(3n, sm), Tour.Knockout.on_line(4n, sm))) : Tour.Outcome}
+  %match_at_same(fmt, f, seed, run, 13, Tour.Knockout.on_line(3n, sm), Tour.Knockout.on_line(4n, sm)) : {Tour.Event.semis_stage(fmt, f, seed, run, ga, gb, ra, rb, sm) == Laws.Rule.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, Tour.Event.match_at(fmt, f, seed, run, 12, Tour.Knockout.on_line(1n, sm), Tour.Knockout.on_line(2n, sm)), _) : Tour.Outcome}
+  after_semis_same(fmt, f, seed, run, ga, gb, ra, rb, sm, Tour.Event.match_at(fmt, f, seed, run, 12, Tour.Knockout.on_line(1n, sm), Tour.Knockout.on_line(2n, sm)), Tour.Event.match_at(fmt, f, seed, run, 13, Tour.Knockout.on_line(3n, sm), Tour.Knockout.on_line(4n, sm)))
+
+law after_groups_same:
+  for +fmt: S.Format
+  for +f: Tour.Field
+  for +seed: U32
+  for +run: U32
+  for +ga: Tour.Group
+  for +gb: Tour.Group
+  for xa: Maybe<Tour.RoundRobin>
+  for xb: Maybe<Tour.RoundRobin>
+  {Tour.Event.after_groups(fmt, f, seed, run, ga, gb, xa, xb) == Laws.Rule.after_groups(fmt, f, seed, run, ga, gb, xa, xb) : Tour.Outcome}
+
+def after_groups_same(fmt, f, seed, run, ga, gb, xa, xb):
+  match xa xb:
+    case Some{+ra} Some{+rb}:
+      %Laws.L28_standings_follow_rule(ga, ra) : {Tour.Event.after_groups(fmt, f, seed, run, ga, gb, Some{ra}, Some{rb}) == Laws.Rule.semis_stage(fmt, f, seed, run, ga, gb, ra, rb, Laws.Rule.semis(ga, _, gb, Laws.Rule.places(gb, rb))) : Tour.Outcome}
+      %Laws.L28_standings_follow_rule(gb, rb) : {Tour.Event.after_groups(fmt, f, seed, run, ga, gb, Some{ra}, Some{rb}) == Laws.Rule.semis_stage(fmt, f, seed, run, ga, gb, ra, rb, Laws.Rule.semis(ga, Tour.Standings.places(ga, ra), gb, _)) : Tour.Outcome}
+      %Laws.L19_semis_cross_groups(ga, Tour.Standings.places(ga, ra), gb, Tour.Standings.places(gb, rb)) : {Tour.Event.after_groups(fmt, f, seed, run, ga, gb, Some{ra}, Some{rb}) == Laws.Rule.semis_stage(fmt, f, seed, run, ga, gb, ra, rb, _) : Tour.Outcome}
+      semis_stage_same(fmt, f, seed, run, ga, gb, ra, rb, Tour.Knockout.semis(ga, Tour.Standings.places(ga, ra), gb, Tour.Standings.places(gb, rb)))
+    case Some{ra} None{}:
+      {==}
+    case None{} Some{rb}:
+      {==}
+    case None{} None{}:
+      {==}
+
+law after_draw_same:
+  for +fmt: S.Format
+  for +f: Tour.Field
+  for +seed: U32
+  for +run: U32
+  for gs: Tour.Group & Tour.Group
+  {Tour.Event.after_draw(fmt, f, seed, run, gs) == Laws.Rule.after_draw(fmt, f, seed, run, gs) : Tour.Outcome}
+
+def after_draw_same(fmt, f, seed, run, gs):
+  match gs:
+    case (+ga, +gb):
+      %group_play_same(fmt, f, seed, run, 0, ga) : {Tour.Event.after_draw(fmt, f, seed, run, (ga, gb)) == Laws.Rule.after_groups(fmt, f, seed, run, ga, gb, _, Laws.Rule.group_play(fmt, f, seed, run, 6, gb)) : Tour.Outcome}
+      %group_play_same(fmt, f, seed, run, 6, gb) : {Tour.Event.after_draw(fmt, f, seed, run, (ga, gb)) == Laws.Rule.after_groups(fmt, f, seed, run, ga, gb, Tour.Event.group_play(fmt, f, seed, run, 0, ga), _) : Tour.Outcome}
+      after_groups_same(fmt, f, seed, run, ga, gb, Tour.Event.group_play(fmt, f, seed, run, 0, ga), Tour.Event.group_play(fmt, f, seed, run, 6, gb))
+
+def Laws.L29_tournament_follows_rules(fmt, f, d, seed, run):
+  %groups_same(d, seed, run) : {Tour.Event.play(fmt, f, d, seed, run) == Laws.Rule.after_draw(fmt, f, seed, run, _) : Tour.Outcome}
+  after_draw_same(fmt, f, seed, run, Tour.Event.groups(d, seed, run))
+
+
+# ---------------------------------------------------------------------------
+# L18: the champion won her semifinal and the final. By L29 the engine plays
+# the rule's tournament; in it, the finalists are the semifinal winners and
+# the champion is the final's winner by construction, so each check compares
+# a number with itself.
+# ---------------------------------------------------------------------------
+
+law cmp_refl:
+  for n: Nat
+  {Nat.cmp(n, n) == EQ{} : Cmp}
+
+def cmp_refl(n):
+  match n:
+    case 0n:
+      {==}
+    case 1n+p:
+      cmp_refl(p)
+
+law is_eq_refl:
+  for n: Nat
+  {Nat.is_eq(n, n) == True{} : Bool}
+
+def is_eq_refl(n):
+  %Equal.sym(Cmp, Nat.cmp(n, n), EQ{}, cmp_refl(n)) : {Cmp.is_eq(_) == True{} : Bool}
+  {==}
+
+law and3_refl:
+  for +x: Nat
+  for +y: Nat
+  for +z: Nat
+  {Bool.and(Bool.and(Nat.is_eq(x, x), Nat.is_eq(y, y)), Nat.is_eq(z, z)) == True{} : Bool}
+
+def and3_refl(x, y, z):
+  %Equal.sym(Bool, Nat.is_eq(x, x), True{}, is_eq_refl(x)) : {Bool.and(Bool.and(_, Nat.is_eq(y, y)), Nat.is_eq(z, z)) == True{} : Bool}
+  %Equal.sym(Bool, Nat.is_eq(y, y), True{}, is_eq_refl(y)) : {Bool.and(Bool.and(True{}, _), Nat.is_eq(z, z)) == True{} : Bool}
+  %Equal.sym(Bool, Nat.is_eq(z, z), True{}, is_eq_refl(z)) : {Bool.and(Bool.and(True{}, True{}), _) == True{} : Bool}
+  {==}
+
+law ok_finish:
+  for +ga: Tour.Group
+  for +gb: Tour.Group
+  for +ra: Tour.RoundRobin
+  for +rb: Tour.RoundRobin
+  for +sm: Tour.Semis
+  for +r1: Tour.Finished
+  for +r2: Tour.Finished
+  for fr: Maybe<Tour.Finished>
+  {Laws.Rule.champion_ok(Laws.Rule.finish(ga, gb, ra, rb, sm, r1, r2, Laws.Rule.winner_of(r1, Laws.Rule.on_line(1n, sm), Laws.Rule.on_line(2n, sm)), Laws.Rule.winner_of(r2, Laws.Rule.on_line(3n, sm), Laws.Rule.on_line(4n, sm)), fr)) == True{} : Bool}
+
+def ok_finish(ga, gb, ra, rb, sm, r1, r2, fr):
+  match fr:
+    case Some{+r}:
+      and3_refl(Laws.Rule.winner_of(r1, Laws.Rule.on_line(1n, sm), Laws.Rule.on_line(2n, sm)), Laws.Rule.winner_of(r2, Laws.Rule.on_line(3n, sm), Laws.Rule.on_line(4n, sm)), Laws.Rule.winner_of(r, Laws.Rule.winner_of(r1, Laws.Rule.on_line(1n, sm), Laws.Rule.on_line(2n, sm)), Laws.Rule.winner_of(r2, Laws.Rule.on_line(3n, sm), Laws.Rule.on_line(4n, sm))))
+    case None{}:
+      {==}
+
+law ok_after_semis:
+  for +fmt: S.Format
+  for +f: Tour.Field
+  for +seed: U32
+  for +run: U32
+  for +ga: Tour.Group
+  for +gb: Tour.Group
+  for +ra: Tour.RoundRobin
+  for +rb: Tour.RoundRobin
+  for +sm: Tour.Semis
+  for s1: Maybe<Tour.Finished>
+  for s2: Maybe<Tour.Finished>
+  {Laws.Rule.champion_ok(Laws.Rule.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, s1, s2)) == True{} : Bool}
+
+def ok_after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, s1, s2):
+  match s1 s2:
+    case Some{+r1} Some{+r2}:
+      ok_finish(ga, gb, ra, rb, sm, r1, r2, Laws.Rule.match_at(fmt, f, seed, run, 14, Laws.Rule.winner_of(r1, Laws.Rule.on_line(1n, sm), Laws.Rule.on_line(2n, sm)), Laws.Rule.winner_of(r2, Laws.Rule.on_line(3n, sm), Laws.Rule.on_line(4n, sm))))
+    case Some{r1} None{}:
+      {==}
+    case None{} Some{r2}:
+      {==}
+    case None{} None{}:
+      {==}
+
+law ok_after_groups:
+  for +fmt: S.Format
+  for +f: Tour.Field
+  for +seed: U32
+  for +run: U32
+  for +ga: Tour.Group
+  for +gb: Tour.Group
+  for xa: Maybe<Tour.RoundRobin>
+  for xb: Maybe<Tour.RoundRobin>
+  {Laws.Rule.champion_ok(Laws.Rule.after_groups(fmt, f, seed, run, ga, gb, xa, xb)) == True{} : Bool}
+
+def ok_after_groups(fmt, f, seed, run, ga, gb, xa, xb):
+  match xa xb:
+    case Some{+ra} Some{+rb}:
+      ok_after_semis(fmt, f, seed, run, ga, gb, ra, rb, Laws.Rule.semis(ga, Laws.Rule.places(ga, ra), gb, Laws.Rule.places(gb, rb)), Laws.Rule.match_at(fmt, f, seed, run, 12, Laws.Rule.on_line(1n, Laws.Rule.semis(ga, Laws.Rule.places(ga, ra), gb, Laws.Rule.places(gb, rb))), Laws.Rule.on_line(2n, Laws.Rule.semis(ga, Laws.Rule.places(ga, ra), gb, Laws.Rule.places(gb, rb)))), Laws.Rule.match_at(fmt, f, seed, run, 13, Laws.Rule.on_line(3n, Laws.Rule.semis(ga, Laws.Rule.places(ga, ra), gb, Laws.Rule.places(gb, rb))), Laws.Rule.on_line(4n, Laws.Rule.semis(ga, Laws.Rule.places(ga, ra), gb, Laws.Rule.places(gb, rb)))))
+    case Some{ra} None{}:
+      {==}
+    case None{} Some{rb}:
+      {==}
+    case None{} None{}:
+      {==}
+
+law ok_after_draw:
+  for +fmt: S.Format
+  for +f: Tour.Field
+  for +seed: U32
+  for +run: U32
+  for gs: Tour.Group & Tour.Group
+  {Laws.Rule.champion_ok(Laws.Rule.after_draw(fmt, f, seed, run, gs)) == True{} : Bool}
+
+def ok_after_draw(fmt, f, seed, run, gs):
+  match gs:
+    case (+ga, +gb):
+      ok_after_groups(fmt, f, seed, run, ga, gb, Laws.Rule.group_play(fmt, f, seed, run, 0, ga), Laws.Rule.group_play(fmt, f, seed, run, 6, gb))
+
+def Laws.L18_champion_won_semi_and_final(fmt, f, d, seed, run):
+  %Equal.sym(Tour.Outcome, Tour.Event.play(fmt, f, d, seed, run), Laws.Rule.tournament(fmt, f, d, seed, run), Laws.L29_tournament_follows_rules(fmt, f, d, seed, run)) : {Laws.Rule.champion_ok(_) == True{} : Bool}
+  ok_after_draw(fmt, f, seed, run, Laws.Rule.groups(d, seed, run))
+
+
+# ---------------------------------------------------------------------------
+# L30: every tournament counted once. The same proof as L14, for the
+# tournament's tally.
+# ---------------------------------------------------------------------------
+
+law counts_cong:
+  for -x1: Nat
+  for -x2: Nat
+  for -x3: Nat
+  for -x4: Nat
+  for -x5: Nat
+  for -x6: Nat
+  for -x7: Nat
+  for -x8: Nat
+  for -y1: Nat
+  for -y2: Nat
+  for -y3: Nat
+  for -y4: Nat
+  for -y5: Nat
+  for -y6: Nat
+  for -y7: Nat
+  for -y8: Nat
+  for e1: {x1 == y1 : Nat}
+  for e2: {x2 == y2 : Nat}
+  for e3: {x3 == y3 : Nat}
+  for e4: {x4 == y4 : Nat}
+  for e5: {x5 == y5 : Nat}
+  for e6: {x6 == y6 : Nat}
+  for e7: {x7 == y7 : Nat}
+  for e8: {x8 == y8 : Nat}
+  {Tour.Counts{x1, x2, x3, x4, x5, x6, x7, x8} == Tour.Counts{y1, y2, y3, y4, y5, y6, y7, y8} : Tour.Counts}
+
+def counts_cong(x1, x2, x3, x4, x5, x6, x7, x8, y1, y2, y3, y4, y5, y6, y7, y8, e1, e2, e3, e4, e5, e6, e7, e8):
+  %e1 : {Tour.Counts{x1, x2, x3, x4, x5, x6, x7, x8} == Tour.Counts{_, y2, y3, y4, y5, y6, y7, y8} : Tour.Counts}
+  %e2 : {Tour.Counts{x1, x2, x3, x4, x5, x6, x7, x8} == Tour.Counts{x1, _, y3, y4, y5, y6, y7, y8} : Tour.Counts}
+  %e3 : {Tour.Counts{x1, x2, x3, x4, x5, x6, x7, x8} == Tour.Counts{x1, x2, _, y4, y5, y6, y7, y8} : Tour.Counts}
+  %e4 : {Tour.Counts{x1, x2, x3, x4, x5, x6, x7, x8} == Tour.Counts{x1, x2, x3, _, y5, y6, y7, y8} : Tour.Counts}
+  %e5 : {Tour.Counts{x1, x2, x3, x4, x5, x6, x7, x8} == Tour.Counts{x1, x2, x3, x4, _, y6, y7, y8} : Tour.Counts}
+  %e6 : {Tour.Counts{x1, x2, x3, x4, x5, x6, x7, x8} == Tour.Counts{x1, x2, x3, x4, x5, _, y7, y8} : Tour.Counts}
+  %e7 : {Tour.Counts{x1, x2, x3, x4, x5, x6, x7, x8} == Tour.Counts{x1, x2, x3, x4, x5, x6, _, y8} : Tour.Counts}
+  %e8 : {Tour.Counts{x1, x2, x3, x4, x5, x6, x7, x8} == Tour.Counts{x1, x2, x3, x4, x5, x6, x7, _} : Tour.Counts}
+  {==}
+
+law ttally_cong:
+  for -xt: Tour.Counts
+  for -xf: Tour.Counts
+  for -xs: Tour.Counts
+  for -xu: Nat
+  for -yt: Tour.Counts
+  for -yf: Tour.Counts
+  for -ys: Tour.Counts
+  for -yu: Nat
+  for et: {xt == yt : Tour.Counts}
+  for ef: {xf == yf : Tour.Counts}
+  for es: {xs == ys : Tour.Counts}
+  for eu: {xu == yu : Nat}
+  {Tour.Tally{xt, xf, xs, xu} == Tour.Tally{yt, yf, ys, yu} : Tour.Tally}
+
+def ttally_cong(xt, xf, xs, xu, yt, yf, ys, yu, et, ef, es, eu):
+  %et : {Tour.Tally{xt, xf, xs, xu} == Tour.Tally{_, yf, ys, yu} : Tour.Tally}
+  %ef : {Tour.Tally{xt, xf, xs, xu} == Tour.Tally{xt, _, ys, yu} : Tour.Tally}
+  %es : {Tour.Tally{xt, xf, xs, xu} == Tour.Tally{xt, xf, _, yu} : Tour.Tally}
+  %eu : {Tour.Tally{xt, xf, xs, xu} == Tour.Tally{xt, xf, xs, _} : Tour.Tally}
+  {==}
+
+law add_tally_nothing_left:
+  for t: Tour.Tally
+  {Laws.Rule.add_tally(Laws.Rule.no_tally(), t) == t : Tour.Tally}
+
+def add_tally_nothing_left(t):
+  match t:
+    case Tour.Tally{Tour.Counts{xt1, xt2, xt3, xt4, xt5, xt6, xt7, xt8}, Tour.Counts{xf1, xf2, xf3, xf4, xf5, xf6, xf7, xf8}, Tour.Counts{xs1, xs2, xs3, xs4, xs5, xs6, xs7, xs8}, xu}:
+      {==}
+
+law add_tally_nothing_right:
+  for t: Tour.Tally
+  {Laws.Rule.add_tally(t, Laws.Rule.no_tally()) == t : Tour.Tally}
+
+def add_tally_nothing_right(t):
+  match t:
+    case Tour.Tally{Tour.Counts{xt1, xt2, xt3, xt4, xt5, xt6, xt7, xt8}, Tour.Counts{xf1, xf2, xf3, xf4, xf5, xf6, xf7, xf8}, Tour.Counts{xs1, xs2, xs3, xs4, xs5, xs6, xs7, xs8}, xu}:
+      ttally_cong(Tour.Counts{Nat.add(xt1, 0n), Nat.add(xt2, 0n), Nat.add(xt3, 0n), Nat.add(xt4, 0n), Nat.add(xt5, 0n), Nat.add(xt6, 0n), Nat.add(xt7, 0n), Nat.add(xt8, 0n)}, Tour.Counts{Nat.add(xf1, 0n), Nat.add(xf2, 0n), Nat.add(xf3, 0n), Nat.add(xf4, 0n), Nat.add(xf5, 0n), Nat.add(xf6, 0n), Nat.add(xf7, 0n), Nat.add(xf8, 0n)}, Tour.Counts{Nat.add(xs1, 0n), Nat.add(xs2, 0n), Nat.add(xs3, 0n), Nat.add(xs4, 0n), Nat.add(xs5, 0n), Nat.add(xs6, 0n), Nat.add(xs7, 0n), Nat.add(xs8, 0n)}, Nat.add(xu, 0n), Tour.Counts{xt1, xt2, xt3, xt4, xt5, xt6, xt7, xt8}, Tour.Counts{xf1, xf2, xf3, xf4, xf5, xf6, xf7, xf8}, Tour.Counts{xs1, xs2, xs3, xs4, xs5, xs6, xs7, xs8}, xu, counts_cong(Nat.add(xt1, 0n), Nat.add(xt2, 0n), Nat.add(xt3, 0n), Nat.add(xt4, 0n), Nat.add(xt5, 0n), Nat.add(xt6, 0n), Nat.add(xt7, 0n), Nat.add(xt8, 0n), xt1, xt2, xt3, xt4, xt5, xt6, xt7, xt8, nat_add_zero(xt1), nat_add_zero(xt2), nat_add_zero(xt3), nat_add_zero(xt4), nat_add_zero(xt5), nat_add_zero(xt6), nat_add_zero(xt7), nat_add_zero(xt8)), counts_cong(Nat.add(xf1, 0n), Nat.add(xf2, 0n), Nat.add(xf3, 0n), Nat.add(xf4, 0n), Nat.add(xf5, 0n), Nat.add(xf6, 0n), Nat.add(xf7, 0n), Nat.add(xf8, 0n), xf1, xf2, xf3, xf4, xf5, xf6, xf7, xf8, nat_add_zero(xf1), nat_add_zero(xf2), nat_add_zero(xf3), nat_add_zero(xf4), nat_add_zero(xf5), nat_add_zero(xf6), nat_add_zero(xf7), nat_add_zero(xf8)), counts_cong(Nat.add(xs1, 0n), Nat.add(xs2, 0n), Nat.add(xs3, 0n), Nat.add(xs4, 0n), Nat.add(xs5, 0n), Nat.add(xs6, 0n), Nat.add(xs7, 0n), Nat.add(xs8, 0n), xs1, xs2, xs3, xs4, xs5, xs6, xs7, xs8, nat_add_zero(xs1), nat_add_zero(xs2), nat_add_zero(xs3), nat_add_zero(xs4), nat_add_zero(xs5), nat_add_zero(xs6), nat_add_zero(xs7), nat_add_zero(xs8)), nat_add_zero(xu))
+
+law add_tally_assoc:
+  for x: Tour.Tally
+  for y: Tour.Tally
+  for z: Tour.Tally
+  {Laws.Rule.add_tally(Laws.Rule.add_tally(x, y), z) == Laws.Rule.add_tally(x, Laws.Rule.add_tally(y, z)) : Tour.Tally}
+
+def add_tally_assoc(x, y, z):
+  match x y z:
+    case Tour.Tally{Tour.Counts{xt1, xt2, xt3, xt4, xt5, xt6, xt7, xt8}, Tour.Counts{xf1, xf2, xf3, xf4, xf5, xf6, xf7, xf8}, Tour.Counts{xs1, xs2, xs3, xs4, xs5, xs6, xs7, xs8}, xu} Tour.Tally{Tour.Counts{yt1, yt2, yt3, yt4, yt5, yt6, yt7, yt8}, Tour.Counts{yf1, yf2, yf3, yf4, yf5, yf6, yf7, yf8}, Tour.Counts{ys1, ys2, ys3, ys4, ys5, ys6, ys7, ys8}, yu} Tour.Tally{Tour.Counts{zt1, zt2, zt3, zt4, zt5, zt6, zt7, zt8}, Tour.Counts{zf1, zf2, zf3, zf4, zf5, zf6, zf7, zf8}, Tour.Counts{zs1, zs2, zs3, zs4, zs5, zs6, zs7, zs8}, zu}:
+      ttally_cong(Tour.Counts{Nat.add(Nat.add(xt1, yt1), zt1), Nat.add(Nat.add(xt2, yt2), zt2), Nat.add(Nat.add(xt3, yt3), zt3), Nat.add(Nat.add(xt4, yt4), zt4), Nat.add(Nat.add(xt5, yt5), zt5), Nat.add(Nat.add(xt6, yt6), zt6), Nat.add(Nat.add(xt7, yt7), zt7), Nat.add(Nat.add(xt8, yt8), zt8)}, Tour.Counts{Nat.add(Nat.add(xf1, yf1), zf1), Nat.add(Nat.add(xf2, yf2), zf2), Nat.add(Nat.add(xf3, yf3), zf3), Nat.add(Nat.add(xf4, yf4), zf4), Nat.add(Nat.add(xf5, yf5), zf5), Nat.add(Nat.add(xf6, yf6), zf6), Nat.add(Nat.add(xf7, yf7), zf7), Nat.add(Nat.add(xf8, yf8), zf8)}, Tour.Counts{Nat.add(Nat.add(xs1, ys1), zs1), Nat.add(Nat.add(xs2, ys2), zs2), Nat.add(Nat.add(xs3, ys3), zs3), Nat.add(Nat.add(xs4, ys4), zs4), Nat.add(Nat.add(xs5, ys5), zs5), Nat.add(Nat.add(xs6, ys6), zs6), Nat.add(Nat.add(xs7, ys7), zs7), Nat.add(Nat.add(xs8, ys8), zs8)}, Nat.add(Nat.add(xu, yu), zu), Tour.Counts{Nat.add(xt1, Nat.add(yt1, zt1)), Nat.add(xt2, Nat.add(yt2, zt2)), Nat.add(xt3, Nat.add(yt3, zt3)), Nat.add(xt4, Nat.add(yt4, zt4)), Nat.add(xt5, Nat.add(yt5, zt5)), Nat.add(xt6, Nat.add(yt6, zt6)), Nat.add(xt7, Nat.add(yt7, zt7)), Nat.add(xt8, Nat.add(yt8, zt8))}, Tour.Counts{Nat.add(xf1, Nat.add(yf1, zf1)), Nat.add(xf2, Nat.add(yf2, zf2)), Nat.add(xf3, Nat.add(yf3, zf3)), Nat.add(xf4, Nat.add(yf4, zf4)), Nat.add(xf5, Nat.add(yf5, zf5)), Nat.add(xf6, Nat.add(yf6, zf6)), Nat.add(xf7, Nat.add(yf7, zf7)), Nat.add(xf8, Nat.add(yf8, zf8))}, Tour.Counts{Nat.add(xs1, Nat.add(ys1, zs1)), Nat.add(xs2, Nat.add(ys2, zs2)), Nat.add(xs3, Nat.add(ys3, zs3)), Nat.add(xs4, Nat.add(ys4, zs4)), Nat.add(xs5, Nat.add(ys5, zs5)), Nat.add(xs6, Nat.add(ys6, zs6)), Nat.add(xs7, Nat.add(ys7, zs7)), Nat.add(xs8, Nat.add(ys8, zs8))}, Nat.add(xu, Nat.add(yu, zu)), counts_cong(Nat.add(Nat.add(xt1, yt1), zt1), Nat.add(Nat.add(xt2, yt2), zt2), Nat.add(Nat.add(xt3, yt3), zt3), Nat.add(Nat.add(xt4, yt4), zt4), Nat.add(Nat.add(xt5, yt5), zt5), Nat.add(Nat.add(xt6, yt6), zt6), Nat.add(Nat.add(xt7, yt7), zt7), Nat.add(Nat.add(xt8, yt8), zt8), Nat.add(xt1, Nat.add(yt1, zt1)), Nat.add(xt2, Nat.add(yt2, zt2)), Nat.add(xt3, Nat.add(yt3, zt3)), Nat.add(xt4, Nat.add(yt4, zt4)), Nat.add(xt5, Nat.add(yt5, zt5)), Nat.add(xt6, Nat.add(yt6, zt6)), Nat.add(xt7, Nat.add(yt7, zt7)), Nat.add(xt8, Nat.add(yt8, zt8)), nat_add_assoc(xt1, yt1, zt1), nat_add_assoc(xt2, yt2, zt2), nat_add_assoc(xt3, yt3, zt3), nat_add_assoc(xt4, yt4, zt4), nat_add_assoc(xt5, yt5, zt5), nat_add_assoc(xt6, yt6, zt6), nat_add_assoc(xt7, yt7, zt7), nat_add_assoc(xt8, yt8, zt8)), counts_cong(Nat.add(Nat.add(xf1, yf1), zf1), Nat.add(Nat.add(xf2, yf2), zf2), Nat.add(Nat.add(xf3, yf3), zf3), Nat.add(Nat.add(xf4, yf4), zf4), Nat.add(Nat.add(xf5, yf5), zf5), Nat.add(Nat.add(xf6, yf6), zf6), Nat.add(Nat.add(xf7, yf7), zf7), Nat.add(Nat.add(xf8, yf8), zf8), Nat.add(xf1, Nat.add(yf1, zf1)), Nat.add(xf2, Nat.add(yf2, zf2)), Nat.add(xf3, Nat.add(yf3, zf3)), Nat.add(xf4, Nat.add(yf4, zf4)), Nat.add(xf5, Nat.add(yf5, zf5)), Nat.add(xf6, Nat.add(yf6, zf6)), Nat.add(xf7, Nat.add(yf7, zf7)), Nat.add(xf8, Nat.add(yf8, zf8)), nat_add_assoc(xf1, yf1, zf1), nat_add_assoc(xf2, yf2, zf2), nat_add_assoc(xf3, yf3, zf3), nat_add_assoc(xf4, yf4, zf4), nat_add_assoc(xf5, yf5, zf5), nat_add_assoc(xf6, yf6, zf6), nat_add_assoc(xf7, yf7, zf7), nat_add_assoc(xf8, yf8, zf8)), counts_cong(Nat.add(Nat.add(xs1, ys1), zs1), Nat.add(Nat.add(xs2, ys2), zs2), Nat.add(Nat.add(xs3, ys3), zs3), Nat.add(Nat.add(xs4, ys4), zs4), Nat.add(Nat.add(xs5, ys5), zs5), Nat.add(Nat.add(xs6, ys6), zs6), Nat.add(Nat.add(xs7, ys7), zs7), Nat.add(Nat.add(xs8, ys8), zs8), Nat.add(xs1, Nat.add(ys1, zs1)), Nat.add(xs2, Nat.add(ys2, zs2)), Nat.add(xs3, Nat.add(ys3, zs3)), Nat.add(xs4, Nat.add(ys4, zs4)), Nat.add(xs5, Nat.add(ys5, zs5)), Nat.add(xs6, Nat.add(ys6, zs6)), Nat.add(xs7, Nat.add(ys7, zs7)), Nat.add(xs8, Nat.add(ys8, zs8)), nat_add_assoc(xs1, ys1, zs1), nat_add_assoc(xs2, ys2, zs2), nat_add_assoc(xs3, ys3, zs3), nat_add_assoc(xs4, ys4, zs4), nat_add_assoc(xs5, ys5, zs5), nat_add_assoc(xs6, ys6, zs6), nat_add_assoc(xs7, ys7, zs7), nat_add_assoc(xs8, ys8, zs8)), nat_add_assoc(xu, yu, zu))
+
+law event_sum_append:
+  for +xs: List<&2, Tour.Tally>
+  for +ys: List<&2, Tour.Tally>
+  {Laws.Rule.event_sum(List.append(&2, Tour.Tally, xs, ys)) == Laws.Rule.add_tally(Laws.Rule.event_sum(xs), Laws.Rule.event_sum(ys)) : Tour.Tally}
+
+def event_sum_append(xs, ys):
+  match xs:
+    case Nil{}:
+      Equal.sym(Tour.Tally, Laws.Rule.add_tally(Laws.Rule.no_tally(), Laws.Rule.event_sum(ys)), Laws.Rule.event_sum(ys), add_tally_nothing_left(Laws.Rule.event_sum(ys)))
+    case Con{+t, +rest}:
+      %Equal.sym(Tour.Tally, Laws.Rule.event_sum(List.append(&2, Tour.Tally, rest, ys)), Laws.Rule.add_tally(Laws.Rule.event_sum(rest), Laws.Rule.event_sum(ys)), event_sum_append(rest, ys)) : {Laws.Rule.add_tally(t, _) == Laws.Rule.add_tally(Laws.Rule.add_tally(t, Laws.Rule.event_sum(rest)), Laws.Rule.event_sum(ys)) : Tour.Tally}
+      Equal.sym(Tour.Tally, Laws.Rule.add_tally(Laws.Rule.add_tally(t, Laws.Rule.event_sum(rest)), Laws.Rule.event_sum(ys)), Laws.Rule.add_tally(t, Laws.Rule.add_tally(Laws.Rule.event_sum(rest), Laws.Rule.event_sum(ys))), add_tally_assoc(t, Laws.Rule.event_sum(rest), Laws.Rule.event_sum(ys)))
+
+law event_results_append:
+  for +fmt: S.Format
+  for +f: Tour.Field
+  for +d: Tour.Draw
+  for +seed: U32
+  for +prefix: U32
+  for +xs: List<&2, List<&2, Bool>>
+  for +ys: List<&2, List<&2, Bool>>
+  {Laws.Rule.event_results(fmt, f, d, seed, prefix, List.append(&2, List<&2, Bool>, xs, ys)) == List.append(&2, Tour.Tally, Laws.Rule.event_results(fmt, f, d, seed, prefix, xs), Laws.Rule.event_results(fmt, f, d, seed, prefix, ys)) : List<&2, Tour.Tally>}
+
+def event_results_append(fmt, f, d, seed, prefix, xs, ys):
+  match xs:
+    case Nil{}:
+      {==}
+    case Con{+path, +rest}:
+      %Equal.sym(List<&2, Tour.Tally>, Laws.Rule.event_results(fmt, f, d, seed, prefix, List.append(&2, List<&2, Bool>, rest, ys)), List.append(&2, Tour.Tally, Laws.Rule.event_results(fmt, f, d, seed, prefix, rest), Laws.Rule.event_results(fmt, f, d, seed, prefix, ys)), event_results_append(fmt, f, d, seed, prefix, rest, ys)) : {(Laws.Rule.event_tally(Tour.Event.play(fmt, f, d, seed, Laws.Rule.number(path, prefix))) <> _) == List.append(&2, Tour.Tally, Laws.Rule.event_results(fmt, f, d, seed, prefix, path <> rest), Laws.Rule.event_results(fmt, f, d, seed, prefix, ys)) : List<&2, Tour.Tally>}
+      {==}
+
+law event_results_cons_all:
+  for +fmt: S.Format
+  for +f: Tour.Field
+  for +d: Tour.Draw
+  for +seed: U32
+  for +b: Bool
+  for +prefix: U32
+  for +paths: List<&2, List<&2, Bool>>
+  {Laws.Rule.event_results(fmt, f, d, seed, prefix, Laws.Rule.cons_all(b, paths)) == Laws.Rule.event_results(fmt, f, d, seed, (prefix * 2 + Laws.Rule.bit(b) : U32), paths) : List<&2, Tour.Tally>}
+
+def event_results_cons_all(fmt, f, d, seed, b, prefix, paths):
+  match paths:
+    case Nil{}:
+      {==}
+    case Con{+path, +rest}:
+      %Equal.sym(List<&2, Tour.Tally>, Laws.Rule.event_results(fmt, f, d, seed, prefix, Laws.Rule.cons_all(b, rest)), Laws.Rule.event_results(fmt, f, d, seed, (prefix * 2 + Laws.Rule.bit(b) : U32), rest), event_results_cons_all(fmt, f, d, seed, b, prefix, rest)) : {(Laws.Rule.event_tally(Tour.Event.play(fmt, f, d, seed, Laws.Rule.number(b <> path, prefix))) <> _) == Laws.Rule.event_results(fmt, f, d, seed, (prefix * 2 + Laws.Rule.bit(b) : U32), path <> rest) : List<&2, Tour.Tally>}
+      {==}
+
+law one_same:
+  for n: Nat
+  {Tour.Event.one(n) == Laws.Rule.one(n) : Tour.Counts}
+
+def one_same(n):
+  match n:
+    case 1n:
+      {==}
+    case 2n:
+      {==}
+    case 3n:
+      {==}
+    case 4n:
+      {==}
+    case 5n:
+      {==}
+    case 6n:
+      {==}
+    case 7n:
+      {==}
+    case 8n:
+      {==}
+    case 0n:
+      {==}
+    case 9n+p:
+      {==}
+
+law add_counts_same:
+  for x: Tour.Counts
+  for y: Tour.Counts
+  {Tour.Event.add_counts(x, y) == Laws.Rule.add_counts(x, y) : Tour.Counts}
+
+def add_counts_same(x, y):
+  match x y:
+    case Tour.Counts{x1, x2, x3, x4, x5, x6, x7, x8} Tour.Counts{y1, y2, y3, y4, y5, y6, y7, y8}:
+      {==}
+
+law event_add_same:
+  for x: Tour.Tally
+  for y: Tour.Tally
+  {Tour.Event.add(x, y) == Laws.Rule.add_tally(x, y) : Tour.Tally}
+
+def event_add_same(x, y):
+  match x y:
+    case Tour.Tally{Tour.Counts{xt1, xt2, xt3, xt4, xt5, xt6, xt7, xt8}, Tour.Counts{xf1, xf2, xf3, xf4, xf5, xf6, xf7, xf8}, Tour.Counts{xs1, xs2, xs3, xs4, xs5, xs6, xs7, xs8}, xu} Tour.Tally{Tour.Counts{yt1, yt2, yt3, yt4, yt5, yt6, yt7, yt8}, Tour.Counts{yf1, yf2, yf3, yf4, yf5, yf6, yf7, yf8}, Tour.Counts{ys1, ys2, ys3, ys4, ys5, ys6, ys7, ys8}, yu}:
+      {==}
+
+law event_count_same:
+  for o: Tour.Outcome
+  {Tour.Event.count(o) == Laws.Rule.event_tally(o) : Tour.Tally}
+
+def event_count_same(o):
+  match o:
+    case Tour.Complete{ga, gb, ra, rb, Tour.Semis{+l1, +l2, +l3, +l4}, r1, r2, +f1, +f2, r, +c}:
+      %one_same(c) : {Tour.Event.count(Tour.Complete{ga, gb, ra, rb, Tour.Semis{l1, l2, l3, l4}, r1, r2, f1, f2, r, c}) == Tour.Tally{_, Laws.Rule.add_counts(Laws.Rule.one(f1), Laws.Rule.one(f2)), Laws.Rule.add_counts(Laws.Rule.add_counts(Laws.Rule.one(l1), Laws.Rule.one(l2)), Laws.Rule.add_counts(Laws.Rule.one(l3), Laws.Rule.one(l4))), 0n} : Tour.Tally}
+      %one_same(f1) : {Tour.Event.count(Tour.Complete{ga, gb, ra, rb, Tour.Semis{l1, l2, l3, l4}, r1, r2, f1, f2, r, c}) == Tour.Tally{Tour.Event.one(c), Laws.Rule.add_counts(_, Laws.Rule.one(f2)), Laws.Rule.add_counts(Laws.Rule.add_counts(Laws.Rule.one(l1), Laws.Rule.one(l2)), Laws.Rule.add_counts(Laws.Rule.one(l3), Laws.Rule.one(l4))), 0n} : Tour.Tally}
+      %one_same(f2) : {Tour.Event.count(Tour.Complete{ga, gb, ra, rb, Tour.Semis{l1, l2, l3, l4}, r1, r2, f1, f2, r, c}) == Tour.Tally{Tour.Event.one(c), Laws.Rule.add_counts(Tour.Event.one(f1), _), Laws.Rule.add_counts(Laws.Rule.add_counts(Laws.Rule.one(l1), Laws.Rule.one(l2)), Laws.Rule.add_counts(Laws.Rule.one(l3), Laws.Rule.one(l4))), 0n} : Tour.Tally}
+      %one_same(l1) : {Tour.Event.count(Tour.Complete{ga, gb, ra, rb, Tour.Semis{l1, l2, l3, l4}, r1, r2, f1, f2, r, c}) == Tour.Tally{Tour.Event.one(c), Laws.Rule.add_counts(Tour.Event.one(f1), Tour.Event.one(f2)), Laws.Rule.add_counts(Laws.Rule.add_counts(_, Laws.Rule.one(l2)), Laws.Rule.add_counts(Laws.Rule.one(l3), Laws.Rule.one(l4))), 0n} : Tour.Tally}
+      %one_same(l2) : {Tour.Event.count(Tour.Complete{ga, gb, ra, rb, Tour.Semis{l1, l2, l3, l4}, r1, r2, f1, f2, r, c}) == Tour.Tally{Tour.Event.one(c), Laws.Rule.add_counts(Tour.Event.one(f1), Tour.Event.one(f2)), Laws.Rule.add_counts(Laws.Rule.add_counts(Tour.Event.one(l1), _), Laws.Rule.add_counts(Laws.Rule.one(l3), Laws.Rule.one(l4))), 0n} : Tour.Tally}
+      %one_same(l3) : {Tour.Event.count(Tour.Complete{ga, gb, ra, rb, Tour.Semis{l1, l2, l3, l4}, r1, r2, f1, f2, r, c}) == Tour.Tally{Tour.Event.one(c), Laws.Rule.add_counts(Tour.Event.one(f1), Tour.Event.one(f2)), Laws.Rule.add_counts(Laws.Rule.add_counts(Tour.Event.one(l1), Tour.Event.one(l2)), Laws.Rule.add_counts(_, Laws.Rule.one(l4))), 0n} : Tour.Tally}
+      %one_same(l4) : {Tour.Event.count(Tour.Complete{ga, gb, ra, rb, Tour.Semis{l1, l2, l3, l4}, r1, r2, f1, f2, r, c}) == Tour.Tally{Tour.Event.one(c), Laws.Rule.add_counts(Tour.Event.one(f1), Tour.Event.one(f2)), Laws.Rule.add_counts(Laws.Rule.add_counts(Tour.Event.one(l1), Tour.Event.one(l2)), Laws.Rule.add_counts(Tour.Event.one(l3), _)), 0n} : Tour.Tally}
+      %add_counts_same(Tour.Event.one(f1), Tour.Event.one(f2)) : {Tour.Event.count(Tour.Complete{ga, gb, ra, rb, Tour.Semis{l1, l2, l3, l4}, r1, r2, f1, f2, r, c}) == Tour.Tally{Tour.Event.one(c), _, Laws.Rule.add_counts(Laws.Rule.add_counts(Tour.Event.one(l1), Tour.Event.one(l2)), Laws.Rule.add_counts(Tour.Event.one(l3), Tour.Event.one(l4))), 0n} : Tour.Tally}
+      %add_counts_same(Tour.Event.one(l1), Tour.Event.one(l2)) : {Tour.Event.count(Tour.Complete{ga, gb, ra, rb, Tour.Semis{l1, l2, l3, l4}, r1, r2, f1, f2, r, c}) == Tour.Tally{Tour.Event.one(c), Tour.Event.add_counts(Tour.Event.one(f1), Tour.Event.one(f2)), Laws.Rule.add_counts(_, Laws.Rule.add_counts(Tour.Event.one(l3), Tour.Event.one(l4))), 0n} : Tour.Tally}
+      %add_counts_same(Tour.Event.one(l3), Tour.Event.one(l4)) : {Tour.Event.count(Tour.Complete{ga, gb, ra, rb, Tour.Semis{l1, l2, l3, l4}, r1, r2, f1, f2, r, c}) == Tour.Tally{Tour.Event.one(c), Tour.Event.add_counts(Tour.Event.one(f1), Tour.Event.one(f2)), Laws.Rule.add_counts(Tour.Event.add_counts(Tour.Event.one(l1), Tour.Event.one(l2)), _), 0n} : Tour.Tally}
+      %add_counts_same(Tour.Event.add_counts(Tour.Event.one(l1), Tour.Event.one(l2)), Tour.Event.add_counts(Tour.Event.one(l3), Tour.Event.one(l4))) : {Tour.Event.count(Tour.Complete{ga, gb, ra, rb, Tour.Semis{l1, l2, l3, l4}, r1, r2, f1, f2, r, c}) == Tour.Tally{Tour.Event.one(c), Tour.Event.add_counts(Tour.Event.one(f1), Tour.Event.one(f2)), _, 0n} : Tour.Tally}
+      {==}
+    case Tour.Unfinished{}:
+      {==}
+
+# L30, by induction on the number of bits, exactly as L14.
+def Laws.L30_every_tournament_counted_once(d0, fmt, f, d, seed, prefix):
+  match d0:
+    case 0n:
+      %Equal.sym(Tour.Tally, Tour.Event.count(Tour.Event.play(fmt, f, d, seed, prefix)), Laws.Rule.event_tally(Tour.Event.play(fmt, f, d, seed, prefix)), event_count_same(Tour.Event.play(fmt, f, d, seed, prefix))) : {_ == Laws.Rule.event_sum(Laws.Rule.event_results(fmt, f, d, seed, prefix, [[]])) : Tour.Tally}
+      Equal.sym(Tour.Tally, Laws.Rule.add_tally(Laws.Rule.event_tally(Tour.Event.play(fmt, f, d, seed, prefix)), Laws.Rule.no_tally()), Laws.Rule.event_tally(Tour.Event.play(fmt, f, d, seed, prefix)), add_tally_nothing_right(Laws.Rule.event_tally(Tour.Event.play(fmt, f, d, seed, prefix))))
+    case 1n+p:
+      %Equal.sym(List<&2, Tour.Tally>, Laws.Rule.event_results(fmt, f, d, seed, prefix, List.append(&2, List<&2, Bool>, Laws.Rule.cons_all(False{}, Laws.Rule.paths(p)), Laws.Rule.cons_all(True{}, Laws.Rule.paths(p)))), List.append(&2, Tour.Tally, Laws.Rule.event_results(fmt, f, d, seed, prefix, Laws.Rule.cons_all(False{}, Laws.Rule.paths(p))), Laws.Rule.event_results(fmt, f, d, seed, prefix, Laws.Rule.cons_all(True{}, Laws.Rule.paths(p)))), event_results_append(fmt, f, d, seed, prefix, Laws.Rule.cons_all(False{}, Laws.Rule.paths(p)), Laws.Rule.cons_all(True{}, Laws.Rule.paths(p)))) : {Tour.Event.add(Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 0 : U32)), Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 1 : U32))) == Laws.Rule.event_sum(_) : Tour.Tally}
+      %Equal.sym(Tour.Tally, Laws.Rule.event_sum(List.append(&2, Tour.Tally, Laws.Rule.event_results(fmt, f, d, seed, prefix, Laws.Rule.cons_all(False{}, Laws.Rule.paths(p))), Laws.Rule.event_results(fmt, f, d, seed, prefix, Laws.Rule.cons_all(True{}, Laws.Rule.paths(p))))), Laws.Rule.add_tally(Laws.Rule.event_sum(Laws.Rule.event_results(fmt, f, d, seed, prefix, Laws.Rule.cons_all(False{}, Laws.Rule.paths(p)))), Laws.Rule.event_sum(Laws.Rule.event_results(fmt, f, d, seed, prefix, Laws.Rule.cons_all(True{}, Laws.Rule.paths(p))))), event_sum_append(Laws.Rule.event_results(fmt, f, d, seed, prefix, Laws.Rule.cons_all(False{}, Laws.Rule.paths(p))), Laws.Rule.event_results(fmt, f, d, seed, prefix, Laws.Rule.cons_all(True{}, Laws.Rule.paths(p))))) : {Tour.Event.add(Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 0 : U32)), Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 1 : U32))) == _ : Tour.Tally}
+      %Equal.sym(List<&2, Tour.Tally>, Laws.Rule.event_results(fmt, f, d, seed, prefix, Laws.Rule.cons_all(False{}, Laws.Rule.paths(p))), Laws.Rule.event_results(fmt, f, d, seed, (prefix * 2 + Laws.Rule.bit(False{}) : U32), Laws.Rule.paths(p)), event_results_cons_all(fmt, f, d, seed, False{}, prefix, Laws.Rule.paths(p))) : {Tour.Event.add(Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 0 : U32)), Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 1 : U32))) == Laws.Rule.add_tally(Laws.Rule.event_sum(_), Laws.Rule.event_sum(Laws.Rule.event_results(fmt, f, d, seed, prefix, Laws.Rule.cons_all(True{}, Laws.Rule.paths(p))))) : Tour.Tally}
+      %Equal.sym(List<&2, Tour.Tally>, Laws.Rule.event_results(fmt, f, d, seed, prefix, Laws.Rule.cons_all(True{}, Laws.Rule.paths(p))), Laws.Rule.event_results(fmt, f, d, seed, (prefix * 2 + Laws.Rule.bit(True{}) : U32), Laws.Rule.paths(p)), event_results_cons_all(fmt, f, d, seed, True{}, prefix, Laws.Rule.paths(p))) : {Tour.Event.add(Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 0 : U32)), Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 1 : U32))) == Laws.Rule.add_tally(Laws.Rule.event_sum(Laws.Rule.event_results(fmt, f, d, seed, (prefix * 2 + 0 : U32), Laws.Rule.paths(p))), Laws.Rule.event_sum(_)) : Tour.Tally}
+      %Laws.L30_every_tournament_counted_once(p, fmt, f, d, seed, (prefix * 2 + 0 : U32)) : {Tour.Event.add(Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 0 : U32)), Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 1 : U32))) == Laws.Rule.add_tally(_, Laws.Rule.event_sum(Laws.Rule.event_results(fmt, f, d, seed, (prefix * 2 + 1 : U32), Laws.Rule.paths(p)))) : Tour.Tally}
+      %Laws.L30_every_tournament_counted_once(p, fmt, f, d, seed, (prefix * 2 + 1 : U32)) : {Tour.Event.add(Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 0 : U32)), Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 1 : U32))) == Laws.Rule.add_tally(Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 0 : U32)), _) : Tour.Tally}
+      event_add_same(Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 0 : U32)), Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 1 : U32)))
+
+
+# ---------------------------------------------------------------------------
+# L16: more wins ranks higher. This needs no tiebreak reasoning at all. If x
+# has more wins than y, then y is not above x, x is above y, and anyone
+# above x has at least x's wins, so is above y too. So y has strictly more
+# players above her than x does.
+# ---------------------------------------------------------------------------
+
+law gt_irrefl:
+  for n: Nat
+  for h: {Nat.is_gt(n, n) == True{} : Bool}
+  Empty
+
+def gt_irrefl(n, h):
+  match n:
+    case 0n:
+      false_is_not_true(h)
+    case 1n+p:
+      gt_irrefl(p, h)
+
+# Comparing a number with one it is greater than gives GT, and the other way
+# round LT.
+law gt_cmp:
+  for a: Nat
+  for b: Nat
+  for h: {Nat.is_gt(a, b) == True{} : Bool}
+  {Nat.cmp(a, b) == GT{} : Cmp}
+
+def gt_cmp(a, b, h):
+  match a b:
+    case 0n 0n:
+      ex_falso({Nat.cmp(0n, 0n) == GT{} : Cmp}, false_is_not_true(h))
+    case 0n 1n+bp:
+      ex_falso({Nat.cmp(0n, 1n+bp) == GT{} : Cmp}, false_is_not_true(h))
+    case 1n+ap 0n:
+      {==}
+    case 1n+ap 1n+bp:
+      gt_cmp(ap, bp, h)
+
+law gt_cmp_rev:
+  for a: Nat
+  for b: Nat
+  for h: {Nat.is_gt(a, b) == True{} : Bool}
+  {Nat.cmp(b, a) == LT{} : Cmp}
+
+def gt_cmp_rev(a, b, h):
+  match a b:
+    case 0n 0n:
+      ex_falso({Nat.cmp(0n, 0n) == LT{} : Cmp}, false_is_not_true(h))
+    case 0n 1n+bp:
+      ex_falso({Nat.cmp(1n+bp, 0n) == LT{} : Cmp}, false_is_not_true(h))
+    case 1n+ap 0n:
+      {==}
+    case 1n+ap 1n+bp:
+      gt_cmp_rev(ap, bp, h)
+
+law imp_true_r:
+  for p: Bool
+  {T.Imp(p, True{}) == True{} : Bool}
+
+def imp_true_r(p):
+  match p:
+    case True{}:
+      {==}
+    case False{}:
+      {==}
+
+# The one with more wins is above, whatever the tiebreak would say.
+law ahead_by_wins:
+  for +a: Nat
+  for +b: Nat
+  for t: Bool
+  for h: {Nat.is_gt(a, b) == True{} : Bool}
+  {Laws.Rule.decide(Nat.cmp(a, b), t) == True{} : Bool}
+
+def ahead_by_wins(a, b, t, h):
+  %Equal.sym(Cmp, Nat.cmp(a, b), GT{}, gt_cmp(a, b, h)) : {Laws.Rule.decide(_, t) == True{} : Bool}
+  {==}
+
+law behind_by_wins:
+  for +a: Nat
+  for +b: Nat
+  for t: Bool
+  for h: {Nat.is_gt(a, b) == True{} : Bool}
+  {Bool.not(Laws.Rule.decide(Nat.cmp(b, a), t)) == True{} : Bool}
+
+def behind_by_wins(a, b, t, h):
+  %Equal.sym(Cmp, Nat.cmp(b, a), LT{}, gt_cmp_rev(a, b, h)) : {Bool.not(Laws.Rule.decide(_, t)) == True{} : Bool}
+  {==}
+
+# If a has more wins than b, anyone above a is above b.
+law above_both:
+  for a: Nat
+  for b: Nat
+  for c: Nat
+  for t1: Bool
+  for t2: Bool
+  for h: {Nat.is_gt(a, b) == True{} : Bool}
+  {T.Imp(Laws.Rule.decide(Nat.cmp(c, a), t1), Laws.Rule.decide(Nat.cmp(c, b), t2)) == True{} : Bool}
+
+def above_both(a, b, c, t1, t2, h):
+  match a b c:
+    case 0n 0n c:
+      ex_falso({T.Imp(Laws.Rule.decide(Nat.cmp(c, 0n), t1), Laws.Rule.decide(Nat.cmp(c, 0n), t2)) == True{} : Bool}, false_is_not_true(h))
+    case 0n 1n+bp c:
+      ex_falso({T.Imp(Laws.Rule.decide(Nat.cmp(c, 0n), t1), Laws.Rule.decide(Nat.cmp(c, 1n+bp), t2)) == True{} : Bool}, false_is_not_true(h))
+    case 1n+ap 0n 0n:
+      {==}
+    case 1n+ap 0n 1n+cp:
+      imp_true_r(Laws.Rule.decide(Nat.cmp(cp, ap), t1))
+    case 1n+ap 1n+bp 0n:
+      {==}
+    case 1n+ap 1n+bp 1n+cp:
+      above_both(ap, bp, cp, t1, t2, h)
+
+law fewer_above_P1_P2:
+  for a1: Bool
+  for a2: Bool
+  for a3: Bool
+  for b1: Bool
+  for b2: Bool
+  for b3: Bool
+  for h_y: {Bool.not(a1) == True{} : Bool}
+  for h_x: {b1 == True{} : Bool}
+  for h_0: {T.Imp(a2, b2) == True{} : Bool}
+  for h_1: {T.Imp(a3, b3) == True{} : Bool}
+
+  {Nat.is_lt(Laws.Rule.count(a1, Laws.Rule.count(a2, Laws.Rule.count(a3, 1n))), Laws.Rule.count(b1, Laws.Rule.count(b2, Laws.Rule.count(b3, 1n)))) == True{} : Bool}
+
+def fewer_above_P1_P2(a1, a2, a3, b1, b2, b3, h_y, h_x, h_0, h_1):
+  match a1 a2 a3 b1 b2 b3:
+    case True{} True{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} True{} True{}:
+      {==}
+    case False{} True{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} True{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case False{} True{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case False{} True{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} True{} True{} True{}:
+      {==}
+    case False{} True{} False{} True{} True{} False{}:
+      {==}
+    case False{} True{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case False{} True{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case False{} True{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} True{} True{} True{}:
+      {==}
+    case False{} False{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} False{} True{} True{} False{} True{}:
+      {==}
+    case False{} False{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} False{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} True{} True{} True{}:
+      {==}
+    case False{} False{} False{} True{} True{} False{}:
+      {==}
+    case False{} False{} False{} True{} False{} True{}:
+      {==}
+    case False{} False{} False{} True{} False{} False{}:
+      {==}
+    case False{} False{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+
+law fewer_above_P1_P3:
+  for a1: Bool
+  for a2: Bool
+  for a3: Bool
+  for b1: Bool
+  for b2: Bool
+  for b3: Bool
+  for h_y: {Bool.not(a2) == True{} : Bool}
+  for h_x: {b1 == True{} : Bool}
+  for h_0: {T.Imp(a1, b2) == True{} : Bool}
+  for h_1: {T.Imp(a3, b3) == True{} : Bool}
+
+  {Nat.is_lt(Laws.Rule.count(a1, Laws.Rule.count(a2, Laws.Rule.count(a3, 1n))), Laws.Rule.count(b1, Laws.Rule.count(b2, Laws.Rule.count(b3, 1n)))) == True{} : Bool}
+
+def fewer_above_P1_P3(a1, a2, a3, b1, b2, b3, h_y, h_x, h_0, h_1):
+  match a1 a2 a3 b1 b2 b3:
+    case True{} True{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} True{} True{}:
+      {==}
+    case True{} False{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case True{} False{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} False{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} False{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} True{} True{} True{}:
+      {==}
+    case True{} False{} False{} True{} True{} False{}:
+      {==}
+    case True{} False{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} False{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} False{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} True{} True{} True{}:
+      {==}
+    case False{} False{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} False{} True{} True{} False{} True{}:
+      {==}
+    case False{} False{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} False{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} True{} True{} True{}:
+      {==}
+    case False{} False{} False{} True{} True{} False{}:
+      {==}
+    case False{} False{} False{} True{} False{} True{}:
+      {==}
+    case False{} False{} False{} True{} False{} False{}:
+      {==}
+    case False{} False{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+
+law fewer_above_P1_P4:
+  for a1: Bool
+  for a2: Bool
+  for a3: Bool
+  for b1: Bool
+  for b2: Bool
+  for b3: Bool
+  for h_y: {Bool.not(a3) == True{} : Bool}
+  for h_x: {b1 == True{} : Bool}
+  for h_0: {T.Imp(a1, b2) == True{} : Bool}
+  for h_1: {T.Imp(a2, b3) == True{} : Bool}
+
+  {Nat.is_lt(Laws.Rule.count(a1, Laws.Rule.count(a2, Laws.Rule.count(a3, 1n))), Laws.Rule.count(b1, Laws.Rule.count(b2, Laws.Rule.count(b3, 1n)))) == True{} : Bool}
+
+def fewer_above_P1_P4(a1, a2, a3, b1, b2, b3, h_y, h_x, h_0, h_1):
+  match a1 a2 a3 b1 b2 b3:
+    case True{} True{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} True{} True{}:
+      {==}
+    case True{} True{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case True{} True{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} True{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} True{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} True{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} True{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} True{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} True{} True{} True{}:
+      {==}
+    case True{} False{} False{} True{} True{} False{}:
+      {==}
+    case True{} False{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} False{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} False{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} True{} True{} True{}:
+      {==}
+    case False{} True{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} True{} False{} True{} False{} True{}:
+      {==}
+    case False{} True{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} True{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} False{} True{} True{} True{}:
+      {==}
+    case False{} False{} False{} True{} True{} False{}:
+      {==}
+    case False{} False{} False{} True{} False{} True{}:
+      {==}
+    case False{} False{} False{} True{} False{} False{}:
+      {==}
+    case False{} False{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+
+law fewer_above_P2_P1:
+  for a1: Bool
+  for a2: Bool
+  for a3: Bool
+  for b1: Bool
+  for b2: Bool
+  for b3: Bool
+  for h_y: {Bool.not(a1) == True{} : Bool}
+  for h_x: {b1 == True{} : Bool}
+  for h_0: {T.Imp(a2, b2) == True{} : Bool}
+  for h_1: {T.Imp(a3, b3) == True{} : Bool}
+
+  {Nat.is_lt(Laws.Rule.count(a1, Laws.Rule.count(a2, Laws.Rule.count(a3, 1n))), Laws.Rule.count(b1, Laws.Rule.count(b2, Laws.Rule.count(b3, 1n)))) == True{} : Bool}
+
+def fewer_above_P2_P1(a1, a2, a3, b1, b2, b3, h_y, h_x, h_0, h_1):
+  match a1 a2 a3 b1 b2 b3:
+    case True{} True{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} True{} True{}:
+      {==}
+    case False{} True{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} True{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case False{} True{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case False{} True{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} True{} True{} True{}:
+      {==}
+    case False{} True{} False{} True{} True{} False{}:
+      {==}
+    case False{} True{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case False{} True{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case False{} True{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} True{} True{} True{}:
+      {==}
+    case False{} False{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} False{} True{} True{} False{} True{}:
+      {==}
+    case False{} False{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} False{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} True{} True{} True{}:
+      {==}
+    case False{} False{} False{} True{} True{} False{}:
+      {==}
+    case False{} False{} False{} True{} False{} True{}:
+      {==}
+    case False{} False{} False{} True{} False{} False{}:
+      {==}
+    case False{} False{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+
+law fewer_above_P2_P3:
+  for a1: Bool
+  for a2: Bool
+  for a3: Bool
+  for b1: Bool
+  for b2: Bool
+  for b3: Bool
+  for h_y: {Bool.not(a2) == True{} : Bool}
+  for h_x: {b2 == True{} : Bool}
+  for h_0: {T.Imp(a1, b1) == True{} : Bool}
+  for h_1: {T.Imp(a3, b3) == True{} : Bool}
+
+  {Nat.is_lt(Laws.Rule.count(a1, Laws.Rule.count(a2, Laws.Rule.count(a3, 1n))), Laws.Rule.count(b1, Laws.Rule.count(b2, Laws.Rule.count(b3, 1n)))) == True{} : Bool}
+
+def fewer_above_P2_P3(a1, a2, a3, b1, b2, b3, h_y, h_x, h_0, h_1):
+  match a1 a2 a3 b1 b2 b3:
+    case True{} True{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} True{} True{}:
+      {==}
+    case True{} False{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case True{} False{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} False{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} False{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} True{} True{} True{}:
+      {==}
+    case True{} False{} False{} True{} True{} False{}:
+      {==}
+    case True{} False{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} False{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} False{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} True{} True{} True{}:
+      {==}
+    case False{} False{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} False{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} False{} True{} True{}:
+      {==}
+    case False{} False{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} False{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} True{} True{} True{}:
+      {==}
+    case False{} False{} False{} True{} True{} False{}:
+      {==}
+    case False{} False{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} True{} True{}:
+      {==}
+    case False{} False{} False{} False{} True{} False{}:
+      {==}
+    case False{} False{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+
+law fewer_above_P2_P4:
+  for a1: Bool
+  for a2: Bool
+  for a3: Bool
+  for b1: Bool
+  for b2: Bool
+  for b3: Bool
+  for h_y: {Bool.not(a3) == True{} : Bool}
+  for h_x: {b2 == True{} : Bool}
+  for h_0: {T.Imp(a1, b1) == True{} : Bool}
+  for h_1: {T.Imp(a2, b3) == True{} : Bool}
+
+  {Nat.is_lt(Laws.Rule.count(a1, Laws.Rule.count(a2, Laws.Rule.count(a3, 1n))), Laws.Rule.count(b1, Laws.Rule.count(b2, Laws.Rule.count(b3, 1n)))) == True{} : Bool}
+
+def fewer_above_P2_P4(a1, a2, a3, b1, b2, b3, h_y, h_x, h_0, h_1):
+  match a1 a2 a3 b1 b2 b3:
+    case True{} True{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} True{} True{}:
+      {==}
+    case True{} True{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case True{} True{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} True{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} True{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} True{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} True{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} True{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} True{} True{} True{}:
+      {==}
+    case True{} False{} False{} True{} True{} False{}:
+      {==}
+    case True{} False{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} False{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} False{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} True{} True{} True{}:
+      {==}
+    case False{} True{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} True{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} False{} True{} True{}:
+      {==}
+    case False{} True{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} True{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} False{} True{} True{} True{}:
+      {==}
+    case False{} False{} False{} True{} True{} False{}:
+      {==}
+    case False{} False{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} True{} True{}:
+      {==}
+    case False{} False{} False{} False{} True{} False{}:
+      {==}
+    case False{} False{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+
+law fewer_above_P3_P1:
+  for a1: Bool
+  for a2: Bool
+  for a3: Bool
+  for b1: Bool
+  for b2: Bool
+  for b3: Bool
+  for h_y: {Bool.not(a1) == True{} : Bool}
+  for h_x: {b2 == True{} : Bool}
+  for h_0: {T.Imp(a2, b1) == True{} : Bool}
+  for h_1: {T.Imp(a3, b3) == True{} : Bool}
+
+  {Nat.is_lt(Laws.Rule.count(a1, Laws.Rule.count(a2, Laws.Rule.count(a3, 1n))), Laws.Rule.count(b1, Laws.Rule.count(b2, Laws.Rule.count(b3, 1n)))) == True{} : Bool}
+
+def fewer_above_P3_P1(a1, a2, a3, b1, b2, b3, h_y, h_x, h_0, h_1):
+  match a1 a2 a3 b1 b2 b3:
+    case True{} True{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} True{} True{}:
+      {==}
+    case False{} True{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} True{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case False{} True{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case False{} True{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} True{} True{} True{}:
+      {==}
+    case False{} True{} False{} True{} True{} False{}:
+      {==}
+    case False{} True{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case False{} True{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case False{} True{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} True{} True{} True{}:
+      {==}
+    case False{} False{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} False{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} False{} True{} True{}:
+      {==}
+    case False{} False{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} False{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} True{} True{} True{}:
+      {==}
+    case False{} False{} False{} True{} True{} False{}:
+      {==}
+    case False{} False{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} True{} True{}:
+      {==}
+    case False{} False{} False{} False{} True{} False{}:
+      {==}
+    case False{} False{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+
+law fewer_above_P3_P2:
+  for a1: Bool
+  for a2: Bool
+  for a3: Bool
+  for b1: Bool
+  for b2: Bool
+  for b3: Bool
+  for h_y: {Bool.not(a2) == True{} : Bool}
+  for h_x: {b2 == True{} : Bool}
+  for h_0: {T.Imp(a1, b1) == True{} : Bool}
+  for h_1: {T.Imp(a3, b3) == True{} : Bool}
+
+  {Nat.is_lt(Laws.Rule.count(a1, Laws.Rule.count(a2, Laws.Rule.count(a3, 1n))), Laws.Rule.count(b1, Laws.Rule.count(b2, Laws.Rule.count(b3, 1n)))) == True{} : Bool}
+
+def fewer_above_P3_P2(a1, a2, a3, b1, b2, b3, h_y, h_x, h_0, h_1):
+  match a1 a2 a3 b1 b2 b3:
+    case True{} True{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} True{} True{}:
+      {==}
+    case True{} False{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case True{} False{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} False{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} False{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} True{} True{} True{}:
+      {==}
+    case True{} False{} False{} True{} True{} False{}:
+      {==}
+    case True{} False{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} False{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} False{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} True{} True{} True{}:
+      {==}
+    case False{} False{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} False{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} False{} True{} True{}:
+      {==}
+    case False{} False{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} False{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} True{} True{} True{}:
+      {==}
+    case False{} False{} False{} True{} True{} False{}:
+      {==}
+    case False{} False{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} True{} True{}:
+      {==}
+    case False{} False{} False{} False{} True{} False{}:
+      {==}
+    case False{} False{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+
+law fewer_above_P3_P4:
+  for a1: Bool
+  for a2: Bool
+  for a3: Bool
+  for b1: Bool
+  for b2: Bool
+  for b3: Bool
+  for h_y: {Bool.not(a3) == True{} : Bool}
+  for h_x: {b3 == True{} : Bool}
+  for h_0: {T.Imp(a1, b1) == True{} : Bool}
+  for h_1: {T.Imp(a2, b2) == True{} : Bool}
+
+  {Nat.is_lt(Laws.Rule.count(a1, Laws.Rule.count(a2, Laws.Rule.count(a3, 1n))), Laws.Rule.count(b1, Laws.Rule.count(b2, Laws.Rule.count(b3, 1n)))) == True{} : Bool}
+
+def fewer_above_P3_P4(a1, a2, a3, b1, b2, b3, h_y, h_x, h_0, h_1):
+  match a1 a2 a3 b1 b2 b3:
+    case True{} True{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} True{} True{}:
+      {==}
+    case True{} True{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} True{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case True{} True{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} True{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} True{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} True{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} True{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} True{} True{} True{}:
+      {==}
+    case True{} False{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} True{} False{} True{}:
+      {==}
+    case True{} False{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} False{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} False{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} True{} True{} True{}:
+      {==}
+    case False{} True{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} True{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} False{} True{} True{}:
+      {==}
+    case False{} True{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} True{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} False{} True{} True{} True{}:
+      {==}
+    case False{} False{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} True{} False{} True{}:
+      {==}
+    case False{} False{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} True{} True{}:
+      {==}
+    case False{} False{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} False{} True{}:
+      {==}
+    case False{} False{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+
+law fewer_above_P4_P1:
+  for a1: Bool
+  for a2: Bool
+  for a3: Bool
+  for b1: Bool
+  for b2: Bool
+  for b3: Bool
+  for h_y: {Bool.not(a1) == True{} : Bool}
+  for h_x: {b3 == True{} : Bool}
+  for h_0: {T.Imp(a2, b1) == True{} : Bool}
+  for h_1: {T.Imp(a3, b2) == True{} : Bool}
+
+  {Nat.is_lt(Laws.Rule.count(a1, Laws.Rule.count(a2, Laws.Rule.count(a3, 1n))), Laws.Rule.count(b1, Laws.Rule.count(b2, Laws.Rule.count(b3, 1n)))) == True{} : Bool}
+
+def fewer_above_P4_P1(a1, a2, a3, b1, b2, b3, h_y, h_x, h_0, h_1):
+  match a1 a2 a3 b1 b2 b3:
+    case True{} True{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} True{} True{}:
+      {==}
+    case False{} True{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} True{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case False{} True{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case False{} True{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} True{} True{} True{}:
+      {==}
+    case False{} True{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} True{} False{} True{}:
+      {==}
+    case False{} True{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case False{} True{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case False{} True{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} True{} True{} True{}:
+      {==}
+    case False{} False{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} False{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} False{} True{} True{}:
+      {==}
+    case False{} False{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} False{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} True{} True{} True{}:
+      {==}
+    case False{} False{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} True{} False{} True{}:
+      {==}
+    case False{} False{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} True{} True{}:
+      {==}
+    case False{} False{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} False{} True{}:
+      {==}
+    case False{} False{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+
+law fewer_above_P4_P2:
+  for a1: Bool
+  for a2: Bool
+  for a3: Bool
+  for b1: Bool
+  for b2: Bool
+  for b3: Bool
+  for h_y: {Bool.not(a2) == True{} : Bool}
+  for h_x: {b3 == True{} : Bool}
+  for h_0: {T.Imp(a1, b1) == True{} : Bool}
+  for h_1: {T.Imp(a3, b2) == True{} : Bool}
+
+  {Nat.is_lt(Laws.Rule.count(a1, Laws.Rule.count(a2, Laws.Rule.count(a3, 1n))), Laws.Rule.count(b1, Laws.Rule.count(b2, Laws.Rule.count(b3, 1n)))) == True{} : Bool}
+
+def fewer_above_P4_P2(a1, a2, a3, b1, b2, b3, h_y, h_x, h_0, h_1):
+  match a1 a2 a3 b1 b2 b3:
+    case True{} True{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} True{} True{}:
+      {==}
+    case True{} False{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case True{} False{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} False{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} False{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} True{} True{} True{}:
+      {==}
+    case True{} False{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} True{} False{} True{}:
+      {==}
+    case True{} False{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} False{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} False{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} True{} True{} True{}:
+      {==}
+    case False{} False{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} False{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} False{} True{} True{}:
+      {==}
+    case False{} False{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} False{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} True{} True{} True{}:
+      {==}
+    case False{} False{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} True{} False{} True{}:
+      {==}
+    case False{} False{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} True{} True{}:
+      {==}
+    case False{} False{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} False{} True{}:
+      {==}
+    case False{} False{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+
+law fewer_above_P4_P3:
+  for a1: Bool
+  for a2: Bool
+  for a3: Bool
+  for b1: Bool
+  for b2: Bool
+  for b3: Bool
+  for h_y: {Bool.not(a3) == True{} : Bool}
+  for h_x: {b3 == True{} : Bool}
+  for h_0: {T.Imp(a1, b1) == True{} : Bool}
+  for h_1: {T.Imp(a2, b2) == True{} : Bool}
+
+  {Nat.is_lt(Laws.Rule.count(a1, Laws.Rule.count(a2, Laws.Rule.count(a3, 1n))), Laws.Rule.count(b1, Laws.Rule.count(b2, Laws.Rule.count(b3, 1n)))) == True{} : Bool}
+
+def fewer_above_P4_P3(a1, a2, a3, b1, b2, b3, h_y, h_x, h_0, h_1):
+  match a1 a2 a3 b1 b2 b3:
+    case True{} True{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} True{} False{} True{} True{} True{}:
+      {==}
+    case True{} True{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} True{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case True{} True{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} True{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} True{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} True{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} True{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case True{} False{} False{} True{} True{} True{}:
+      {==}
+    case True{} False{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} True{} False{} True{}:
+      {==}
+    case True{} False{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} False{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case True{} False{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_0))
+    case True{} False{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} True{} False{} True{} True{} True{}:
+      {==}
+    case False{} True{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} True{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} False{} True{} True{}:
+      {==}
+    case False{} True{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} True{} False{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_1))
+    case False{} True{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} True{} True{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} True{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} False{} True{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} False{} False{} True{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} True{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_y))
+    case False{} False{} False{} True{} True{} True{}:
+      {==}
+    case False{} False{} False{} True{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} True{} False{} True{}:
+      {==}
+    case False{} False{} False{} True{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} True{} True{}:
+      {==}
+    case False{} False{} False{} False{} True{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+    case False{} False{} False{} False{} False{} True{}:
+      {==}
+    case False{} False{} False{} False{} False{} False{}:
+      ex_falso({Nat.is_lt(Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))) == True{} : Bool}, false_is_not_true(h_x))
+
+law dup4:
+  for -A: Type
+  for -x: A
+  for -y: A
+  for e: {x == y : A}
+  {x == y : A} & {x == y : A} & {x == y : A} & {x == y : A}
+
+def dup4(A, x, y, e):
+  %e : {x == _ : A} & {x == _ : A} & {x == _ : A} & {x == _ : A}
+  ({==}, {==}, {==}, {==})
+
+law L16_go:
+  for +g: Tour.Group
+  for +rr: Tour.RoundRobin
+  for +x: Tour.Pos
+  for +y: Tour.Pos
+  for ms: {Nat.is_gt(Laws.Rule.wins(x, rr), Laws.Rule.wins(y, rr)) == True{} : Bool} & {Nat.is_gt(Laws.Rule.wins(x, rr), Laws.Rule.wins(y, rr)) == True{} : Bool} & {Nat.is_gt(Laws.Rule.wins(x, rr), Laws.Rule.wins(y, rr)) == True{} : Bool} & {Nat.is_gt(Laws.Rule.wins(x, rr), Laws.Rule.wins(y, rr)) == True{} : Bool}
+  {Nat.is_lt(Laws.Rule.place_of(x, Tour.Standings.places(g, rr)), Laws.Rule.place_of(y, Tour.Standings.places(g, rr))) == True{} : Bool}
+
+
+def L16_go(g, rr, x, y, ms):
+  match x y:
+    case Tour.P1{} Tour.P1{}:
+      match ms:
+        case (more, m2, m3, m4):
+          %Equal.sym(Tour.Places, Tour.Standings.places(g, rr), Laws.Rule.places(g, rr), Laws.L28_standings_follow_rule(g, rr)) : {Nat.is_lt(Laws.Rule.place_of(Tour.P1{}, _), Laws.Rule.place_of(Tour.P1{}, _)) == True{} : Bool}
+          ex_falso({Nat.is_lt(Laws.Rule.place_of(Tour.P1{}, Laws.Rule.places(g, rr)), Laws.Rule.place_of(Tour.P1{}, Laws.Rule.places(g, rr))) == True{} : Bool}, gt_irrefl(Laws.Rule.wins(Tour.P1{}, rr), more))
+    case Tour.P1{} Tour.P2{}:
+      match ms:
+        case (more, m2, m3, m4):
+          %Equal.sym(Tour.Places, Tour.Standings.places(g, rr), Laws.Rule.places(g, rr), Laws.L28_standings_follow_rule(g, rr)) : {Nat.is_lt(Laws.Rule.place_of(Tour.P1{}, _), Laws.Rule.place_of(Tour.P2{}, _)) == True{} : Bool}
+          fewer_above_P1_P2(Laws.Rule.ahead(Tour.P2{}, Tour.P1{}, Tour.P3{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P3{}, Tour.P1{}, Tour.P2{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P4{}, Tour.P1{}, Tour.P2{}, Tour.P3{}, g, rr), Laws.Rule.ahead(Tour.P1{}, Tour.P2{}, Tour.P3{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P3{}, Tour.P2{}, Tour.P1{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P4{}, Tour.P2{}, Tour.P1{}, Tour.P3{}, g, rr), behind_by_wins(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Tour.P2{}, Tour.P1{}, Tour.P3{}, Tour.P4{}, g, rr), more), ahead_by_wins(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Tour.P1{}, Tour.P2{}, Tour.P3{}, Tour.P4{}, g, rr), m2), above_both(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Tour.P3{}, Tour.P1{}, Tour.P2{}, Tour.P4{}, g, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Tour.P3{}, Tour.P2{}, Tour.P1{}, Tour.P4{}, g, rr), m3), above_both(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Tour.P4{}, Tour.P1{}, Tour.P2{}, Tour.P3{}, g, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Tour.P4{}, Tour.P2{}, Tour.P1{}, Tour.P3{}, g, rr), m4))
+    case Tour.P1{} Tour.P3{}:
+      match ms:
+        case (more, m2, m3, m4):
+          %Equal.sym(Tour.Places, Tour.Standings.places(g, rr), Laws.Rule.places(g, rr), Laws.L28_standings_follow_rule(g, rr)) : {Nat.is_lt(Laws.Rule.place_of(Tour.P1{}, _), Laws.Rule.place_of(Tour.P3{}, _)) == True{} : Bool}
+          fewer_above_P1_P3(Laws.Rule.ahead(Tour.P2{}, Tour.P1{}, Tour.P3{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P3{}, Tour.P1{}, Tour.P2{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P4{}, Tour.P1{}, Tour.P2{}, Tour.P3{}, g, rr), Laws.Rule.ahead(Tour.P1{}, Tour.P3{}, Tour.P2{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P2{}, Tour.P3{}, Tour.P1{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P4{}, Tour.P3{}, Tour.P1{}, Tour.P2{}, g, rr), behind_by_wins(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Tour.P3{}, Tour.P1{}, Tour.P2{}, Tour.P4{}, g, rr), more), ahead_by_wins(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Tour.P1{}, Tour.P3{}, Tour.P2{}, Tour.P4{}, g, rr), m2), above_both(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Tour.P2{}, Tour.P1{}, Tour.P3{}, Tour.P4{}, g, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Tour.P2{}, Tour.P3{}, Tour.P1{}, Tour.P4{}, g, rr), m3), above_both(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Tour.P4{}, Tour.P1{}, Tour.P2{}, Tour.P3{}, g, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Tour.P4{}, Tour.P3{}, Tour.P1{}, Tour.P2{}, g, rr), m4))
+    case Tour.P1{} Tour.P4{}:
+      match ms:
+        case (more, m2, m3, m4):
+          %Equal.sym(Tour.Places, Tour.Standings.places(g, rr), Laws.Rule.places(g, rr), Laws.L28_standings_follow_rule(g, rr)) : {Nat.is_lt(Laws.Rule.place_of(Tour.P1{}, _), Laws.Rule.place_of(Tour.P4{}, _)) == True{} : Bool}
+          fewer_above_P1_P4(Laws.Rule.ahead(Tour.P2{}, Tour.P1{}, Tour.P3{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P3{}, Tour.P1{}, Tour.P2{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P4{}, Tour.P1{}, Tour.P2{}, Tour.P3{}, g, rr), Laws.Rule.ahead(Tour.P1{}, Tour.P4{}, Tour.P2{}, Tour.P3{}, g, rr), Laws.Rule.ahead(Tour.P2{}, Tour.P4{}, Tour.P1{}, Tour.P3{}, g, rr), Laws.Rule.ahead(Tour.P3{}, Tour.P4{}, Tour.P1{}, Tour.P2{}, g, rr), behind_by_wins(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Tour.P4{}, Tour.P1{}, Tour.P2{}, Tour.P3{}, g, rr), more), ahead_by_wins(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Tour.P1{}, Tour.P4{}, Tour.P2{}, Tour.P3{}, g, rr), m2), above_both(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Tour.P2{}, Tour.P1{}, Tour.P3{}, Tour.P4{}, g, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Tour.P2{}, Tour.P4{}, Tour.P1{}, Tour.P3{}, g, rr), m3), above_both(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Tour.P3{}, Tour.P1{}, Tour.P2{}, Tour.P4{}, g, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Tour.P3{}, Tour.P4{}, Tour.P1{}, Tour.P2{}, g, rr), m4))
+    case Tour.P2{} Tour.P1{}:
+      match ms:
+        case (more, m2, m3, m4):
+          %Equal.sym(Tour.Places, Tour.Standings.places(g, rr), Laws.Rule.places(g, rr), Laws.L28_standings_follow_rule(g, rr)) : {Nat.is_lt(Laws.Rule.place_of(Tour.P2{}, _), Laws.Rule.place_of(Tour.P1{}, _)) == True{} : Bool}
+          fewer_above_P2_P1(Laws.Rule.ahead(Tour.P1{}, Tour.P2{}, Tour.P3{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P3{}, Tour.P2{}, Tour.P1{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P4{}, Tour.P2{}, Tour.P1{}, Tour.P3{}, g, rr), Laws.Rule.ahead(Tour.P2{}, Tour.P1{}, Tour.P3{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P3{}, Tour.P1{}, Tour.P2{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P4{}, Tour.P1{}, Tour.P2{}, Tour.P3{}, g, rr), behind_by_wins(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Tour.P1{}, Tour.P2{}, Tour.P3{}, Tour.P4{}, g, rr), more), ahead_by_wins(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Tour.P2{}, Tour.P1{}, Tour.P3{}, Tour.P4{}, g, rr), m2), above_both(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Tour.P3{}, Tour.P2{}, Tour.P1{}, Tour.P4{}, g, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Tour.P3{}, Tour.P1{}, Tour.P2{}, Tour.P4{}, g, rr), m3), above_both(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Tour.P4{}, Tour.P2{}, Tour.P1{}, Tour.P3{}, g, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Tour.P4{}, Tour.P1{}, Tour.P2{}, Tour.P3{}, g, rr), m4))
+    case Tour.P2{} Tour.P2{}:
+      match ms:
+        case (more, m2, m3, m4):
+          %Equal.sym(Tour.Places, Tour.Standings.places(g, rr), Laws.Rule.places(g, rr), Laws.L28_standings_follow_rule(g, rr)) : {Nat.is_lt(Laws.Rule.place_of(Tour.P2{}, _), Laws.Rule.place_of(Tour.P2{}, _)) == True{} : Bool}
+          ex_falso({Nat.is_lt(Laws.Rule.place_of(Tour.P2{}, Laws.Rule.places(g, rr)), Laws.Rule.place_of(Tour.P2{}, Laws.Rule.places(g, rr))) == True{} : Bool}, gt_irrefl(Laws.Rule.wins(Tour.P2{}, rr), more))
+    case Tour.P2{} Tour.P3{}:
+      match ms:
+        case (more, m2, m3, m4):
+          %Equal.sym(Tour.Places, Tour.Standings.places(g, rr), Laws.Rule.places(g, rr), Laws.L28_standings_follow_rule(g, rr)) : {Nat.is_lt(Laws.Rule.place_of(Tour.P2{}, _), Laws.Rule.place_of(Tour.P3{}, _)) == True{} : Bool}
+          fewer_above_P2_P3(Laws.Rule.ahead(Tour.P1{}, Tour.P2{}, Tour.P3{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P3{}, Tour.P2{}, Tour.P1{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P4{}, Tour.P2{}, Tour.P1{}, Tour.P3{}, g, rr), Laws.Rule.ahead(Tour.P1{}, Tour.P3{}, Tour.P2{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P2{}, Tour.P3{}, Tour.P1{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P4{}, Tour.P3{}, Tour.P1{}, Tour.P2{}, g, rr), behind_by_wins(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Tour.P3{}, Tour.P2{}, Tour.P1{}, Tour.P4{}, g, rr), more), ahead_by_wins(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Tour.P2{}, Tour.P3{}, Tour.P1{}, Tour.P4{}, g, rr), m2), above_both(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Tour.P1{}, Tour.P2{}, Tour.P3{}, Tour.P4{}, g, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Tour.P1{}, Tour.P3{}, Tour.P2{}, Tour.P4{}, g, rr), m3), above_both(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Tour.P4{}, Tour.P2{}, Tour.P1{}, Tour.P3{}, g, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Tour.P4{}, Tour.P3{}, Tour.P1{}, Tour.P2{}, g, rr), m4))
+    case Tour.P2{} Tour.P4{}:
+      match ms:
+        case (more, m2, m3, m4):
+          %Equal.sym(Tour.Places, Tour.Standings.places(g, rr), Laws.Rule.places(g, rr), Laws.L28_standings_follow_rule(g, rr)) : {Nat.is_lt(Laws.Rule.place_of(Tour.P2{}, _), Laws.Rule.place_of(Tour.P4{}, _)) == True{} : Bool}
+          fewer_above_P2_P4(Laws.Rule.ahead(Tour.P1{}, Tour.P2{}, Tour.P3{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P3{}, Tour.P2{}, Tour.P1{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P4{}, Tour.P2{}, Tour.P1{}, Tour.P3{}, g, rr), Laws.Rule.ahead(Tour.P1{}, Tour.P4{}, Tour.P2{}, Tour.P3{}, g, rr), Laws.Rule.ahead(Tour.P2{}, Tour.P4{}, Tour.P1{}, Tour.P3{}, g, rr), Laws.Rule.ahead(Tour.P3{}, Tour.P4{}, Tour.P1{}, Tour.P2{}, g, rr), behind_by_wins(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Tour.P4{}, Tour.P2{}, Tour.P1{}, Tour.P3{}, g, rr), more), ahead_by_wins(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Tour.P2{}, Tour.P4{}, Tour.P1{}, Tour.P3{}, g, rr), m2), above_both(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Tour.P1{}, Tour.P2{}, Tour.P3{}, Tour.P4{}, g, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Tour.P1{}, Tour.P4{}, Tour.P2{}, Tour.P3{}, g, rr), m3), above_both(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Tour.P3{}, Tour.P2{}, Tour.P1{}, Tour.P4{}, g, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Tour.P3{}, Tour.P4{}, Tour.P1{}, Tour.P2{}, g, rr), m4))
+    case Tour.P3{} Tour.P1{}:
+      match ms:
+        case (more, m2, m3, m4):
+          %Equal.sym(Tour.Places, Tour.Standings.places(g, rr), Laws.Rule.places(g, rr), Laws.L28_standings_follow_rule(g, rr)) : {Nat.is_lt(Laws.Rule.place_of(Tour.P3{}, _), Laws.Rule.place_of(Tour.P1{}, _)) == True{} : Bool}
+          fewer_above_P3_P1(Laws.Rule.ahead(Tour.P1{}, Tour.P3{}, Tour.P2{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P2{}, Tour.P3{}, Tour.P1{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P4{}, Tour.P3{}, Tour.P1{}, Tour.P2{}, g, rr), Laws.Rule.ahead(Tour.P2{}, Tour.P1{}, Tour.P3{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P3{}, Tour.P1{}, Tour.P2{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P4{}, Tour.P1{}, Tour.P2{}, Tour.P3{}, g, rr), behind_by_wins(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Tour.P1{}, Tour.P3{}, Tour.P2{}, Tour.P4{}, g, rr), more), ahead_by_wins(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Tour.P3{}, Tour.P1{}, Tour.P2{}, Tour.P4{}, g, rr), m2), above_both(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Tour.P2{}, Tour.P3{}, Tour.P1{}, Tour.P4{}, g, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Tour.P2{}, Tour.P1{}, Tour.P3{}, Tour.P4{}, g, rr), m3), above_both(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Tour.P4{}, Tour.P3{}, Tour.P1{}, Tour.P2{}, g, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Tour.P4{}, Tour.P1{}, Tour.P2{}, Tour.P3{}, g, rr), m4))
+    case Tour.P3{} Tour.P2{}:
+      match ms:
+        case (more, m2, m3, m4):
+          %Equal.sym(Tour.Places, Tour.Standings.places(g, rr), Laws.Rule.places(g, rr), Laws.L28_standings_follow_rule(g, rr)) : {Nat.is_lt(Laws.Rule.place_of(Tour.P3{}, _), Laws.Rule.place_of(Tour.P2{}, _)) == True{} : Bool}
+          fewer_above_P3_P2(Laws.Rule.ahead(Tour.P1{}, Tour.P3{}, Tour.P2{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P2{}, Tour.P3{}, Tour.P1{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P4{}, Tour.P3{}, Tour.P1{}, Tour.P2{}, g, rr), Laws.Rule.ahead(Tour.P1{}, Tour.P2{}, Tour.P3{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P3{}, Tour.P2{}, Tour.P1{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P4{}, Tour.P2{}, Tour.P1{}, Tour.P3{}, g, rr), behind_by_wins(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Tour.P2{}, Tour.P3{}, Tour.P1{}, Tour.P4{}, g, rr), more), ahead_by_wins(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Tour.P3{}, Tour.P2{}, Tour.P1{}, Tour.P4{}, g, rr), m2), above_both(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Tour.P1{}, Tour.P3{}, Tour.P2{}, Tour.P4{}, g, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Tour.P1{}, Tour.P2{}, Tour.P3{}, Tour.P4{}, g, rr), m3), above_both(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Tour.P4{}, Tour.P3{}, Tour.P1{}, Tour.P2{}, g, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Tour.P4{}, Tour.P2{}, Tour.P1{}, Tour.P3{}, g, rr), m4))
+    case Tour.P3{} Tour.P3{}:
+      match ms:
+        case (more, m2, m3, m4):
+          %Equal.sym(Tour.Places, Tour.Standings.places(g, rr), Laws.Rule.places(g, rr), Laws.L28_standings_follow_rule(g, rr)) : {Nat.is_lt(Laws.Rule.place_of(Tour.P3{}, _), Laws.Rule.place_of(Tour.P3{}, _)) == True{} : Bool}
+          ex_falso({Nat.is_lt(Laws.Rule.place_of(Tour.P3{}, Laws.Rule.places(g, rr)), Laws.Rule.place_of(Tour.P3{}, Laws.Rule.places(g, rr))) == True{} : Bool}, gt_irrefl(Laws.Rule.wins(Tour.P3{}, rr), more))
+    case Tour.P3{} Tour.P4{}:
+      match ms:
+        case (more, m2, m3, m4):
+          %Equal.sym(Tour.Places, Tour.Standings.places(g, rr), Laws.Rule.places(g, rr), Laws.L28_standings_follow_rule(g, rr)) : {Nat.is_lt(Laws.Rule.place_of(Tour.P3{}, _), Laws.Rule.place_of(Tour.P4{}, _)) == True{} : Bool}
+          fewer_above_P3_P4(Laws.Rule.ahead(Tour.P1{}, Tour.P3{}, Tour.P2{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P2{}, Tour.P3{}, Tour.P1{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P4{}, Tour.P3{}, Tour.P1{}, Tour.P2{}, g, rr), Laws.Rule.ahead(Tour.P1{}, Tour.P4{}, Tour.P2{}, Tour.P3{}, g, rr), Laws.Rule.ahead(Tour.P2{}, Tour.P4{}, Tour.P1{}, Tour.P3{}, g, rr), Laws.Rule.ahead(Tour.P3{}, Tour.P4{}, Tour.P1{}, Tour.P2{}, g, rr), behind_by_wins(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Tour.P4{}, Tour.P3{}, Tour.P1{}, Tour.P2{}, g, rr), more), ahead_by_wins(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Tour.P3{}, Tour.P4{}, Tour.P1{}, Tour.P2{}, g, rr), m2), above_both(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Tour.P1{}, Tour.P3{}, Tour.P2{}, Tour.P4{}, g, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Tour.P1{}, Tour.P4{}, Tour.P2{}, Tour.P3{}, g, rr), m3), above_both(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Tour.P2{}, Tour.P3{}, Tour.P1{}, Tour.P4{}, g, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Tour.P2{}, Tour.P4{}, Tour.P1{}, Tour.P3{}, g, rr), m4))
+    case Tour.P4{} Tour.P1{}:
+      match ms:
+        case (more, m2, m3, m4):
+          %Equal.sym(Tour.Places, Tour.Standings.places(g, rr), Laws.Rule.places(g, rr), Laws.L28_standings_follow_rule(g, rr)) : {Nat.is_lt(Laws.Rule.place_of(Tour.P4{}, _), Laws.Rule.place_of(Tour.P1{}, _)) == True{} : Bool}
+          fewer_above_P4_P1(Laws.Rule.ahead(Tour.P1{}, Tour.P4{}, Tour.P2{}, Tour.P3{}, g, rr), Laws.Rule.ahead(Tour.P2{}, Tour.P4{}, Tour.P1{}, Tour.P3{}, g, rr), Laws.Rule.ahead(Tour.P3{}, Tour.P4{}, Tour.P1{}, Tour.P2{}, g, rr), Laws.Rule.ahead(Tour.P2{}, Tour.P1{}, Tour.P3{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P3{}, Tour.P1{}, Tour.P2{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P4{}, Tour.P1{}, Tour.P2{}, Tour.P3{}, g, rr), behind_by_wins(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Tour.P1{}, Tour.P4{}, Tour.P2{}, Tour.P3{}, g, rr), more), ahead_by_wins(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Tour.P4{}, Tour.P1{}, Tour.P2{}, Tour.P3{}, g, rr), m2), above_both(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Tour.P2{}, Tour.P4{}, Tour.P1{}, Tour.P3{}, g, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Tour.P2{}, Tour.P1{}, Tour.P3{}, Tour.P4{}, g, rr), m3), above_both(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Tour.P3{}, Tour.P4{}, Tour.P1{}, Tour.P2{}, g, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P1{}, rr)), Tour.P3{}, Tour.P1{}, Tour.P2{}, Tour.P4{}, g, rr), m4))
+    case Tour.P4{} Tour.P2{}:
+      match ms:
+        case (more, m2, m3, m4):
+          %Equal.sym(Tour.Places, Tour.Standings.places(g, rr), Laws.Rule.places(g, rr), Laws.L28_standings_follow_rule(g, rr)) : {Nat.is_lt(Laws.Rule.place_of(Tour.P4{}, _), Laws.Rule.place_of(Tour.P2{}, _)) == True{} : Bool}
+          fewer_above_P4_P2(Laws.Rule.ahead(Tour.P1{}, Tour.P4{}, Tour.P2{}, Tour.P3{}, g, rr), Laws.Rule.ahead(Tour.P2{}, Tour.P4{}, Tour.P1{}, Tour.P3{}, g, rr), Laws.Rule.ahead(Tour.P3{}, Tour.P4{}, Tour.P1{}, Tour.P2{}, g, rr), Laws.Rule.ahead(Tour.P1{}, Tour.P2{}, Tour.P3{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P3{}, Tour.P2{}, Tour.P1{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P4{}, Tour.P2{}, Tour.P1{}, Tour.P3{}, g, rr), behind_by_wins(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Tour.P2{}, Tour.P4{}, Tour.P1{}, Tour.P3{}, g, rr), more), ahead_by_wins(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Tour.P4{}, Tour.P2{}, Tour.P1{}, Tour.P3{}, g, rr), m2), above_both(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Tour.P1{}, Tour.P4{}, Tour.P2{}, Tour.P3{}, g, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Tour.P1{}, Tour.P2{}, Tour.P3{}, Tour.P4{}, g, rr), m3), above_both(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Tour.P3{}, Tour.P4{}, Tour.P1{}, Tour.P2{}, g, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P2{}, rr)), Tour.P3{}, Tour.P2{}, Tour.P1{}, Tour.P4{}, g, rr), m4))
+    case Tour.P4{} Tour.P3{}:
+      match ms:
+        case (more, m2, m3, m4):
+          %Equal.sym(Tour.Places, Tour.Standings.places(g, rr), Laws.Rule.places(g, rr), Laws.L28_standings_follow_rule(g, rr)) : {Nat.is_lt(Laws.Rule.place_of(Tour.P4{}, _), Laws.Rule.place_of(Tour.P3{}, _)) == True{} : Bool}
+          fewer_above_P4_P3(Laws.Rule.ahead(Tour.P1{}, Tour.P4{}, Tour.P2{}, Tour.P3{}, g, rr), Laws.Rule.ahead(Tour.P2{}, Tour.P4{}, Tour.P1{}, Tour.P3{}, g, rr), Laws.Rule.ahead(Tour.P3{}, Tour.P4{}, Tour.P1{}, Tour.P2{}, g, rr), Laws.Rule.ahead(Tour.P1{}, Tour.P3{}, Tour.P2{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P2{}, Tour.P3{}, Tour.P1{}, Tour.P4{}, g, rr), Laws.Rule.ahead(Tour.P4{}, Tour.P3{}, Tour.P1{}, Tour.P2{}, g, rr), behind_by_wins(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Tour.P3{}, Tour.P4{}, Tour.P1{}, Tour.P2{}, g, rr), more), ahead_by_wins(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Tour.P4{}, Tour.P3{}, Tour.P1{}, Tour.P2{}, g, rr), m2), above_both(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Tour.P1{}, Tour.P4{}, Tour.P2{}, Tour.P3{}, g, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Tour.P1{}, Tour.P3{}, Tour.P2{}, Tour.P4{}, g, rr), m3), above_both(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P2{}, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P3{}, rr), Laws.Rule.wins(Tour.P4{}, rr)), Tour.P2{}, Tour.P4{}, Tour.P1{}, Tour.P3{}, g, rr), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(Tour.P1{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Nat.is_eq(Laws.Rule.wins(Tour.P4{}, rr), Laws.Rule.wins(Tour.P3{}, rr)), Tour.P2{}, Tour.P3{}, Tour.P1{}, Tour.P4{}, g, rr), m4))
+    case Tour.P4{} Tour.P4{}:
+      match ms:
+        case (more, m2, m3, m4):
+          %Equal.sym(Tour.Places, Tour.Standings.places(g, rr), Laws.Rule.places(g, rr), Laws.L28_standings_follow_rule(g, rr)) : {Nat.is_lt(Laws.Rule.place_of(Tour.P4{}, _), Laws.Rule.place_of(Tour.P4{}, _)) == True{} : Bool}
+          ex_falso({Nat.is_lt(Laws.Rule.place_of(Tour.P4{}, Laws.Rule.places(g, rr)), Laws.Rule.place_of(Tour.P4{}, Laws.Rule.places(g, rr))) == True{} : Bool}, gt_irrefl(Laws.Rule.wins(Tour.P4{}, rr), more))
+
+def Laws.L16_more_wins_ranks_higher(g, rr, x, y, more):
+  L16_go(g, rr, x, y, dup4(Bool, Nat.is_gt(Laws.Rule.wins(x, rr), Laws.Rule.wins(y, rr)), True{}, more))
+
+# ---------------------------------------------------------------------------
+# L17: the places are a ranking. The places come from the twelve answers to
+# "is y above x?". They are 1, 2, 3 and 4 exactly when those answers are a
+# strict order: for each pair exactly one is above the other, and there is
+# no circle (a above b above c above a). The answers are concrete except
+# within a three-way tie, where they come from set and game percentages, the
+# Race and head-to-head. So the proof needs: percentages compare like
+# numbers (no circles, and comparing back gives the reverse), which takes
+# multiplication facts; the Race does too, since the four seeds differ.
+# ---------------------------------------------------------------------------
+
+# Small Bool and Cmp tools.
+
+def flip(c: Cmp) -> Cmp:
+  match c:
+    case LT{}:
+      GT{}
+    case EQ{}:
+      EQ{}
+    case GT{}:
+      LT{}
+
+def cmpeq(a: Cmp, b: Cmp) -> Bool:
+  match a b:
+    case LT{} LT{}:
+      True{}
+    case EQ{} EQ{}:
+      True{}
+    case GT{} GT{}:
+      True{}
+    case _ _:
+      False{}
+
+# Three comparisons, of a with b, b with c and a with c, that some three
+# numbers could give.
+def cons3(ab: Cmp, bc: Cmp, ac: Cmp) -> Bool:
+  match ab bc ac:
+    case LT{} LT{} LT{}:
+      True{}
+    case LT{} LT{} EQ{}:
+      False{}
+    case LT{} LT{} GT{}:
+      False{}
+    case LT{} EQ{} LT{}:
+      True{}
+    case LT{} EQ{} EQ{}:
+      False{}
+    case LT{} EQ{} GT{}:
+      False{}
+    case LT{} GT{} LT{}:
+      True{}
+    case LT{} GT{} EQ{}:
+      True{}
+    case LT{} GT{} GT{}:
+      True{}
+    case EQ{} LT{} LT{}:
+      True{}
+    case EQ{} LT{} EQ{}:
+      False{}
+    case EQ{} LT{} GT{}:
+      False{}
+    case EQ{} EQ{} LT{}:
+      False{}
+    case EQ{} EQ{} EQ{}:
+      True{}
+    case EQ{} EQ{} GT{}:
+      False{}
+    case EQ{} GT{} LT{}:
+      False{}
+    case EQ{} GT{} EQ{}:
+      False{}
+    case EQ{} GT{} GT{}:
+      True{}
+    case GT{} LT{} LT{}:
+      True{}
+    case GT{} LT{} EQ{}:
+      True{}
+    case GT{} LT{} GT{}:
+      True{}
+    case GT{} EQ{} LT{}:
+      False{}
+    case GT{} EQ{} EQ{}:
+      False{}
+    case GT{} EQ{} GT{}:
+      True{}
+    case GT{} GT{} LT{}:
+      False{}
+    case GT{} GT{} EQ{}:
+      False{}
+    case GT{} GT{} GT{}:
+      True{}
+
+# "a above b", "b above c", "a above c" with no circle.
+def acyc(ab: Bool, bc: Bool, ac: Bool) -> Bool:
+  match ab bc ac:
+    case True{} True{} False{}:
+      False{}
+    case False{} False{} True{}:
+      False{}
+    case _ _ _:
+      True{}
+
+law and_true_l:
+  for +p: Bool
+  for +q: Bool
+  for h: {Bool.and(p, q) == True{} : Bool}
+  {p == True{} : Bool}
+
+def and_true_l(p, q, h):
+  match p:
+    case True{}:
+      {==}
+    case False{}:
+      ex_falso({False{} == True{} : Bool}, false_is_not_true(h))
+
+law dup3:
+  for -A: Type
+  for -x: A
+  for -y: A
+  for e: {x == y : A}
+  {x == y : A} & {x == y : A} & {x == y : A}
+
+def dup3(A, x, y, e):
+  %e : {x == _ : A} & {x == _ : A} & {x == _ : A}
+  ({==}, {==}, {==})
+
+# Comparing numbers.
+
+law cmp_flip:
+  for +p: Nat
+  for +q: Nat
+  {cmpeq(Nat.cmp(q, p), flip(Nat.cmp(p, q))) == True{} : Bool}
+
+def cmp_flip(p, q):
+  match p q:
+    case 0n 0n:
+      {==}
+    case 0n 1n+qp:
+      {==}
+    case 1n+pp 0n:
+      {==}
+    case 1n+pp 1n+qp:
+      cmp_flip(pp, qp)
+
+law cons_a_least:
+  for +c: Cmp
+  {cons3(LT{}, c, LT{}) == True{} : Bool}
+
+def cons_a_least(c):
+  match c:
+    case LT{}:
+      {==}
+    case EQ{}:
+      {==}
+    case GT{}:
+      {==}
+
+law cons_b_least:
+  for +c: Cmp
+  {cons3(GT{}, LT{}, c) == True{} : Bool}
+
+def cons_b_least(c):
+  match c:
+    case LT{}:
+      {==}
+    case EQ{}:
+      {==}
+    case GT{}:
+      {==}
+
+law cons_c_least:
+  for +c: Cmp
+  {cons3(c, GT{}, GT{}) == True{} : Bool}
+
+def cons_c_least(c):
+  match c:
+    case LT{}:
+      {==}
+    case EQ{}:
+      {==}
+    case GT{}:
+      {==}
+
+law nat_cons:
+  for +x: Nat
+  for +y: Nat
+  for +z: Nat
+  {cons3(Nat.cmp(x, y), Nat.cmp(y, z), Nat.cmp(x, z)) == True{} : Bool}
+
+def nat_cons(x, y, z):
+  match x y z:
+    case 0n 0n 0n:
+      {==}
+    case 0n 0n 1n+zp:
+      {==}
+    case 0n 1n+yp 0n:
+      {==}
+    case 0n 1n+yp 1n+zp:
+      cons_a_least(Nat.cmp(yp, zp))
+    case 1n+xp 0n 0n:
+      {==}
+    case 1n+xp 0n 1n+zp:
+      cons_b_least(Nat.cmp(xp, zp))
+    case 1n+xp 1n+yp 0n:
+      cons_c_least(Nat.cmp(xp, yp))
+    case 1n+xp 1n+yp 1n+zp:
+      nat_cons(xp, yp, zp)
+
+# Adding and multiplying.
+
+law add_succ_r:
+  for +a: Nat
+  for +b: Nat
+  {Nat.add(a, 1n+b) == 1n+Nat.add(a, b) : Nat}
+
+def add_succ_r(a, b):
+  match a:
+    case 0n:
+      {==}
+    case 1n+p:
+      %Equal.sym(Nat, Nat.add(p, 1n+b), 1n+Nat.add(p, b), add_succ_r(p, b)) : {1n+_ == 1n+1n+Nat.add(p, b) : Nat}
+      {==}
+
+law add_comm:
+  for +a: Nat
+  for +b: Nat
+  {Nat.add(a, b) == Nat.add(b, a) : Nat}
+
+def add_comm(a, b):
+  match a:
+    case 0n:
+      Equal.sym(Nat, Nat.add(b, 0n), b, nat_add_zero(b))
+    case 1n+p:
+      %Equal.sym(Nat, Nat.add(b, 1n+p), 1n+Nat.add(b, p), add_succ_r(b, p)) : {1n+Nat.add(p, b) == _ : Nat}
+      %add_comm(p, b) : {1n+Nat.add(p, b) == 1n+_ : Nat}
+      {==}
+
+# b + (p + x) = p + (b + x)
+law add_left_swap:
+  for +b: Nat
+  for +p: Nat
+  for +x: Nat
+  {Nat.add(b, Nat.add(p, x)) == Nat.add(p, Nat.add(b, x)) : Nat}
+
+def add_left_swap(b, p, x):
+  %nat_add_assoc(b, p, x) : {_ == Nat.add(p, Nat.add(b, x)) : Nat}
+  %nat_add_assoc(p, b, x) : {Nat.add(Nat.add(b, p), x) == _ : Nat}
+  %add_comm(b, p) : {Nat.add(Nat.add(b, p), x) == Nat.add(_, x) : Nat}
+  {==}
+
+law mul_zero_r:
+  for +a: Nat
+  {Nat.mul(a, 0n) == 0n : Nat}
+
+def mul_zero_r(a):
+  match a:
+    case 0n:
+      {==}
+    case 1n+p:
+      mul_zero_r(p)
+
+law mul_succ_r:
+  for +a: Nat
+  for +b: Nat
+  {Nat.mul(a, 1n+b) == Nat.add(a, Nat.mul(a, b)) : Nat}
+
+def mul_succ_r(a, b):
+  match a:
+    case 0n:
+      {==}
+    case 1n+p:
+      %Equal.sym(Nat, Nat.mul(p, 1n+b), Nat.add(p, Nat.mul(p, b)), mul_succ_r(p, b)) : {1n+Nat.add(b, _) == 1n+Nat.add(p, Nat.add(b, Nat.mul(p, b))) : Nat}
+      %add_left_swap(b, p, Nat.mul(p, b)) : {1n+Nat.add(b, Nat.add(p, Nat.mul(p, b))) == 1n+_ : Nat}
+      {==}
+
+law mul_comm:
+  for +a: Nat
+  for +b: Nat
+  {Nat.mul(a, b) == Nat.mul(b, a) : Nat}
+
+def mul_comm(a, b):
+  match a:
+    case 0n:
+      Equal.sym(Nat, Nat.mul(b, 0n), 0n, mul_zero_r(b))
+    case 1n+p:
+      %Equal.sym(Nat, Nat.mul(b, 1n+p), Nat.add(b, Nat.mul(b, p)), mul_succ_r(b, p)) : {Nat.add(b, Nat.mul(p, b)) == _ : Nat}
+      %mul_comm(p, b) : {Nat.add(b, Nat.mul(p, b)) == Nat.add(b, _) : Nat}
+      {==}
+
+law mul_distrib_r:
+  for +a: Nat
+  for +b: Nat
+  for +c: Nat
+  {Nat.mul(Nat.add(a, b), c) == Nat.add(Nat.mul(a, c), Nat.mul(b, c)) : Nat}
+
+def mul_distrib_r(a, b, c):
+  match a:
+    case 0n:
+      {==}
+    case 1n+p:
+      %Equal.sym(Nat, Nat.mul(Nat.add(p, b), c), Nat.add(Nat.mul(p, c), Nat.mul(b, c)), mul_distrib_r(p, b, c)) : {Nat.add(c, _) == Nat.add(Nat.add(c, Nat.mul(p, c)), Nat.mul(b, c)) : Nat}
+      Equal.sym(Nat, Nat.add(Nat.add(c, Nat.mul(p, c)), Nat.mul(b, c)), Nat.add(c, Nat.add(Nat.mul(p, c), Nat.mul(b, c))), nat_add_assoc(c, Nat.mul(p, c), Nat.mul(b, c)))
+
+law mul_assoc:
+  for +a: Nat
+  for +b: Nat
+  for +c: Nat
+  {Nat.mul(Nat.mul(a, b), c) == Nat.mul(a, Nat.mul(b, c)) : Nat}
+
+def mul_assoc(a, b, c):
+  match a:
+    case 0n:
+      {==}
+    case 1n+p:
+      %Equal.sym(Nat, Nat.mul(Nat.add(b, Nat.mul(p, b)), c), Nat.add(Nat.mul(b, c), Nat.mul(Nat.mul(p, b), c)), mul_distrib_r(b, Nat.mul(p, b), c)) : {_ == Nat.add(Nat.mul(b, c), Nat.mul(p, Nat.mul(b, c))) : Nat}
+      %mul_assoc(p, b, c) : {Nat.add(Nat.mul(b, c), Nat.mul(Nat.mul(p, b), c)) == Nat.add(Nat.mul(b, c), _) : Nat}
+      {==}
+
+# (a * b) * c = (a * c) * b
+law mul_swap23:
+  for +a: Nat
+  for +b: Nat
+  for +c: Nat
+  {Nat.mul(Nat.mul(a, b), c) == Nat.mul(Nat.mul(a, c), b) : Nat}
+
+def mul_swap23(a, b, c):
+  %Equal.sym(Nat, Nat.mul(Nat.mul(a, b), c), Nat.mul(a, Nat.mul(b, c)), mul_assoc(a, b, c)) : {_ == Nat.mul(Nat.mul(a, c), b) : Nat}
+  %Equal.sym(Nat, Nat.mul(Nat.mul(a, c), b), Nat.mul(a, Nat.mul(c, b)), mul_assoc(a, c, b)) : {Nat.mul(a, Nat.mul(b, c)) == _ : Nat}
+  %mul_comm(b, c) : {Nat.mul(a, Nat.mul(b, c)) == Nat.mul(a, _) : Nat}
+  {==}
+
+# Comparing after adding the same number, or multiplying by the same
+# positive number, gives the same answer.
+law cmp_add_l:
+  for +n: Nat
+  for +a: Nat
+  for +b: Nat
+  {Nat.cmp(Nat.add(n, a), Nat.add(n, b)) == Nat.cmp(a, b) : Cmp}
+
+def cmp_add_l(n, a, b):
+  match n:
+    case 0n:
+      {==}
+    case 1n+p:
+      cmp_add_l(p, a, b)
+
+law cmp_mul_pos:
+  for +x: Nat
+  for +y: Nat
+  for +k: Nat
+  {Nat.cmp(Nat.mul(x, 1n+k), Nat.mul(y, 1n+k)) == Nat.cmp(x, y) : Cmp}
+
+def cmp_mul_pos(x, y, k):
+  match x y:
+    case 0n 0n:
+      {==}
+    case 0n 1n+yp:
+      {==}
+    case 1n+xp 0n:
+      {==}
+    case 1n+xp 1n+yp:
+      Equal.trans(Cmp, Nat.cmp(Nat.add(1n+k, Nat.mul(xp, 1n+k)), Nat.add(1n+k, Nat.mul(yp, 1n+k))), Nat.cmp(Nat.mul(xp, 1n+k), Nat.mul(yp, 1n+k)), Nat.cmp(xp, yp), cmp_add_l(1n+k, Nat.mul(xp, 1n+k), Nat.mul(yp, 1n+k)), cmp_mul_pos(xp, yp, k))
+
+law cmp_mul_max:
+  for +x: Nat
+  for +y: Nat
+  for +n: Nat
+  {Nat.cmp(Nat.mul(x, Nat.max(1n, n)), Nat.mul(y, Nat.max(1n, n))) == Nat.cmp(x, y) : Cmp}
+
+def cmp_mul_max(x, y, n):
+  match n:
+    case 0n:
+      cmp_mul_pos(x, y, 0n)
+    case 1n+p:
+      cmp_mul_pos(x, y, p)
+
+# Shares compare like numbers: no circles.
+law share_cons:
+  for +w1: Nat
+  for +l1: Nat
+  for +w2: Nat
+  for +l2: Nat
+  for +w3: Nat
+  for +l3: Nat
+  {cons3(Laws.Rule.share_cmp(w1, l1, w2, l2), Laws.Rule.share_cmp(w2, l2, w3, l3), Laws.Rule.share_cmp(w1, l1, w3, l3)) == True{} : Bool}
+
+def share_cons(w1, l1, w2, l2, w3, l3):
+  %cmp_mul_max(Nat.mul(w1, Nat.max(1n, Nat.add(w2, l2))), Nat.mul(w2, Nat.max(1n, Nat.add(w1, l1))), Nat.add(w3, l3)) : {cons3(_, Nat.cmp(Nat.mul(w2, Nat.max(1n, Nat.add(w3, l3))), Nat.mul(w3, Nat.max(1n, Nat.add(w2, l2)))), Nat.cmp(Nat.mul(w1, Nat.max(1n, Nat.add(w3, l3))), Nat.mul(w3, Nat.max(1n, Nat.add(w1, l1))))) == True{} : Bool}
+  %cmp_mul_max(Nat.mul(w2, Nat.max(1n, Nat.add(w3, l3))), Nat.mul(w3, Nat.max(1n, Nat.add(w2, l2))), Nat.add(w1, l1)) : {cons3(Nat.cmp(Nat.mul(Nat.mul(w1, Nat.max(1n, Nat.add(w2, l2))), Nat.max(1n, Nat.add(w3, l3))), Nat.mul(Nat.mul(w2, Nat.max(1n, Nat.add(w1, l1))), Nat.max(1n, Nat.add(w3, l3)))), _, Nat.cmp(Nat.mul(w1, Nat.max(1n, Nat.add(w3, l3))), Nat.mul(w3, Nat.max(1n, Nat.add(w1, l1))))) == True{} : Bool}
+  %cmp_mul_max(Nat.mul(w1, Nat.max(1n, Nat.add(w3, l3))), Nat.mul(w3, Nat.max(1n, Nat.add(w1, l1))), Nat.add(w2, l2)) : {cons3(Nat.cmp(Nat.mul(Nat.mul(w1, Nat.max(1n, Nat.add(w2, l2))), Nat.max(1n, Nat.add(w3, l3))), Nat.mul(Nat.mul(w2, Nat.max(1n, Nat.add(w1, l1))), Nat.max(1n, Nat.add(w3, l3)))), Nat.cmp(Nat.mul(Nat.mul(w2, Nat.max(1n, Nat.add(w3, l3))), Nat.max(1n, Nat.add(w1, l1))), Nat.mul(Nat.mul(w3, Nat.max(1n, Nat.add(w2, l2))), Nat.max(1n, Nat.add(w1, l1)))), _) == True{} : Bool}
+  %mul_swap23(w2, Nat.max(1n, Nat.add(w1, l1)), Nat.max(1n, Nat.add(w3, l3))) : {cons3(Nat.cmp(Nat.mul(Nat.mul(w1, Nat.max(1n, Nat.add(w2, l2))), Nat.max(1n, Nat.add(w3, l3))), Nat.mul(Nat.mul(w2, Nat.max(1n, Nat.add(w1, l1))), Nat.max(1n, Nat.add(w3, l3)))), Nat.cmp(_, Nat.mul(Nat.mul(w3, Nat.max(1n, Nat.add(w2, l2))), Nat.max(1n, Nat.add(w1, l1)))), Nat.cmp(Nat.mul(Nat.mul(w1, Nat.max(1n, Nat.add(w3, l3))), Nat.max(1n, Nat.add(w2, l2))), Nat.mul(Nat.mul(w3, Nat.max(1n, Nat.add(w1, l1))), Nat.max(1n, Nat.add(w2, l2))))) == True{} : Bool}
+  %mul_swap23(w1, Nat.max(1n, Nat.add(w2, l2)), Nat.max(1n, Nat.add(w3, l3))) : {cons3(Nat.cmp(Nat.mul(Nat.mul(w1, Nat.max(1n, Nat.add(w2, l2))), Nat.max(1n, Nat.add(w3, l3))), Nat.mul(Nat.mul(w2, Nat.max(1n, Nat.add(w1, l1))), Nat.max(1n, Nat.add(w3, l3)))), Nat.cmp(Nat.mul(Nat.mul(w2, Nat.max(1n, Nat.add(w1, l1))), Nat.max(1n, Nat.add(w3, l3))), Nat.mul(Nat.mul(w3, Nat.max(1n, Nat.add(w2, l2))), Nat.max(1n, Nat.add(w1, l1)))), Nat.cmp(_, Nat.mul(Nat.mul(w3, Nat.max(1n, Nat.add(w1, l1))), Nat.max(1n, Nat.add(w2, l2))))) == True{} : Bool}
+  %mul_swap23(w3, Nat.max(1n, Nat.add(w2, l2)), Nat.max(1n, Nat.add(w1, l1))) : {cons3(Nat.cmp(Nat.mul(Nat.mul(w1, Nat.max(1n, Nat.add(w2, l2))), Nat.max(1n, Nat.add(w3, l3))), Nat.mul(Nat.mul(w2, Nat.max(1n, Nat.add(w1, l1))), Nat.max(1n, Nat.add(w3, l3)))), Nat.cmp(Nat.mul(Nat.mul(w2, Nat.max(1n, Nat.add(w1, l1))), Nat.max(1n, Nat.add(w3, l3))), Nat.mul(Nat.mul(w3, Nat.max(1n, Nat.add(w2, l2))), Nat.max(1n, Nat.add(w1, l1)))), Nat.cmp(Nat.mul(Nat.mul(w1, Nat.max(1n, Nat.add(w2, l2))), Nat.max(1n, Nat.add(w3, l3))), _)) == True{} : Bool}
+  nat_cons(Nat.mul(Nat.mul(w1, Nat.max(1n, Nat.add(w2, l2))), Nat.max(1n, Nat.add(w3, l3))), Nat.mul(Nat.mul(w2, Nat.max(1n, Nat.add(w1, l1))), Nat.max(1n, Nat.add(w3, l3))), Nat.mul(Nat.mul(w3, Nat.max(1n, Nat.add(w2, l2))), Nat.max(1n, Nat.add(w1, l1))))
+
+# The Race: seeds compare like numbers, and two different seeds compare
+# one way or the other.
+law lt_flip:
+  for +p: Nat
+  for +q: Nat
+  for h: {Nat.is_ne(p, q) == True{} : Bool}
+  {T.BoolEq(Nat.is_lt(q, p), Bool.not(Nat.is_lt(p, q))) == True{} : Bool}
+
+def lt_flip(p, q, h):
+  match p q:
+    case 0n 0n:
+      ex_falso({T.BoolEq(Nat.is_lt(0n, 0n), Bool.not(Nat.is_lt(0n, 0n))) == True{} : Bool}, false_is_not_true(h))
+    case 0n 1n+qp:
+      {==}
+    case 1n+pp 0n:
+      {==}
+    case 1n+pp 1n+qp:
+      lt_flip(pp, qp, h)
+
+law acyc_of_cons:
+  for +c1: Cmp
+  for +c2: Cmp
+  for +c3: Cmp
+  for h: {cons3(c1, c2, c3) == True{} : Bool}
+  {acyc(Cmp.is_lt(c1), Cmp.is_lt(c2), Cmp.is_lt(c3)) == True{} : Bool}
+
+def acyc_of_cons(c1, c2, c3, h):
+  match c1 c2 c3:
+    case LT{} LT{} LT{}:
+      {==}
+    case LT{} LT{} EQ{}:
+      ex_falso({acyc(Cmp.is_lt(LT{}), Cmp.is_lt(LT{}), Cmp.is_lt(EQ{})) == True{} : Bool}, false_is_not_true(h))
+    case LT{} LT{} GT{}:
+      ex_falso({acyc(Cmp.is_lt(LT{}), Cmp.is_lt(LT{}), Cmp.is_lt(GT{})) == True{} : Bool}, false_is_not_true(h))
+    case LT{} EQ{} LT{}:
+      {==}
+    case LT{} EQ{} EQ{}:
+      ex_falso({acyc(Cmp.is_lt(LT{}), Cmp.is_lt(EQ{}), Cmp.is_lt(EQ{})) == True{} : Bool}, false_is_not_true(h))
+    case LT{} EQ{} GT{}:
+      ex_falso({acyc(Cmp.is_lt(LT{}), Cmp.is_lt(EQ{}), Cmp.is_lt(GT{})) == True{} : Bool}, false_is_not_true(h))
+    case LT{} GT{} LT{}:
+      {==}
+    case LT{} GT{} EQ{}:
+      {==}
+    case LT{} GT{} GT{}:
+      {==}
+    case EQ{} LT{} LT{}:
+      {==}
+    case EQ{} LT{} EQ{}:
+      ex_falso({acyc(Cmp.is_lt(EQ{}), Cmp.is_lt(LT{}), Cmp.is_lt(EQ{})) == True{} : Bool}, false_is_not_true(h))
+    case EQ{} LT{} GT{}:
+      ex_falso({acyc(Cmp.is_lt(EQ{}), Cmp.is_lt(LT{}), Cmp.is_lt(GT{})) == True{} : Bool}, false_is_not_true(h))
+    case EQ{} EQ{} LT{}:
+      ex_falso({acyc(Cmp.is_lt(EQ{}), Cmp.is_lt(EQ{}), Cmp.is_lt(LT{})) == True{} : Bool}, false_is_not_true(h))
+    case EQ{} EQ{} EQ{}:
+      {==}
+    case EQ{} EQ{} GT{}:
+      ex_falso({acyc(Cmp.is_lt(EQ{}), Cmp.is_lt(EQ{}), Cmp.is_lt(GT{})) == True{} : Bool}, false_is_not_true(h))
+    case EQ{} GT{} LT{}:
+      ex_falso({acyc(Cmp.is_lt(EQ{}), Cmp.is_lt(GT{}), Cmp.is_lt(LT{})) == True{} : Bool}, false_is_not_true(h))
+    case EQ{} GT{} EQ{}:
+      ex_falso({acyc(Cmp.is_lt(EQ{}), Cmp.is_lt(GT{}), Cmp.is_lt(EQ{})) == True{} : Bool}, false_is_not_true(h))
+    case EQ{} GT{} GT{}:
+      {==}
+    case GT{} LT{} LT{}:
+      {==}
+    case GT{} LT{} EQ{}:
+      {==}
+    case GT{} LT{} GT{}:
+      {==}
+    case GT{} EQ{} LT{}:
+      ex_falso({acyc(Cmp.is_lt(GT{}), Cmp.is_lt(EQ{}), Cmp.is_lt(LT{})) == True{} : Bool}, false_is_not_true(h))
+    case GT{} EQ{} EQ{}:
+      ex_falso({acyc(Cmp.is_lt(GT{}), Cmp.is_lt(EQ{}), Cmp.is_lt(EQ{})) == True{} : Bool}, false_is_not_true(h))
+    case GT{} EQ{} GT{}:
+      {==}
+    case GT{} GT{} LT{}:
+      ex_falso({acyc(Cmp.is_lt(GT{}), Cmp.is_lt(GT{}), Cmp.is_lt(LT{})) == True{} : Bool}, false_is_not_true(h))
+    case GT{} GT{} EQ{}:
+      ex_falso({acyc(Cmp.is_lt(GT{}), Cmp.is_lt(GT{}), Cmp.is_lt(EQ{})) == True{} : Bool}, false_is_not_true(h))
+    case GT{} GT{} GT{}:
+      {==}
+
+law lt_acyc:
+  for +p: Nat
+  for +q: Nat
+  for +r: Nat
+  {acyc(Nat.is_lt(p, q), Nat.is_lt(q, r), Nat.is_lt(p, r)) == True{} : Bool}
+
+def lt_acyc(p, q, r):
+  acyc_of_cons(Nat.cmp(p, q), Nat.cmp(q, r), Nat.cmp(p, r), nat_cons(p, q, r))
+
+
+# ---------------------------------------------------------------------------
+# L17, part 2: three tied players. a, b and c are tied on wins; "x_ab" is
+# "a is above b" (Rule.three_way), and so on. trio_good says the six answers
+# are an order: each pair one way round, no circle.
+# ---------------------------------------------------------------------------
+
+def trio_good(+xab: Bool, xba: Bool, +xbc: Bool, xcb: Bool, +xac: Bool, xca: Bool) -> Bool:
+  Bool.and(T.BoolEq(xba, Bool.not(xab)), Bool.and(T.BoolEq(xcb, Bool.not(xbc)), Bool.and(T.BoolEq(xca, Bool.not(xac)), acyc(xab, xbc, xac))))
+
+# Comparisons of a, b and c in both directions: each the reverse of the
+# other, and no circle.
+def flips_ok(+ab: Cmp, ba: Cmp, +bc: Cmp, cb: Cmp, +ac: Cmp, ca: Cmp) -> Bool:
+  Bool.and(cmpeq(ba, flip(ab)), Bool.and(cmpeq(cb, flip(bc)), Bool.and(cmpeq(ca, flip(ac)), cons3(ab, bc, ac))))
+
+def rflips_ok(+ab: Bool, ba: Bool, +bc: Bool, cb: Bool, +ac: Bool, ca: Bool) -> Bool:
+  Bool.and(T.BoolEq(ba, Bool.not(ab)), Bool.and(T.BoolEq(cb, Bool.not(bc)), Bool.and(T.BoolEq(ca, Bool.not(ac)), acyc(ab, bc, ac))))
+
+def bflips(ab: Bool, ba: Bool, bc: Bool, cb: Bool, ac: Bool, ca: Bool) -> Bool:
+  Bool.and(T.BoolEq(ba, Bool.not(ab)), Bool.and(T.BoolEq(cb, Bool.not(bc)), T.BoolEq(ca, Bool.not(ac))))
+
+law trio_ok:
+  for +sab: Cmp
+  for +sba: Cmp
+  for +sbc: Cmp
+  for +scb: Cmp
+  for +sac: Cmp
+  for +sca: Cmp
+  for +gab: Cmp
+  for +gba: Cmp
+  for +gbc: Cmp
+  for +gcb: Cmp
+  for +gac: Cmp
+  for +gca: Cmp
+  for +rab: Bool
+  for +rba: Bool
+  for +rbc: Bool
+  for +rcb: Bool
+  for +rac: Bool
+  for +rca: Bool
+  for +bab: Bool
+  for +bba: Bool
+  for +bbc: Bool
+  for +bcb: Bool
+  for +bac: Bool
+  for +bca: Bool
+  for hs: {flips_ok(sab, sba, sbc, scb, sac, sca) == True{} : Bool}
+  for hg: {flips_ok(gab, gba, gbc, gcb, gac, gca) == True{} : Bool}
+  for hr: {rflips_ok(rab, rba, rbc, rcb, rac, rca) == True{} : Bool}
+  for hb: {bflips(bab, bba, bbc, bcb, bac, bca) == True{} : Bool}
+  {trio_good(Laws.Rule.decide(sab, Laws.Rule.either(Cmp.is_eq(scb), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(sba, Laws.Rule.either(Cmp.is_eq(sca), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(sbc, Laws.Rule.either(Cmp.is_eq(sac), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(scb, Laws.Rule.either(Cmp.is_eq(sab), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(sac, Laws.Rule.either(Cmp.is_eq(sbc), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(sca, Laws.Rule.either(Cmp.is_eq(sba), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}
+
+def trio_ok(sab, sba, sbc, scb, sac, sca, gab, gba, gbc, gcb, gac, gca, rab, rba, rbc, rcb, rac, rca, bab, bba, bbc, bcb, bac, bca, hs, hg, hr, hb):
+  match sab:
+    case LT{}:
+      match sba:
+        case LT{}:
+          ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(scb), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(sca), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(sbc, Laws.Rule.either(Cmp.is_eq(sac), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(scb, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(sac, Laws.Rule.either(Cmp.is_eq(sbc), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(sca, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+        case EQ{}:
+          ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(scb), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(sca), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(sbc, Laws.Rule.either(Cmp.is_eq(sac), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(scb, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(sac, Laws.Rule.either(Cmp.is_eq(sbc), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(sca, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+        case GT{}:
+          match sbc:
+            case LT{}:
+              match scb:
+                case LT{}:
+                  ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(sca), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(sac), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(sac, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(sca, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                case EQ{}:
+                  ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(sca), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(sac), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(sac, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(sca, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                case GT{}:
+                  match sac:
+                    case LT{}:
+                      match sca:
+                        case LT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case EQ{}:
+                          ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case GT{}:
+                          {==}
+                    case EQ{}:
+                      match sca:
+                        case LT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case EQ{}:
+                          ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case GT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                    case GT{}:
+                      match sca:
+                        case LT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case EQ{}:
+                          ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case GT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+            case EQ{}:
+              match scb:
+                case LT{}:
+                  ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(sca), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(sac), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(sac, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(sca, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                case EQ{}:
+                  match sac:
+                    case LT{}:
+                      match sca:
+                        case LT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case EQ{}:
+                          ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case GT{}:
+                          match bbc:
+                            case True{}:
+                              match bcb:
+                                case True{}:
+                                  ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, True{})), True{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, True{})), True{})), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(and_true_r(T.BoolEq(bba, Bool.not(bab)), Bool.and(T.BoolEq(True{}, Bool.not(True{})), T.BoolEq(bca, Bool.not(bac))), hb)))
+                                case False{}:
+                                  {==}
+                            case False{}:
+                              match bcb:
+                                case True{}:
+                                  {==}
+                                case False{}:
+                                  ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, False{})), False{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, False{})), False{})), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(and_true_r(T.BoolEq(bba, Bool.not(bab)), Bool.and(T.BoolEq(False{}, Bool.not(False{})), T.BoolEq(bca, Bool.not(bac))), hb)))
+                    case EQ{}:
+                      match sca:
+                        case LT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case EQ{}:
+                          ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case GT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                    case GT{}:
+                      match sca:
+                        case LT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case EQ{}:
+                          ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case GT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                case GT{}:
+                  ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(sca), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(sac), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(sac, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(sca, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+            case GT{}:
+              match scb:
+                case LT{}:
+                  match sac:
+                    case LT{}:
+                      match sca:
+                        case LT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case EQ{}:
+                          ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case GT{}:
+                          {==}
+                    case EQ{}:
+                      match sca:
+                        case LT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case EQ{}:
+                          match bac:
+                            case True{}:
+                              match bca:
+                                case True{}:
+                                  ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, True{})), True{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, True{})), True{}))) == True{} : Bool}, false_is_not_true(and_true_r(T.BoolEq(bcb, Bool.not(bbc)), T.BoolEq(True{}, Bool.not(True{})), and_true_r(T.BoolEq(bba, Bool.not(bab)), Bool.and(T.BoolEq(bcb, Bool.not(bbc)), T.BoolEq(True{}, Bool.not(True{}))), hb))))
+                                case False{}:
+                                  {==}
+                            case False{}:
+                              match bca:
+                                case True{}:
+                                  {==}
+                                case False{}:
+                                  ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, False{})), False{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, False{})), False{}))) == True{} : Bool}, false_is_not_true(and_true_r(T.BoolEq(bcb, Bool.not(bbc)), T.BoolEq(False{}, Bool.not(False{})), and_true_r(T.BoolEq(bba, Bool.not(bab)), Bool.and(T.BoolEq(bcb, Bool.not(bbc)), T.BoolEq(False{}, Bool.not(False{}))), hb))))
+                        case GT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                    case GT{}:
+                      match sca:
+                        case LT{}:
+                          {==}
+                        case EQ{}:
+                          ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case GT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                case EQ{}:
+                  ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(sca), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(sac), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(sac, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(sca, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                case GT{}:
+                  ex_falso({trio_good(Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(sca), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(sac), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(sac, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(sca, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+    case EQ{}:
+      match sba:
+        case LT{}:
+          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(scb), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(sca), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(sbc, Laws.Rule.either(Cmp.is_eq(sac), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(scb, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(sac, Laws.Rule.either(Cmp.is_eq(sbc), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(sca, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+        case EQ{}:
+          match sbc:
+            case LT{}:
+              match scb:
+                case LT{}:
+                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(sca), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(sac), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(sac, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(sca, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                case EQ{}:
+                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(sca), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(sac), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(sac, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(sca, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                case GT{}:
+                  match sac:
+                    case LT{}:
+                      match sca:
+                        case LT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case EQ{}:
+                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case GT{}:
+                          match bab:
+                            case True{}:
+                              match bba:
+                                case True{}:
+                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, True{})), True{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, True{})), True{})), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hb))
+                                case False{}:
+                                  {==}
+                            case False{}:
+                              match bba:
+                                case True{}:
+                                  {==}
+                                case False{}:
+                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, False{})), False{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, False{})), False{})), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hb))
+                    case EQ{}:
+                      match sca:
+                        case LT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case EQ{}:
+                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case GT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                    case GT{}:
+                      match sca:
+                        case LT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case EQ{}:
+                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case GT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+            case EQ{}:
+              match scb:
+                case LT{}:
+                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(sca), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(sac), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(sac, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(sca, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                case EQ{}:
+                  match sac:
+                    case LT{}:
+                      match sca:
+                        case LT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case EQ{}:
+                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case GT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                    case EQ{}:
+                      match sca:
+                        case LT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case EQ{}:
+                          match gab:
+                            case LT{}:
+                              match gba:
+                                case LT{}:
+                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                case EQ{}:
+                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                case GT{}:
+                                  match gbc:
+                                    case LT{}:
+                                      match gcb:
+                                        case LT{}:
+                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                        case EQ{}:
+                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                        case GT{}:
+                                          match gac:
+                                            case LT{}:
+                                              match gca:
+                                                case LT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case EQ{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case GT{}:
+                                                  {==}
+                                            case EQ{}:
+                                              match gca:
+                                                case LT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case EQ{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case GT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                            case GT{}:
+                                              match gca:
+                                                case LT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case EQ{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case GT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                    case EQ{}:
+                                      match gcb:
+                                        case LT{}:
+                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                        case EQ{}:
+                                          match gac:
+                                            case LT{}:
+                                              match gca:
+                                                case LT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case EQ{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case GT{}:
+                                                  match bbc:
+                                                    case True{}:
+                                                      match bcb:
+                                                        case True{}:
+                                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rbc, True{})), True{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, True{})), True{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(and_true_r(T.BoolEq(bba, Bool.not(bab)), Bool.and(T.BoolEq(True{}, Bool.not(True{})), T.BoolEq(bca, Bool.not(bac))), hb)))
+                                                        case False{}:
+                                                          {==}
+                                                    case False{}:
+                                                      match bcb:
+                                                        case True{}:
+                                                          {==}
+                                                        case False{}:
+                                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rbc, False{})), False{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, False{})), False{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(and_true_r(T.BoolEq(bba, Bool.not(bab)), Bool.and(T.BoolEq(False{}, Bool.not(False{})), T.BoolEq(bca, Bool.not(bac))), hb)))
+                                            case EQ{}:
+                                              match gca:
+                                                case LT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case EQ{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case GT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                            case GT{}:
+                                              match gca:
+                                                case LT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case EQ{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case GT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                        case GT{}:
+                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                    case GT{}:
+                                      match gcb:
+                                        case LT{}:
+                                          match gac:
+                                            case LT{}:
+                                              match gca:
+                                                case LT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case EQ{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case GT{}:
+                                                  {==}
+                                            case EQ{}:
+                                              match gca:
+                                                case LT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case EQ{}:
+                                                  match bac:
+                                                    case True{}:
+                                                      match bca:
+                                                        case True{}:
+                                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rac, True{})), True{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rca, True{})), True{}))) == True{} : Bool}, false_is_not_true(and_true_r(T.BoolEq(bcb, Bool.not(bbc)), T.BoolEq(True{}, Bool.not(True{})), and_true_r(T.BoolEq(bba, Bool.not(bab)), Bool.and(T.BoolEq(bcb, Bool.not(bbc)), T.BoolEq(True{}, Bool.not(True{}))), hb))))
+                                                        case False{}:
+                                                          {==}
+                                                    case False{}:
+                                                      match bca:
+                                                        case True{}:
+                                                          {==}
+                                                        case False{}:
+                                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rac, False{})), False{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rca, False{})), False{}))) == True{} : Bool}, false_is_not_true(and_true_r(T.BoolEq(bcb, Bool.not(bbc)), T.BoolEq(False{}, Bool.not(False{})), and_true_r(T.BoolEq(bba, Bool.not(bab)), Bool.and(T.BoolEq(bcb, Bool.not(bbc)), T.BoolEq(False{}, Bool.not(False{}))), hb))))
+                                                case GT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                            case GT{}:
+                                              match gca:
+                                                case LT{}:
+                                                  {==}
+                                                case EQ{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case GT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                        case EQ{}:
+                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                        case GT{}:
+                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                            case EQ{}:
+                              match gba:
+                                case LT{}:
+                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                case EQ{}:
+                                  match gbc:
+                                    case LT{}:
+                                      match gcb:
+                                        case LT{}:
+                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                        case EQ{}:
+                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                        case GT{}:
+                                          match gac:
+                                            case LT{}:
+                                              match gca:
+                                                case LT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case EQ{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case GT{}:
+                                                  match bab:
+                                                    case True{}:
+                                                      match bba:
+                                                        case True{}:
+                                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, True{})), True{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rba, True{})), True{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hb))
+                                                        case False{}:
+                                                          {==}
+                                                    case False{}:
+                                                      match bba:
+                                                        case True{}:
+                                                          {==}
+                                                        case False{}:
+                                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, False{})), False{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rba, False{})), False{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hb))
+                                            case EQ{}:
+                                              match gca:
+                                                case LT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case EQ{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case GT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                            case GT{}:
+                                              match gca:
+                                                case LT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case EQ{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case GT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                    case EQ{}:
+                                      match gcb:
+                                        case LT{}:
+                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                        case EQ{}:
+                                          match gac:
+                                            case LT{}:
+                                              match gca:
+                                                case LT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case EQ{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case GT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                            case EQ{}:
+                                              match gca:
+                                                case LT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case EQ{}:
+                                                  match rab:
+                                                    case True{}:
+                                                      match rba:
+                                                        case True{}:
+                                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hr))
+                                                        case False{}:
+                                                          match rbc:
+                                                            case True{}:
+                                                              match rcb:
+                                                                case True{}:
+                                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hr))
+                                                                case False{}:
+                                                                  match rac:
+                                                                    case True{}:
+                                                                      match rca:
+                                                                        case True{}:
+                                                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bca)), bca))) == True{} : Bool}, false_is_not_true(hr))
+                                                                        case False{}:
+                                                                          {==}
+                                                                    case False{}:
+                                                                      match rca:
+                                                                        case True{}:
+                                                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bca)), bca))) == True{} : Bool}, false_is_not_true(hr))
+                                                                        case False{}:
+                                                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bca)), bca))) == True{} : Bool}, false_is_not_true(hr))
+                                                            case False{}:
+                                                              match rcb:
+                                                                case True{}:
+                                                                  match rac:
+                                                                    case True{}:
+                                                                      match rca:
+                                                                        case True{}:
+                                                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bca)), bca))) == True{} : Bool}, false_is_not_true(hr))
+                                                                        case False{}:
+                                                                          {==}
+                                                                    case False{}:
+                                                                      match rca:
+                                                                        case True{}:
+                                                                          {==}
+                                                                        case False{}:
+                                                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bca)), bca))) == True{} : Bool}, false_is_not_true(hr))
+                                                                case False{}:
+                                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hr))
+                                                    case False{}:
+                                                      match rba:
+                                                        case True{}:
+                                                          match rbc:
+                                                            case True{}:
+                                                              match rcb:
+                                                                case True{}:
+                                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hr))
+                                                                case False{}:
+                                                                  match rac:
+                                                                    case True{}:
+                                                                      match rca:
+                                                                        case True{}:
+                                                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bca)), bca))) == True{} : Bool}, false_is_not_true(hr))
+                                                                        case False{}:
+                                                                          {==}
+                                                                    case False{}:
+                                                                      match rca:
+                                                                        case True{}:
+                                                                          {==}
+                                                                        case False{}:
+                                                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bca)), bca))) == True{} : Bool}, false_is_not_true(hr))
+                                                            case False{}:
+                                                              match rcb:
+                                                                case True{}:
+                                                                  match rac:
+                                                                    case True{}:
+                                                                      match rca:
+                                                                        case True{}:
+                                                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bca)), bca))) == True{} : Bool}, false_is_not_true(hr))
+                                                                        case False{}:
+                                                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bca)), bca))) == True{} : Bool}, false_is_not_true(hr))
+                                                                    case False{}:
+                                                                      match rca:
+                                                                        case True{}:
+                                                                          {==}
+                                                                        case False{}:
+                                                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bca)), bca))) == True{} : Bool}, false_is_not_true(hr))
+                                                                case False{}:
+                                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), True{}, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hr))
+                                                        case False{}:
+                                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), False{}, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hr))
+                                                case GT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                            case GT{}:
+                                              match gca:
+                                                case LT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case EQ{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case GT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                        case GT{}:
+                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                    case GT{}:
+                                      match gcb:
+                                        case LT{}:
+                                          match gac:
+                                            case LT{}:
+                                              match gca:
+                                                case LT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case EQ{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case GT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                            case EQ{}:
+                                              match gca:
+                                                case LT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case EQ{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case GT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                            case GT{}:
+                                              match gca:
+                                                case LT{}:
+                                                  match bab:
+                                                    case True{}:
+                                                      match bba:
+                                                        case True{}:
+                                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, True{})), True{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rba, True{})), True{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hb))
+                                                        case False{}:
+                                                          {==}
+                                                    case False{}:
+                                                      match bba:
+                                                        case True{}:
+                                                          {==}
+                                                        case False{}:
+                                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, False{})), False{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rba, False{})), False{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hb))
+                                                case EQ{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case GT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                        case EQ{}:
+                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                        case GT{}:
+                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                case GT{}:
+                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(EQ{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                            case GT{}:
+                              match gba:
+                                case LT{}:
+                                  match gbc:
+                                    case LT{}:
+                                      match gcb:
+                                        case LT{}:
+                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                        case EQ{}:
+                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                        case GT{}:
+                                          match gac:
+                                            case LT{}:
+                                              match gca:
+                                                case LT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case EQ{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case GT{}:
+                                                  {==}
+                                            case EQ{}:
+                                              match gca:
+                                                case LT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case EQ{}:
+                                                  match bac:
+                                                    case True{}:
+                                                      match bca:
+                                                        case True{}:
+                                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rac, True{})), True{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rca, True{})), True{}))) == True{} : Bool}, false_is_not_true(and_true_r(T.BoolEq(bcb, Bool.not(bbc)), T.BoolEq(True{}, Bool.not(True{})), and_true_r(T.BoolEq(bba, Bool.not(bab)), Bool.and(T.BoolEq(bcb, Bool.not(bbc)), T.BoolEq(True{}, Bool.not(True{}))), hb))))
+                                                        case False{}:
+                                                          {==}
+                                                    case False{}:
+                                                      match bca:
+                                                        case True{}:
+                                                          {==}
+                                                        case False{}:
+                                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rac, False{})), False{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rca, False{})), False{}))) == True{} : Bool}, false_is_not_true(and_true_r(T.BoolEq(bcb, Bool.not(bbc)), T.BoolEq(False{}, Bool.not(False{})), and_true_r(T.BoolEq(bba, Bool.not(bab)), Bool.and(T.BoolEq(bcb, Bool.not(bbc)), T.BoolEq(False{}, Bool.not(False{}))), hb))))
+                                                case GT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                            case GT{}:
+                                              match gca:
+                                                case LT{}:
+                                                  {==}
+                                                case EQ{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case GT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                    case EQ{}:
+                                      match gcb:
+                                        case LT{}:
+                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                        case EQ{}:
+                                          match gac:
+                                            case LT{}:
+                                              match gca:
+                                                case LT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case EQ{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case GT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                            case EQ{}:
+                                              match gca:
+                                                case LT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case EQ{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case GT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                            case GT{}:
+                                              match gca:
+                                                case LT{}:
+                                                  match bbc:
+                                                    case True{}:
+                                                      match bcb:
+                                                        case True{}:
+                                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rbc, True{})), True{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, True{})), True{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(and_true_r(T.BoolEq(bba, Bool.not(bab)), Bool.and(T.BoolEq(True{}, Bool.not(True{})), T.BoolEq(bca, Bool.not(bac))), hb)))
+                                                        case False{}:
+                                                          {==}
+                                                    case False{}:
+                                                      match bcb:
+                                                        case True{}:
+                                                          {==}
+                                                        case False{}:
+                                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rbc, False{})), False{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, False{})), False{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(and_true_r(T.BoolEq(bba, Bool.not(bab)), Bool.and(T.BoolEq(False{}, Bool.not(False{})), T.BoolEq(bca, Bool.not(bac))), hb)))
+                                                case EQ{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case GT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                        case GT{}:
+                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(EQ{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                    case GT{}:
+                                      match gcb:
+                                        case LT{}:
+                                          match gac:
+                                            case LT{}:
+                                              match gca:
+                                                case LT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case EQ{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case GT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                            case EQ{}:
+                                              match gca:
+                                                case LT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case EQ{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case GT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                            case GT{}:
+                                              match gca:
+                                                case LT{}:
+                                                  {==}
+                                                case EQ{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                                case GT{}:
+                                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                        case EQ{}:
+                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                        case GT{}:
+                                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(GT{}), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(LT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                case EQ{}:
+                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(EQ{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                                case GT{}:
+                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(GT{}), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(GT{}), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hg))
+                        case GT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                    case GT{}:
+                      match sca:
+                        case LT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case EQ{}:
+                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case GT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                case GT{}:
+                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(sca), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(sac), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(sac, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(sca, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+            case GT{}:
+              match scb:
+                case LT{}:
+                  match sac:
+                    case LT{}:
+                      match sca:
+                        case LT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case EQ{}:
+                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case GT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                    case EQ{}:
+                      match sca:
+                        case LT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case EQ{}:
+                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case GT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                    case GT{}:
+                      match sca:
+                        case LT{}:
+                          match bab:
+                            case True{}:
+                              match bba:
+                                case True{}:
+                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, True{})), True{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, True{})), True{})), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hb))
+                                case False{}:
+                                  {==}
+                            case False{}:
+                              match bba:
+                                case True{}:
+                                  {==}
+                                case False{}:
+                                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, False{})), False{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, False{})), False{})), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hb))
+                        case EQ{}:
+                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case GT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                case EQ{}:
+                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(sca), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(sac), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(sac, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(sca, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                case GT{}:
+                  ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(sca), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(sac), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(sac, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(sca, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+        case GT{}:
+          ex_falso({trio_good(Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(scb), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(sca), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(sbc, Laws.Rule.either(Cmp.is_eq(sac), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(scb, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(sac, Laws.Rule.either(Cmp.is_eq(sbc), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(sca, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+    case GT{}:
+      match sba:
+        case LT{}:
+          match sbc:
+            case LT{}:
+              match scb:
+                case LT{}:
+                  ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(sca), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(sac), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(sac, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(sca, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                case EQ{}:
+                  ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(sca), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(sac), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(sac, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(sca, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                case GT{}:
+                  match sac:
+                    case LT{}:
+                      match sca:
+                        case LT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case EQ{}:
+                          ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case GT{}:
+                          {==}
+                    case EQ{}:
+                      match sca:
+                        case LT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case EQ{}:
+                          match bac:
+                            case True{}:
+                              match bca:
+                                case True{}:
+                                  ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, True{})), True{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, True{})), True{}))) == True{} : Bool}, false_is_not_true(and_true_r(T.BoolEq(bcb, Bool.not(bbc)), T.BoolEq(True{}, Bool.not(True{})), and_true_r(T.BoolEq(bba, Bool.not(bab)), Bool.and(T.BoolEq(bcb, Bool.not(bbc)), T.BoolEq(True{}, Bool.not(True{}))), hb))))
+                                case False{}:
+                                  {==}
+                            case False{}:
+                              match bca:
+                                case True{}:
+                                  {==}
+                                case False{}:
+                                  ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, False{})), False{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, False{})), False{}))) == True{} : Bool}, false_is_not_true(and_true_r(T.BoolEq(bcb, Bool.not(bbc)), T.BoolEq(False{}, Bool.not(False{})), and_true_r(T.BoolEq(bba, Bool.not(bab)), Bool.and(T.BoolEq(bcb, Bool.not(bbc)), T.BoolEq(False{}, Bool.not(False{}))), hb))))
+                        case GT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                    case GT{}:
+                      match sca:
+                        case LT{}:
+                          {==}
+                        case EQ{}:
+                          ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case GT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+            case EQ{}:
+              match scb:
+                case LT{}:
+                  ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(sca), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(sac), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(sac, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(sca, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                case EQ{}:
+                  match sac:
+                    case LT{}:
+                      match sca:
+                        case LT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case EQ{}:
+                          ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case GT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                    case EQ{}:
+                      match sca:
+                        case LT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case EQ{}:
+                          ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case GT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                    case GT{}:
+                      match sca:
+                        case LT{}:
+                          match bbc:
+                            case True{}:
+                              match bcb:
+                                case True{}:
+                                  ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, True{})), True{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, True{})), True{})), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(and_true_r(T.BoolEq(bba, Bool.not(bab)), Bool.and(T.BoolEq(True{}, Bool.not(True{})), T.BoolEq(bca, Bool.not(bac))), hb)))
+                                case False{}:
+                                  {==}
+                            case False{}:
+                              match bcb:
+                                case True{}:
+                                  {==}
+                                case False{}:
+                                  ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, False{})), False{})), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, False{})), False{})), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(and_true_r(T.BoolEq(bba, Bool.not(bab)), Bool.and(T.BoolEq(False{}, Bool.not(False{})), T.BoolEq(bca, Bool.not(bac))), hb)))
+                        case EQ{}:
+                          ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case GT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                case GT{}:
+                  ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(sca), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(sac), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(sac, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(sca, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+            case GT{}:
+              match scb:
+                case LT{}:
+                  match sac:
+                    case LT{}:
+                      match sca:
+                        case LT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case EQ{}:
+                          ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case GT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                    case EQ{}:
+                      match sca:
+                        case LT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case EQ{}:
+                          ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case GT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                    case GT{}:
+                      match sca:
+                        case LT{}:
+                          {==}
+                        case EQ{}:
+                          ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                        case GT{}:
+                          ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                case EQ{}:
+                  ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(sca), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(sac), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(sac, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(sca, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+                case GT{}:
+                  ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(LT{}, Laws.Rule.either(Cmp.is_eq(sca), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(sac), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(sac, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(sca, Laws.Rule.either(Cmp.is_eq(LT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+        case EQ{}:
+          ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(scb), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(EQ{}, Laws.Rule.either(Cmp.is_eq(sca), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(sbc, Laws.Rule.either(Cmp.is_eq(sac), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(scb, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(sac, Laws.Rule.either(Cmp.is_eq(sbc), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(sca, Laws.Rule.either(Cmp.is_eq(EQ{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+        case GT{}:
+          ex_falso({trio_good(Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(scb), Laws.Rule.decide(gab, Laws.Rule.either(Cmp.is_eq(gcb), rab, bab)), bab)), Laws.Rule.decide(GT{}, Laws.Rule.either(Cmp.is_eq(sca), Laws.Rule.decide(gba, Laws.Rule.either(Cmp.is_eq(gca), rba, bba)), bba)), Laws.Rule.decide(sbc, Laws.Rule.either(Cmp.is_eq(sac), Laws.Rule.decide(gbc, Laws.Rule.either(Cmp.is_eq(gac), rbc, bbc)), bbc)), Laws.Rule.decide(scb, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gcb, Laws.Rule.either(Cmp.is_eq(gab), rcb, bcb)), bcb)), Laws.Rule.decide(sac, Laws.Rule.either(Cmp.is_eq(sbc), Laws.Rule.decide(gac, Laws.Rule.either(Cmp.is_eq(gbc), rac, bac)), bac)), Laws.Rule.decide(sca, Laws.Rule.either(Cmp.is_eq(GT{}), Laws.Rule.decide(gca, Laws.Rule.either(Cmp.is_eq(gba), rca, bca)), bca))) == True{} : Bool}, false_is_not_true(hs))
+
+law set_trio:
+  for +ra: Laws.GroupRecord
+  for +rb: Laws.GroupRecord
+  for +rc: Laws.GroupRecord
+  {flips_ok(Laws.Rule.set_cmp.go(ra, rb), Laws.Rule.set_cmp.go(rb, ra), Laws.Rule.set_cmp.go(rb, rc), Laws.Rule.set_cmp.go(rc, rb), Laws.Rule.set_cmp.go(ra, rc), Laws.Rule.set_cmp.go(rc, ra)) == True{} : Bool}
+
+def set_trio(ra, rb, rc):
+  match ra rb rc:
+    case Laws.GroupRecord{+a0, +a1, +a2, +a3, +a4} Laws.GroupRecord{+b0, +b1, +b2, +b3, +b4} Laws.GroupRecord{+c0, +c1, +c2, +c3, +c4}:
+      and_intro(cmpeq(Laws.Rule.share_cmp(b1, b2, a1, a2), flip(Laws.Rule.share_cmp(a1, a2, b1, b2))), Bool.and(cmpeq(Laws.Rule.share_cmp(c1, c2, b1, b2), flip(Laws.Rule.share_cmp(b1, b2, c1, c2))), Bool.and(cmpeq(Laws.Rule.share_cmp(c1, c2, a1, a2), flip(Laws.Rule.share_cmp(a1, a2, c1, c2))), cons3(Laws.Rule.share_cmp(a1, a2, b1, b2), Laws.Rule.share_cmp(b1, b2, c1, c2), Laws.Rule.share_cmp(a1, a2, c1, c2)))), cmp_flip(Nat.mul(a1, Nat.max(1n, Nat.add(b1, b2))), Nat.mul(b1, Nat.max(1n, Nat.add(a1, a2)))), and_intro(cmpeq(Laws.Rule.share_cmp(c1, c2, b1, b2), flip(Laws.Rule.share_cmp(b1, b2, c1, c2))), Bool.and(cmpeq(Laws.Rule.share_cmp(c1, c2, a1, a2), flip(Laws.Rule.share_cmp(a1, a2, c1, c2))), cons3(Laws.Rule.share_cmp(a1, a2, b1, b2), Laws.Rule.share_cmp(b1, b2, c1, c2), Laws.Rule.share_cmp(a1, a2, c1, c2))), cmp_flip(Nat.mul(b1, Nat.max(1n, Nat.add(c1, c2))), Nat.mul(c1, Nat.max(1n, Nat.add(b1, b2)))), and_intro(cmpeq(Laws.Rule.share_cmp(c1, c2, a1, a2), flip(Laws.Rule.share_cmp(a1, a2, c1, c2))), cons3(Laws.Rule.share_cmp(a1, a2, b1, b2), Laws.Rule.share_cmp(b1, b2, c1, c2), Laws.Rule.share_cmp(a1, a2, c1, c2)), cmp_flip(Nat.mul(a1, Nat.max(1n, Nat.add(c1, c2))), Nat.mul(c1, Nat.max(1n, Nat.add(a1, a2)))), share_cons(a1, a2, b1, b2, c1, c2))))
+
+law game_trio:
+  for +ra: Laws.GroupRecord
+  for +rb: Laws.GroupRecord
+  for +rc: Laws.GroupRecord
+  {flips_ok(Laws.Rule.game_cmp.go(ra, rb), Laws.Rule.game_cmp.go(rb, ra), Laws.Rule.game_cmp.go(rb, rc), Laws.Rule.game_cmp.go(rc, rb), Laws.Rule.game_cmp.go(ra, rc), Laws.Rule.game_cmp.go(rc, ra)) == True{} : Bool}
+
+def game_trio(ra, rb, rc):
+  match ra rb rc:
+    case Laws.GroupRecord{+a0, +a1, +a2, +a3, +a4} Laws.GroupRecord{+b0, +b1, +b2, +b3, +b4} Laws.GroupRecord{+c0, +c1, +c2, +c3, +c4}:
+      and_intro(cmpeq(Laws.Rule.share_cmp(b3, b4, a3, a4), flip(Laws.Rule.share_cmp(a3, a4, b3, b4))), Bool.and(cmpeq(Laws.Rule.share_cmp(c3, c4, b3, b4), flip(Laws.Rule.share_cmp(b3, b4, c3, c4))), Bool.and(cmpeq(Laws.Rule.share_cmp(c3, c4, a3, a4), flip(Laws.Rule.share_cmp(a3, a4, c3, c4))), cons3(Laws.Rule.share_cmp(a3, a4, b3, b4), Laws.Rule.share_cmp(b3, b4, c3, c4), Laws.Rule.share_cmp(a3, a4, c3, c4)))), cmp_flip(Nat.mul(a3, Nat.max(1n, Nat.add(b3, b4))), Nat.mul(b3, Nat.max(1n, Nat.add(a3, a4)))), and_intro(cmpeq(Laws.Rule.share_cmp(c3, c4, b3, b4), flip(Laws.Rule.share_cmp(b3, b4, c3, c4))), Bool.and(cmpeq(Laws.Rule.share_cmp(c3, c4, a3, a4), flip(Laws.Rule.share_cmp(a3, a4, c3, c4))), cons3(Laws.Rule.share_cmp(a3, a4, b3, b4), Laws.Rule.share_cmp(b3, b4, c3, c4), Laws.Rule.share_cmp(a3, a4, c3, c4))), cmp_flip(Nat.mul(b3, Nat.max(1n, Nat.add(c3, c4))), Nat.mul(c3, Nat.max(1n, Nat.add(b3, b4)))), and_intro(cmpeq(Laws.Rule.share_cmp(c3, c4, a3, a4), flip(Laws.Rule.share_cmp(a3, a4, c3, c4))), cons3(Laws.Rule.share_cmp(a3, a4, b3, b4), Laws.Rule.share_cmp(b3, b4, c3, c4), Laws.Rule.share_cmp(a3, a4, c3, c4)), cmp_flip(Nat.mul(a3, Nat.max(1n, Nat.add(c3, c4))), Nat.mul(c3, Nat.max(1n, Nat.add(a3, a4)))), share_cons(a3, a4, b3, b4, c3, c4))))
+
+law race_trio_go:
+  for +sa: Nat
+  for +sb: Nat
+  for +sc: Nat
+  for hs: {Bool.and(Nat.is_ne(sa, sb), Bool.and(Nat.is_ne(sb, sc), Nat.is_ne(sa, sc))) == True{} : Bool} & {Bool.and(Nat.is_ne(sa, sb), Bool.and(Nat.is_ne(sb, sc), Nat.is_ne(sa, sc))) == True{} : Bool} & {Bool.and(Nat.is_ne(sa, sb), Bool.and(Nat.is_ne(sb, sc), Nat.is_ne(sa, sc))) == True{} : Bool}
+  {rflips_ok(Nat.is_lt(sa, sb), Nat.is_lt(sb, sa), Nat.is_lt(sb, sc), Nat.is_lt(sc, sb), Nat.is_lt(sa, sc), Nat.is_lt(sc, sa)) == True{} : Bool}
+
+def race_trio_go(sa, sb, sc, hs):
+  match hs:
+    case (h1, h2, h3):
+      and_intro(T.BoolEq(Nat.is_lt(sb, sa), Bool.not(Nat.is_lt(sa, sb))), Bool.and(T.BoolEq(Nat.is_lt(sc, sb), Bool.not(Nat.is_lt(sb, sc))), Bool.and(T.BoolEq(Nat.is_lt(sc, sa), Bool.not(Nat.is_lt(sa, sc))), acyc(Nat.is_lt(sa, sb), Nat.is_lt(sb, sc), Nat.is_lt(sa, sc)))), lt_flip(sa, sb, and_true_l(Nat.is_ne(sa, sb), Bool.and(Nat.is_ne(sb, sc), Nat.is_ne(sa, sc)), h1)), and_intro(T.BoolEq(Nat.is_lt(sc, sb), Bool.not(Nat.is_lt(sb, sc))), Bool.and(T.BoolEq(Nat.is_lt(sc, sa), Bool.not(Nat.is_lt(sa, sc))), acyc(Nat.is_lt(sa, sb), Nat.is_lt(sb, sc), Nat.is_lt(sa, sc))), lt_flip(sb, sc, and_true_l(Nat.is_ne(sb, sc), Nat.is_ne(sa, sc), and_true_r(Nat.is_ne(sa, sb), Bool.and(Nat.is_ne(sb, sc), Nat.is_ne(sa, sc)), h2))), and_intro(T.BoolEq(Nat.is_lt(sc, sa), Bool.not(Nat.is_lt(sa, sc))), acyc(Nat.is_lt(sa, sb), Nat.is_lt(sb, sc), Nat.is_lt(sa, sc)), lt_flip(sa, sc, and_true_r(Nat.is_ne(sb, sc), Nat.is_ne(sa, sc), and_true_r(Nat.is_ne(sa, sb), Bool.and(Nat.is_ne(sb, sc), Nat.is_ne(sa, sc)), h3))), lt_acyc(sa, sb, sc))))
+
+law race_trio:
+  for +sa: Nat
+  for +sb: Nat
+  for +sc: Nat
+  for h: {Bool.and(Nat.is_ne(sa, sb), Bool.and(Nat.is_ne(sb, sc), Nat.is_ne(sa, sc))) == True{} : Bool}
+  {rflips_ok(Nat.is_lt(sa, sb), Nat.is_lt(sb, sa), Nat.is_lt(sb, sc), Nat.is_lt(sc, sb), Nat.is_lt(sa, sc), Nat.is_lt(sc, sa)) == True{} : Bool}
+
+def race_trio(sa, sb, sc, h):
+  race_trio_go(sa, sb, sc, dup3(Bool, Bool.and(Nat.is_ne(sa, sb), Bool.and(Nat.is_ne(sb, sc), Nat.is_ne(sa, sc))), True{}, h))
+
+law trio_ne_123:
+  for p12: Bool
+  for p13: Bool
+  for p14: Bool
+  for p23: Bool
+  for p24: Bool
+  for p34: Bool
+  for h: {Bool.and(Bool.and(Bool.and(p12, p13), Bool.and(p14, p23)), Bool.and(p24, p34)) == True{} : Bool}
+  {Bool.and(p12, Bool.and(p23, p13)) == True{} : Bool}
+
+def trio_ne_123(p12, p13, p14, p23, p24, p34, h):
+  match p12:
+    case False{}:
+      ex_falso({Bool.and(False{}, Bool.and(p23, p13)) == True{} : Bool}, false_is_not_true(h))
+    case True{}:
+      match p13:
+        case False{}:
+          ex_falso({Bool.and(True{}, Bool.and(p23, False{})) == True{} : Bool}, false_is_not_true(h))
+        case True{}:
+          match p14:
+            case False{}:
+              ex_falso({Bool.and(True{}, Bool.and(p23, True{})) == True{} : Bool}, false_is_not_true(h))
+            case True{}:
+              match p23:
+                case False{}:
+                  ex_falso({Bool.and(True{}, Bool.and(False{}, True{})) == True{} : Bool}, false_is_not_true(h))
+                case True{}:
+                  match p24:
+                    case False{}:
+                      ex_falso({Bool.and(True{}, Bool.and(True{}, True{})) == True{} : Bool}, false_is_not_true(h))
+                    case True{}:
+                      match p34:
+                        case False{}:
+                          ex_falso({Bool.and(True{}, Bool.and(True{}, True{})) == True{} : Bool}, false_is_not_true(h))
+                        case True{}:
+                          {==}
+
+law trio_ne_124:
+  for p12: Bool
+  for p13: Bool
+  for p14: Bool
+  for p23: Bool
+  for p24: Bool
+  for p34: Bool
+  for h: {Bool.and(Bool.and(Bool.and(p12, p13), Bool.and(p14, p23)), Bool.and(p24, p34)) == True{} : Bool}
+  {Bool.and(p12, Bool.and(p24, p14)) == True{} : Bool}
+
+def trio_ne_124(p12, p13, p14, p23, p24, p34, h):
+  match p12:
+    case False{}:
+      ex_falso({Bool.and(False{}, Bool.and(p24, p14)) == True{} : Bool}, false_is_not_true(h))
+    case True{}:
+      match p13:
+        case False{}:
+          ex_falso({Bool.and(True{}, Bool.and(p24, p14)) == True{} : Bool}, false_is_not_true(h))
+        case True{}:
+          match p14:
+            case False{}:
+              ex_falso({Bool.and(True{}, Bool.and(p24, False{})) == True{} : Bool}, false_is_not_true(h))
+            case True{}:
+              match p23:
+                case False{}:
+                  ex_falso({Bool.and(True{}, Bool.and(p24, True{})) == True{} : Bool}, false_is_not_true(h))
+                case True{}:
+                  match p24:
+                    case False{}:
+                      ex_falso({Bool.and(True{}, Bool.and(False{}, True{})) == True{} : Bool}, false_is_not_true(h))
+                    case True{}:
+                      match p34:
+                        case False{}:
+                          ex_falso({Bool.and(True{}, Bool.and(True{}, True{})) == True{} : Bool}, false_is_not_true(h))
+                        case True{}:
+                          {==}
+
+law trio_ne_134:
+  for p12: Bool
+  for p13: Bool
+  for p14: Bool
+  for p23: Bool
+  for p24: Bool
+  for p34: Bool
+  for h: {Bool.and(Bool.and(Bool.and(p12, p13), Bool.and(p14, p23)), Bool.and(p24, p34)) == True{} : Bool}
+  {Bool.and(p13, Bool.and(p34, p14)) == True{} : Bool}
+
+def trio_ne_134(p12, p13, p14, p23, p24, p34, h):
+  match p12:
+    case False{}:
+      ex_falso({Bool.and(p13, Bool.and(p34, p14)) == True{} : Bool}, false_is_not_true(h))
+    case True{}:
+      match p13:
+        case False{}:
+          ex_falso({Bool.and(False{}, Bool.and(p34, p14)) == True{} : Bool}, false_is_not_true(h))
+        case True{}:
+          match p14:
+            case False{}:
+              ex_falso({Bool.and(True{}, Bool.and(p34, False{})) == True{} : Bool}, false_is_not_true(h))
+            case True{}:
+              match p23:
+                case False{}:
+                  ex_falso({Bool.and(True{}, Bool.and(p34, True{})) == True{} : Bool}, false_is_not_true(h))
+                case True{}:
+                  match p24:
+                    case False{}:
+                      ex_falso({Bool.and(True{}, Bool.and(p34, True{})) == True{} : Bool}, false_is_not_true(h))
+                    case True{}:
+                      match p34:
+                        case False{}:
+                          ex_falso({Bool.and(True{}, Bool.and(False{}, True{})) == True{} : Bool}, false_is_not_true(h))
+                        case True{}:
+                          {==}
+
+law trio_ne_234:
+  for p12: Bool
+  for p13: Bool
+  for p14: Bool
+  for p23: Bool
+  for p24: Bool
+  for p34: Bool
+  for h: {Bool.and(Bool.and(Bool.and(p12, p13), Bool.and(p14, p23)), Bool.and(p24, p34)) == True{} : Bool}
+  {Bool.and(p23, Bool.and(p34, p24)) == True{} : Bool}
+
+def trio_ne_234(p12, p13, p14, p23, p24, p34, h):
+  match p12:
+    case False{}:
+      ex_falso({Bool.and(p23, Bool.and(p34, p24)) == True{} : Bool}, false_is_not_true(h))
+    case True{}:
+      match p13:
+        case False{}:
+          ex_falso({Bool.and(p23, Bool.and(p34, p24)) == True{} : Bool}, false_is_not_true(h))
+        case True{}:
+          match p14:
+            case False{}:
+              ex_falso({Bool.and(p23, Bool.and(p34, p24)) == True{} : Bool}, false_is_not_true(h))
+            case True{}:
+              match p23:
+                case False{}:
+                  ex_falso({Bool.and(False{}, Bool.and(p34, p24)) == True{} : Bool}, false_is_not_true(h))
+                case True{}:
+                  match p24:
+                    case False{}:
+                      ex_falso({Bool.and(True{}, Bool.and(p34, False{})) == True{} : Bool}, false_is_not_true(h))
+                    case True{}:
+                      match p34:
+                        case False{}:
+                          ex_falso({Bool.and(True{}, Bool.and(False{}, True{})) == True{} : Bool}, false_is_not_true(h))
+                        case True{}:
+                          {==}
+
+law ranked_123_top:
+  for +xab: Bool
+  for +xba: Bool
+  for +xbc: Bool
+  for +xcb: Bool
+  for +xac: Bool
+  for +xca: Bool
+  for h: {trio_good(xab, xba, xbc, xcb, xac, xca) == True{} : Bool}
+  {Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(xba, Laws.Rule.count(xca, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(xab, Laws.Rule.count(xcb, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(xbc, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}
+
+def ranked_123_top(xab, xba, xbc, xcb, xac, xca, h):
+  match xab:
+    case True{}:
+      match xba:
+        case True{}:
+          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(xca, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(xcb, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(xbc, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+        case False{}:
+          match xbc:
+            case True{}:
+              match xcb:
+                case True{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(xca, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          {==}
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+            case False{}:
+              match xcb:
+                case True{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          {==}
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          {==}
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(xca, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+    case False{}:
+      match xba:
+        case True{}:
+          match xbc:
+            case True{}:
+              match xcb:
+                case True{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(xca, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          {==}
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          {==}
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+            case False{}:
+              match xcb:
+                case True{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          {==}
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(xca, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+        case False{}:
+          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(xca, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(xcb, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(xbc, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+
+law ranked_123_bottom:
+  for +xab: Bool
+  for +xba: Bool
+  for +xbc: Bool
+  for +xcb: Bool
+  for +xac: Bool
+  for +xca: Bool
+  for h: {trio_good(xab, xba, xbc, xcb, xac, xca) == True{} : Bool}
+  {Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(xba, Laws.Rule.count(xca, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(xab, Laws.Rule.count(xcb, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(xbc, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}
+
+def ranked_123_bottom(xab, xba, xbc, xcb, xac, xca, h):
+  match xab:
+    case True{}:
+      match xba:
+        case True{}:
+          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(xca, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(xcb, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(xbc, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+        case False{}:
+          match xbc:
+            case True{}:
+              match xcb:
+                case True{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(xca, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          {==}
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+            case False{}:
+              match xcb:
+                case True{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          {==}
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          {==}
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(xca, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+    case False{}:
+      match xba:
+        case True{}:
+          match xbc:
+            case True{}:
+              match xcb:
+                case True{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(xca, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          {==}
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          {==}
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+            case False{}:
+              match xcb:
+                case True{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          {==}
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(xca, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+        case False{}:
+          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(xca, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(xcb, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(xbc, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+
+law ranked_124_top:
+  for +xab: Bool
+  for +xba: Bool
+  for +xbc: Bool
+  for +xcb: Bool
+  for +xac: Bool
+  for +xca: Bool
+  for h: {trio_good(xab, xba, xbc, xcb, xac, xca) == True{} : Bool}
+  {Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(xba, Laws.Rule.count(True{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(xab, Laws.Rule.count(True{}, Laws.Rule.count(xcb, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(xbc, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}
+
+def ranked_124_top(xab, xba, xbc, xcb, xac, xca, h):
+  match xab:
+    case True{}:
+      match xba:
+        case True{}:
+          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(xcb, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(xbc, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+        case False{}:
+          match xbc:
+            case True{}:
+              match xcb:
+                case True{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          {==}
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+            case False{}:
+              match xcb:
+                case True{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          {==}
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          {==}
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+    case False{}:
+      match xba:
+        case True{}:
+          match xbc:
+            case True{}:
+              match xcb:
+                case True{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          {==}
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          {==}
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+            case False{}:
+              match xcb:
+                case True{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          {==}
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+        case False{}:
+          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(xcb, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(xbc, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+
+law ranked_124_bottom:
+  for +xab: Bool
+  for +xba: Bool
+  for +xbc: Bool
+  for +xcb: Bool
+  for +xac: Bool
+  for +xca: Bool
+  for h: {trio_good(xab, xba, xbc, xcb, xac, xca) == True{} : Bool}
+  {Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(xba, Laws.Rule.count(False{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(xab, Laws.Rule.count(False{}, Laws.Rule.count(xcb, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(xbc, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}
+
+def ranked_124_bottom(xab, xba, xbc, xcb, xac, xca, h):
+  match xab:
+    case True{}:
+      match xba:
+        case True{}:
+          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(xcb, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(xbc, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+        case False{}:
+          match xbc:
+            case True{}:
+              match xcb:
+                case True{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          {==}
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+            case False{}:
+              match xcb:
+                case True{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          {==}
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          {==}
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+    case False{}:
+      match xba:
+        case True{}:
+          match xbc:
+            case True{}:
+              match xcb:
+                case True{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          {==}
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          {==}
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+            case False{}:
+              match xcb:
+                case True{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          {==}
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+        case False{}:
+          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(xcb, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(xbc, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+
+law ranked_134_top:
+  for +xab: Bool
+  for +xba: Bool
+  for +xbc: Bool
+  for +xcb: Bool
+  for +xac: Bool
+  for +xca: Bool
+  for h: {trio_good(xab, xba, xbc, xcb, xac, xca) == True{} : Bool}
+  {Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(xba, Laws.Rule.count(xca, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(xab, Laws.Rule.count(True{}, Laws.Rule.count(xcb, 1n))), Laws.Rule.count(xac, Laws.Rule.count(True{}, Laws.Rule.count(xbc, 1n)))}) == True{} : Bool}
+
+def ranked_134_top(xab, xba, xbc, xcb, xac, xca, h):
+  match xab:
+    case True{}:
+      match xba:
+        case True{}:
+          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(xcb, 1n))), Laws.Rule.count(xac, Laws.Rule.count(True{}, Laws.Rule.count(xbc, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+        case False{}:
+          match xbc:
+            case True{}:
+              match xcb:
+                case True{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          {==}
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+            case False{}:
+              match xcb:
+                case True{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          {==}
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          {==}
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+    case False{}:
+      match xba:
+        case True{}:
+          match xbc:
+            case True{}:
+              match xcb:
+                case True{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          {==}
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          {==}
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+            case False{}:
+              match xcb:
+                case True{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          {==}
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+        case False{}:
+          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(xcb, 1n))), Laws.Rule.count(xac, Laws.Rule.count(True{}, Laws.Rule.count(xbc, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+
+law ranked_134_bottom:
+  for +xab: Bool
+  for +xba: Bool
+  for +xbc: Bool
+  for +xcb: Bool
+  for +xac: Bool
+  for +xca: Bool
+  for h: {trio_good(xab, xba, xbc, xcb, xac, xca) == True{} : Bool}
+  {Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(xba, Laws.Rule.count(xca, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(xab, Laws.Rule.count(False{}, Laws.Rule.count(xcb, 1n))), Laws.Rule.count(xac, Laws.Rule.count(False{}, Laws.Rule.count(xbc, 1n)))}) == True{} : Bool}
+
+def ranked_134_bottom(xab, xba, xbc, xcb, xac, xca, h):
+  match xab:
+    case True{}:
+      match xba:
+        case True{}:
+          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(xcb, 1n))), Laws.Rule.count(xac, Laws.Rule.count(False{}, Laws.Rule.count(xbc, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+        case False{}:
+          match xbc:
+            case True{}:
+              match xcb:
+                case True{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          {==}
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+            case False{}:
+              match xcb:
+                case True{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          {==}
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          {==}
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+    case False{}:
+      match xba:
+        case True{}:
+          match xbc:
+            case True{}:
+              match xcb:
+                case True{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          {==}
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          {==}
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+            case False{}:
+              match xcb:
+                case True{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          {==}
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(xac, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+        case False{}:
+          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(xcb, 1n))), Laws.Rule.count(xac, Laws.Rule.count(False{}, Laws.Rule.count(xbc, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+
+law ranked_234_top:
+  for +xab: Bool
+  for +xba: Bool
+  for +xbc: Bool
+  for +xcb: Bool
+  for +xac: Bool
+  for +xca: Bool
+  for h: {trio_good(xab, xba, xbc, xcb, xac, xca) == True{} : Bool}
+  {Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(xba, Laws.Rule.count(xca, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(xab, Laws.Rule.count(xcb, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(xac, Laws.Rule.count(xbc, 1n)))}) == True{} : Bool}
+
+def ranked_234_top(xab, xba, xbc, xcb, xac, xca, h):
+  match xab:
+    case True{}:
+      match xba:
+        case True{}:
+          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(xcb, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(xac, Laws.Rule.count(xbc, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+        case False{}:
+          match xbc:
+            case True{}:
+              match xcb:
+                case True{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(xac, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          {==}
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+            case False{}:
+              match xcb:
+                case True{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          {==}
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          {==}
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(xac, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+    case False{}:
+      match xba:
+        case True{}:
+          match xbc:
+            case True{}:
+              match xcb:
+                case True{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(xac, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          {==}
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          {==}
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+            case False{}:
+              match xcb:
+                case True{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          {==}
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(xac, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+        case False{}:
+          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(False{}, Laws.Rule.count(xcb, 1n))), Laws.Rule.count(True{}, Laws.Rule.count(xac, Laws.Rule.count(xbc, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+
+law ranked_234_bottom:
+  for +xab: Bool
+  for +xba: Bool
+  for +xbc: Bool
+  for +xcb: Bool
+  for +xac: Bool
+  for +xca: Bool
+  for h: {trio_good(xab, xba, xbc, xcb, xac, xca) == True{} : Bool}
+  {Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(xba, Laws.Rule.count(xca, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(xab, Laws.Rule.count(xcb, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(xac, Laws.Rule.count(xbc, 1n)))}) == True{} : Bool}
+
+def ranked_234_bottom(xab, xba, xbc, xcb, xac, xca, h):
+  match xab:
+    case True{}:
+      match xba:
+        case True{}:
+          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(xcb, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(xac, Laws.Rule.count(xbc, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+        case False{}:
+          match xbc:
+            case True{}:
+              match xcb:
+                case True{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(xac, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          {==}
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+            case False{}:
+              match xcb:
+                case True{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          {==}
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          {==}
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(xac, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+    case False{}:
+      match xba:
+        case True{}:
+          match xbc:
+            case True{}:
+              match xcb:
+                case True{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(xac, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          {==}
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          {==}
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+            case False{}:
+              match xcb:
+                case True{}:
+                  match xac:
+                    case True{}:
+                      match xca:
+                        case True{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                    case False{}:
+                      match xca:
+                        case True{}:
+                          {==}
+                        case False{}:
+                          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+                case False{}:
+                  ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(True{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(False{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(xac, Laws.Rule.count(False{}, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+        case False{}:
+          ex_falso({Laws.Rule.is_ranking(Tour.Places{Laws.Rule.count(True{}, Laws.Rule.count(True{}, Laws.Rule.count(True{}, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(xca, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(False{}, Laws.Rule.count(xcb, 1n))), Laws.Rule.count(False{}, Laws.Rule.count(xac, Laws.Rule.count(xbc, 1n)))}) == True{} : Bool}, false_is_not_true(h))
+
+# ---------------------------------------------------------------------------
+# L17, part 3: split on who won each of the six matches. Then everyone's
+# wins are known; without a three-way tie the places are plain numbers, and
+# with one, the trio lemmas above say the three tied players are in order.
+# ---------------------------------------------------------------------------
+
+law L17_rule:
+  for +g: Tour.Group
+  for +rr: Tour.RoundRobin
+  for distinct: {Laws.Rule.distinct(g) == True{} : Bool}
+  {Laws.Rule.is_ranking(Laws.Rule.places(g, rr)) == True{} : Bool}
+
+def L17_rule(g, rr, distinct):
+  match g:
+    case Tour.Group{+s1, +s2, +s3, +s4}:
+      match rr:
+        case Tour.RoundRobin{r12, r13, r14, r23, r24, r34}:
+          match r12:
+            case Tour.Finished{S.A{}, +t12}:
+              match r13:
+                case Tour.Finished{S.A{}, +t13}:
+                  match r14:
+                    case Tour.Finished{S.A{}, +t14}:
+                      match r23:
+                        case Tour.Finished{S.A{}, +t23}:
+                          match r24:
+                            case Tour.Finished{S.A{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  {==}
+                                case Tour.Finished{S.B{}, +t34}:
+                                  {==}
+                            case Tour.Finished{S.B{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  ranked_234_top(Laws.Rule.three_way(Tour.P2{}, Tour.P3{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P3{}, Tour.P2{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P3{}, Tour.P4{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P4{}, Tour.P3{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P2{}, Tour.P4{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P4{}, Tour.P2{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), trio_ok(Laws.Rule.set_cmp(Tour.P2{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P3{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P3{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P4{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P2{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P4{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P2{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P3{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P3{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P4{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P2{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P4{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.race(Tour.P2{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P3{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P3{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P4{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P2{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P4{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.beat(Tour.P2{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P3{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P3{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P4{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P2{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P4{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), set_trio(Laws.Rule.record(Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}})), game_trio(Laws.Rule.record(Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}})), race_trio(s2, s3, s4, trio_ne_234(Nat.is_ne(s1, s2), Nat.is_ne(s1, s3), Nat.is_ne(s1, s4), Nat.is_ne(s2, s3), Nat.is_ne(s2, s4), Nat.is_ne(s3, s4), distinct)), {==}))
+                                case Tour.Finished{S.B{}, +t34}:
+                                  {==}
+                        case Tour.Finished{S.B{}, +t23}:
+                          match r24:
+                            case Tour.Finished{S.A{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  {==}
+                                case Tour.Finished{S.B{}, +t34}:
+                                  ranked_234_top(Laws.Rule.three_way(Tour.P2{}, Tour.P3{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P3{}, Tour.P2{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P3{}, Tour.P4{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P4{}, Tour.P3{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P2{}, Tour.P4{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P4{}, Tour.P2{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), trio_ok(Laws.Rule.set_cmp(Tour.P2{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P3{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P3{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P4{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P2{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P4{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P2{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P3{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P3{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P4{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P2{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P4{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.race(Tour.P2{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P3{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P3{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P4{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P2{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P4{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.beat(Tour.P2{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P3{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P3{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P4{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P2{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P4{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), set_trio(Laws.Rule.record(Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}})), game_trio(Laws.Rule.record(Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}})), race_trio(s2, s3, s4, trio_ne_234(Nat.is_ne(s1, s2), Nat.is_ne(s1, s3), Nat.is_ne(s1, s4), Nat.is_ne(s2, s3), Nat.is_ne(s2, s4), Nat.is_ne(s3, s4), distinct)), {==}))
+                            case Tour.Finished{S.B{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  {==}
+                                case Tour.Finished{S.B{}, +t34}:
+                                  {==}
+                    case Tour.Finished{S.B{}, +t14}:
+                      match r23:
+                        case Tour.Finished{S.A{}, +t23}:
+                          match r24:
+                            case Tour.Finished{S.A{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  {==}
+                                case Tour.Finished{S.B{}, +t34}:
+                                  ranked_124_bottom(Laws.Rule.three_way(Tour.P1{}, Tour.P2{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P2{}, Tour.P1{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P2{}, Tour.P4{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P4{}, Tour.P2{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P1{}, Tour.P4{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P4{}, Tour.P1{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), trio_ok(Laws.Rule.set_cmp(Tour.P1{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P2{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P2{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P4{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P1{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P4{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P1{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P2{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P2{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P4{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P1{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P4{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.race(Tour.P1{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P2{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P2{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P4{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P1{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P4{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.beat(Tour.P1{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P2{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P2{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P4{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P1{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P4{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), set_trio(Laws.Rule.record(Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}})), game_trio(Laws.Rule.record(Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}})), race_trio(s1, s2, s4, trio_ne_124(Nat.is_ne(s1, s2), Nat.is_ne(s1, s3), Nat.is_ne(s1, s4), Nat.is_ne(s2, s3), Nat.is_ne(s2, s4), Nat.is_ne(s3, s4), distinct)), {==}))
+                            case Tour.Finished{S.B{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  {==}
+                                case Tour.Finished{S.B{}, +t34}:
+                                  {==}
+                        case Tour.Finished{S.B{}, +t23}:
+                          match r24:
+                            case Tour.Finished{S.A{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  {==}
+                                case Tour.Finished{S.B{}, +t34}:
+                                  {==}
+                            case Tour.Finished{S.B{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  ranked_134_bottom(Laws.Rule.three_way(Tour.P1{}, Tour.P3{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P3{}, Tour.P1{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P3{}, Tour.P4{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P4{}, Tour.P3{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P1{}, Tour.P4{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P4{}, Tour.P1{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), trio_ok(Laws.Rule.set_cmp(Tour.P1{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P3{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P3{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P4{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P1{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P4{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P1{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P3{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P3{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P4{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P1{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P4{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.race(Tour.P1{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P3{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P3{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P4{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P1{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P4{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.beat(Tour.P1{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P3{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P3{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P4{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P1{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P4{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), set_trio(Laws.Rule.record(Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}})), game_trio(Laws.Rule.record(Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}})), race_trio(s1, s3, s4, trio_ne_134(Nat.is_ne(s1, s2), Nat.is_ne(s1, s3), Nat.is_ne(s1, s4), Nat.is_ne(s2, s3), Nat.is_ne(s2, s4), Nat.is_ne(s3, s4), distinct)), {==}))
+                                case Tour.Finished{S.B{}, +t34}:
+                                  {==}
+                case Tour.Finished{S.B{}, +t13}:
+                  match r14:
+                    case Tour.Finished{S.A{}, +t14}:
+                      match r23:
+                        case Tour.Finished{S.A{}, +t23}:
+                          match r24:
+                            case Tour.Finished{S.A{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  ranked_123_bottom(Laws.Rule.three_way(Tour.P1{}, Tour.P2{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P2{}, Tour.P1{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P2{}, Tour.P3{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P3{}, Tour.P2{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P1{}, Tour.P3{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P3{}, Tour.P1{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), trio_ok(Laws.Rule.set_cmp(Tour.P1{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P2{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P2{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P3{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P1{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P3{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P1{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P2{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P2{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P3{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P1{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P3{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.race(Tour.P1{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P2{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P2{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P3{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P1{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P3{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.beat(Tour.P1{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P2{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P2{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P3{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P1{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P3{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), set_trio(Laws.Rule.record(Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}})), game_trio(Laws.Rule.record(Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}})), race_trio(s1, s2, s3, trio_ne_123(Nat.is_ne(s1, s2), Nat.is_ne(s1, s3), Nat.is_ne(s1, s4), Nat.is_ne(s2, s3), Nat.is_ne(s2, s4), Nat.is_ne(s3, s4), distinct)), {==}))
+                                case Tour.Finished{S.B{}, +t34}:
+                                  {==}
+                            case Tour.Finished{S.B{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  {==}
+                                case Tour.Finished{S.B{}, +t34}:
+                                  {==}
+                        case Tour.Finished{S.B{}, +t23}:
+                          match r24:
+                            case Tour.Finished{S.A{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  {==}
+                                case Tour.Finished{S.B{}, +t34}:
+                                  {==}
+                            case Tour.Finished{S.B{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  {==}
+                                case Tour.Finished{S.B{}, +t34}:
+                                  ranked_134_bottom(Laws.Rule.three_way(Tour.P1{}, Tour.P3{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P3{}, Tour.P1{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P3{}, Tour.P4{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P4{}, Tour.P3{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P1{}, Tour.P4{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P4{}, Tour.P1{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), trio_ok(Laws.Rule.set_cmp(Tour.P1{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P3{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P3{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P4{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P1{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P4{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P1{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P3{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P3{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P4{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P1{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P4{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.race(Tour.P1{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P3{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P3{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P4{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P1{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P4{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.beat(Tour.P1{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P3{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P3{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P4{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P1{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P4{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), set_trio(Laws.Rule.record(Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}})), game_trio(Laws.Rule.record(Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}})), race_trio(s1, s3, s4, trio_ne_134(Nat.is_ne(s1, s2), Nat.is_ne(s1, s3), Nat.is_ne(s1, s4), Nat.is_ne(s2, s3), Nat.is_ne(s2, s4), Nat.is_ne(s3, s4), distinct)), {==}))
+                    case Tour.Finished{S.B{}, +t14}:
+                      match r23:
+                        case Tour.Finished{S.A{}, +t23}:
+                          match r24:
+                            case Tour.Finished{S.A{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  {==}
+                                case Tour.Finished{S.B{}, +t34}:
+                                  {==}
+                            case Tour.Finished{S.B{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  {==}
+                                case Tour.Finished{S.B{}, +t34}:
+                                  ranked_123_top(Laws.Rule.three_way(Tour.P1{}, Tour.P2{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P2{}, Tour.P1{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P2{}, Tour.P3{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P3{}, Tour.P2{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P1{}, Tour.P3{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P3{}, Tour.P1{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), trio_ok(Laws.Rule.set_cmp(Tour.P1{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P2{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P2{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P3{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P1{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P3{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P1{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P2{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P2{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P3{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P1{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P3{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.race(Tour.P1{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P2{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P2{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P3{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P1{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P3{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.beat(Tour.P1{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P2{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P2{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P3{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P1{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P3{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), set_trio(Laws.Rule.record(Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}})), game_trio(Laws.Rule.record(Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}})), race_trio(s1, s2, s3, trio_ne_123(Nat.is_ne(s1, s2), Nat.is_ne(s1, s3), Nat.is_ne(s1, s4), Nat.is_ne(s2, s3), Nat.is_ne(s2, s4), Nat.is_ne(s3, s4), distinct)), {==}))
+                        case Tour.Finished{S.B{}, +t23}:
+                          match r24:
+                            case Tour.Finished{S.A{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  ranked_124_top(Laws.Rule.three_way(Tour.P1{}, Tour.P2{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P2{}, Tour.P1{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P2{}, Tour.P4{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P4{}, Tour.P2{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P1{}, Tour.P4{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P4{}, Tour.P1{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), trio_ok(Laws.Rule.set_cmp(Tour.P1{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P2{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P2{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P4{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P1{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P4{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P1{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P2{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P2{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P4{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P1{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P4{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.race(Tour.P1{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P2{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P2{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P4{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P1{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P4{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.beat(Tour.P1{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P2{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P2{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P4{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P1{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P4{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), set_trio(Laws.Rule.record(Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}})), game_trio(Laws.Rule.record(Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.A{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}})), race_trio(s1, s2, s4, trio_ne_124(Nat.is_ne(s1, s2), Nat.is_ne(s1, s3), Nat.is_ne(s1, s4), Nat.is_ne(s2, s3), Nat.is_ne(s2, s4), Nat.is_ne(s3, s4), distinct)), {==}))
+                                case Tour.Finished{S.B{}, +t34}:
+                                  {==}
+                            case Tour.Finished{S.B{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  {==}
+                                case Tour.Finished{S.B{}, +t34}:
+                                  {==}
+            case Tour.Finished{S.B{}, +t12}:
+              match r13:
+                case Tour.Finished{S.A{}, +t13}:
+                  match r14:
+                    case Tour.Finished{S.A{}, +t14}:
+                      match r23:
+                        case Tour.Finished{S.A{}, +t23}:
+                          match r24:
+                            case Tour.Finished{S.A{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  {==}
+                                case Tour.Finished{S.B{}, +t34}:
+                                  {==}
+                            case Tour.Finished{S.B{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  {==}
+                                case Tour.Finished{S.B{}, +t34}:
+                                  ranked_124_bottom(Laws.Rule.three_way(Tour.P1{}, Tour.P2{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P2{}, Tour.P1{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P2{}, Tour.P4{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P4{}, Tour.P2{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P1{}, Tour.P4{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P4{}, Tour.P1{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), trio_ok(Laws.Rule.set_cmp(Tour.P1{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P2{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P2{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P4{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P1{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P4{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P1{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P2{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P2{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P4{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P1{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P4{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.race(Tour.P1{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P2{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P2{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P4{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P1{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P4{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.beat(Tour.P1{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P2{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P2{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P4{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P1{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P4{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), set_trio(Laws.Rule.record(Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}})), game_trio(Laws.Rule.record(Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}})), race_trio(s1, s2, s4, trio_ne_124(Nat.is_ne(s1, s2), Nat.is_ne(s1, s3), Nat.is_ne(s1, s4), Nat.is_ne(s2, s3), Nat.is_ne(s2, s4), Nat.is_ne(s3, s4), distinct)), {==}))
+                        case Tour.Finished{S.B{}, +t23}:
+                          match r24:
+                            case Tour.Finished{S.A{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  ranked_123_bottom(Laws.Rule.three_way(Tour.P1{}, Tour.P2{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P2{}, Tour.P1{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P2{}, Tour.P3{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P3{}, Tour.P2{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P1{}, Tour.P3{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P3{}, Tour.P1{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), trio_ok(Laws.Rule.set_cmp(Tour.P1{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P2{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P2{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P3{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P1{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P3{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P1{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P2{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P2{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P3{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P1{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P3{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.race(Tour.P1{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P2{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P2{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P3{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P1{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P3{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.beat(Tour.P1{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P2{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P2{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P3{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P1{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P3{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), set_trio(Laws.Rule.record(Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}})), game_trio(Laws.Rule.record(Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}})), race_trio(s1, s2, s3, trio_ne_123(Nat.is_ne(s1, s2), Nat.is_ne(s1, s3), Nat.is_ne(s1, s4), Nat.is_ne(s2, s3), Nat.is_ne(s2, s4), Nat.is_ne(s3, s4), distinct)), {==}))
+                                case Tour.Finished{S.B{}, +t34}:
+                                  {==}
+                            case Tour.Finished{S.B{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  {==}
+                                case Tour.Finished{S.B{}, +t34}:
+                                  {==}
+                    case Tour.Finished{S.B{}, +t14}:
+                      match r23:
+                        case Tour.Finished{S.A{}, +t23}:
+                          match r24:
+                            case Tour.Finished{S.A{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  ranked_134_top(Laws.Rule.three_way(Tour.P1{}, Tour.P3{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P3{}, Tour.P1{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P3{}, Tour.P4{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P4{}, Tour.P3{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P1{}, Tour.P4{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P4{}, Tour.P1{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), trio_ok(Laws.Rule.set_cmp(Tour.P1{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P3{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P3{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P4{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P1{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P4{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P1{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P3{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P3{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P4{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P1{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P4{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.race(Tour.P1{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P3{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P3{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P4{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P1{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P4{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.beat(Tour.P1{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P3{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P3{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P4{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P1{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P4{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), set_trio(Laws.Rule.record(Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}})), game_trio(Laws.Rule.record(Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.A{}, t34}})), race_trio(s1, s3, s4, trio_ne_134(Nat.is_ne(s1, s2), Nat.is_ne(s1, s3), Nat.is_ne(s1, s4), Nat.is_ne(s2, s3), Nat.is_ne(s2, s4), Nat.is_ne(s3, s4), distinct)), {==}))
+                                case Tour.Finished{S.B{}, +t34}:
+                                  {==}
+                            case Tour.Finished{S.B{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  {==}
+                                case Tour.Finished{S.B{}, +t34}:
+                                  {==}
+                        case Tour.Finished{S.B{}, +t23}:
+                          match r24:
+                            case Tour.Finished{S.A{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  {==}
+                                case Tour.Finished{S.B{}, +t34}:
+                                  {==}
+                            case Tour.Finished{S.B{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  {==}
+                                case Tour.Finished{S.B{}, +t34}:
+                                  ranked_123_top(Laws.Rule.three_way(Tour.P1{}, Tour.P2{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P2{}, Tour.P1{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P2{}, Tour.P3{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P3{}, Tour.P2{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P1{}, Tour.P3{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P3{}, Tour.P1{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), trio_ok(Laws.Rule.set_cmp(Tour.P1{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P2{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P2{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P3{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P1{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P3{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P1{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P2{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P2{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P3{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P1{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P3{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.race(Tour.P1{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P2{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P2{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P3{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P1{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P3{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.beat(Tour.P1{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P2{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P2{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P3{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P1{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P3{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), set_trio(Laws.Rule.record(Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}})), game_trio(Laws.Rule.record(Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.A{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.B{}, t34}})), race_trio(s1, s2, s3, trio_ne_123(Nat.is_ne(s1, s2), Nat.is_ne(s1, s3), Nat.is_ne(s1, s4), Nat.is_ne(s2, s3), Nat.is_ne(s2, s4), Nat.is_ne(s3, s4), distinct)), {==}))
+                case Tour.Finished{S.B{}, +t13}:
+                  match r14:
+                    case Tour.Finished{S.A{}, +t14}:
+                      match r23:
+                        case Tour.Finished{S.A{}, +t23}:
+                          match r24:
+                            case Tour.Finished{S.A{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  {==}
+                                case Tour.Finished{S.B{}, +t34}:
+                                  ranked_134_top(Laws.Rule.three_way(Tour.P1{}, Tour.P3{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P3{}, Tour.P1{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P3{}, Tour.P4{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P4{}, Tour.P3{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P1{}, Tour.P4{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P4{}, Tour.P1{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), trio_ok(Laws.Rule.set_cmp(Tour.P1{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P3{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P3{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P4{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P1{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P4{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P1{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P3{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P3{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P4{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P1{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P4{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.race(Tour.P1{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P3{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P3{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P4{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P1{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P4{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.beat(Tour.P1{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P3{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P3{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P4{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P1{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P4{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), set_trio(Laws.Rule.record(Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}})), game_trio(Laws.Rule.record(Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}})), race_trio(s1, s3, s4, trio_ne_134(Nat.is_ne(s1, s2), Nat.is_ne(s1, s3), Nat.is_ne(s1, s4), Nat.is_ne(s2, s3), Nat.is_ne(s2, s4), Nat.is_ne(s3, s4), distinct)), {==}))
+                            case Tour.Finished{S.B{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  {==}
+                                case Tour.Finished{S.B{}, +t34}:
+                                  {==}
+                        case Tour.Finished{S.B{}, +t23}:
+                          match r24:
+                            case Tour.Finished{S.A{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  {==}
+                                case Tour.Finished{S.B{}, +t34}:
+                                  {==}
+                            case Tour.Finished{S.B{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  ranked_124_top(Laws.Rule.three_way(Tour.P1{}, Tour.P2{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P2{}, Tour.P1{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P2{}, Tour.P4{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P4{}, Tour.P2{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P1{}, Tour.P4{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P4{}, Tour.P1{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), trio_ok(Laws.Rule.set_cmp(Tour.P1{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P2{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P2{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P4{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P1{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P4{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P1{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P2{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P2{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P4{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P1{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P4{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.race(Tour.P1{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P2{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P2{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P4{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P1{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P4{}, Tour.P1{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.beat(Tour.P1{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P2{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P2{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P4{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P1{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P4{}, Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), set_trio(Laws.Rule.record(Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}})), game_trio(Laws.Rule.record(Tour.P1{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.A{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}})), race_trio(s1, s2, s4, trio_ne_124(Nat.is_ne(s1, s2), Nat.is_ne(s1, s3), Nat.is_ne(s1, s4), Nat.is_ne(s2, s3), Nat.is_ne(s2, s4), Nat.is_ne(s3, s4), distinct)), {==}))
+                                case Tour.Finished{S.B{}, +t34}:
+                                  {==}
+                    case Tour.Finished{S.B{}, +t14}:
+                      match r23:
+                        case Tour.Finished{S.A{}, +t23}:
+                          match r24:
+                            case Tour.Finished{S.A{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  {==}
+                                case Tour.Finished{S.B{}, +t34}:
+                                  {==}
+                            case Tour.Finished{S.B{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  ranked_234_bottom(Laws.Rule.three_way(Tour.P2{}, Tour.P3{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P3{}, Tour.P2{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P3{}, Tour.P4{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P4{}, Tour.P3{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P2{}, Tour.P4{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.three_way(Tour.P4{}, Tour.P2{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), trio_ok(Laws.Rule.set_cmp(Tour.P2{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P3{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P3{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P4{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P2{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.set_cmp(Tour.P4{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P2{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P3{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P3{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P4{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P2{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.game_cmp(Tour.P4{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.race(Tour.P2{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P3{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P3{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P4{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P2{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P4{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.beat(Tour.P2{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P3{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P3{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P4{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P2{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.beat(Tour.P4{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), set_trio(Laws.Rule.record(Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}})), game_trio(Laws.Rule.record(Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}}), Laws.Rule.record(Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.A{}, t23}, Tour.Finished{S.B{}, t24}, Tour.Finished{S.A{}, t34}})), race_trio(s2, s3, s4, trio_ne_234(Nat.is_ne(s1, s2), Nat.is_ne(s1, s3), Nat.is_ne(s1, s4), Nat.is_ne(s2, s3), Nat.is_ne(s2, s4), Nat.is_ne(s3, s4), distinct)), {==}))
+                                case Tour.Finished{S.B{}, +t34}:
+                                  {==}
+                        case Tour.Finished{S.B{}, +t23}:
+                          match r24:
+                            case Tour.Finished{S.A{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  {==}
+                                case Tour.Finished{S.B{}, +t34}:
+                                  ranked_234_bottom(Laws.Rule.three_way(Tour.P2{}, Tour.P3{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P3{}, Tour.P2{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P3{}, Tour.P4{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P4{}, Tour.P3{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P2{}, Tour.P4{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.three_way(Tour.P4{}, Tour.P2{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), trio_ok(Laws.Rule.set_cmp(Tour.P2{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P3{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P3{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P4{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P2{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.set_cmp(Tour.P4{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P2{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P3{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P3{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P4{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P2{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.game_cmp(Tour.P4{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.race(Tour.P2{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P3{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P3{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P4{}, Tour.P3{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P2{}, Tour.P4{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.race(Tour.P4{}, Tour.P2{}, Tour.Group{s1, s2, s3, s4}), Laws.Rule.beat(Tour.P2{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P3{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P3{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P4{}, Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P2{}, Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.beat(Tour.P4{}, Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), set_trio(Laws.Rule.record(Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}})), game_trio(Laws.Rule.record(Tour.P2{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P3{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}}), Laws.Rule.record(Tour.P4{}, Tour.RoundRobin{Tour.Finished{S.B{}, t12}, Tour.Finished{S.B{}, t13}, Tour.Finished{S.B{}, t14}, Tour.Finished{S.B{}, t23}, Tour.Finished{S.A{}, t24}, Tour.Finished{S.B{}, t34}})), race_trio(s2, s3, s4, trio_ne_234(Nat.is_ne(s1, s2), Nat.is_ne(s1, s3), Nat.is_ne(s1, s4), Nat.is_ne(s2, s3), Nat.is_ne(s2, s4), Nat.is_ne(s3, s4), distinct)), {==}))
+                            case Tour.Finished{S.B{}, +t24}:
+                              match r34:
+                                case Tour.Finished{S.A{}, +t34}:
+                                  {==}
+                                case Tour.Finished{S.B{}, +t34}:
+                                  {==}
+
+def Laws.L17_places_are_a_ranking(g, rr, distinct):
+  %Equal.sym(Tour.Places, Tour.Standings.places(g, rr), Laws.Rule.places(g, rr), Laws.L28_standings_follow_rule(g, rr)) : {Laws.Rule.is_ranking(_) == True{} : Bool}
+  L17_rule(g, rr, distinct)
