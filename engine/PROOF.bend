@@ -2763,3 +2763,352 @@ def Laws.L29_tournament_follows_rules(fmt, f, d, seed, run):
   %groups_same(d, seed, run) : {Tour.Event.play(fmt, f, d, seed, run) == Laws.Rule.after_draw(fmt, f, seed, run, _) : Tour.Outcome}
   after_draw_same(fmt, f, seed, run, Tour.Event.groups(d, seed, run))
 
+
+# ---------------------------------------------------------------------------
+# L18: the champion won her semifinal and the final. By L29 the engine plays
+# the rule's tournament; in it, the finalists are the semifinal winners and
+# the champion is the final's winner by construction, so each check compares
+# a number with itself.
+# ---------------------------------------------------------------------------
+
+law cmp_refl:
+  for n: Nat
+  {Nat.cmp(n, n) == EQ{} : Cmp}
+
+def cmp_refl(n):
+  match n:
+    case 0n:
+      {==}
+    case 1n+p:
+      cmp_refl(p)
+
+law is_eq_refl:
+  for n: Nat
+  {Nat.is_eq(n, n) == True{} : Bool}
+
+def is_eq_refl(n):
+  %Equal.sym(Cmp, Nat.cmp(n, n), EQ{}, cmp_refl(n)) : {Cmp.is_eq(_) == True{} : Bool}
+  {==}
+
+law and3_refl:
+  for +x: Nat
+  for +y: Nat
+  for +z: Nat
+  {Bool.and(Bool.and(Nat.is_eq(x, x), Nat.is_eq(y, y)), Nat.is_eq(z, z)) == True{} : Bool}
+
+def and3_refl(x, y, z):
+  %Equal.sym(Bool, Nat.is_eq(x, x), True{}, is_eq_refl(x)) : {Bool.and(Bool.and(_, Nat.is_eq(y, y)), Nat.is_eq(z, z)) == True{} : Bool}
+  %Equal.sym(Bool, Nat.is_eq(y, y), True{}, is_eq_refl(y)) : {Bool.and(Bool.and(True{}, _), Nat.is_eq(z, z)) == True{} : Bool}
+  %Equal.sym(Bool, Nat.is_eq(z, z), True{}, is_eq_refl(z)) : {Bool.and(Bool.and(True{}, True{}), _) == True{} : Bool}
+  {==}
+
+law ok_finish:
+  for +ga: Tour.Group
+  for +gb: Tour.Group
+  for +ra: Tour.RoundRobin
+  for +rb: Tour.RoundRobin
+  for +sm: Tour.Semis
+  for +r1: Tour.Finished
+  for +r2: Tour.Finished
+  for fr: Maybe<Tour.Finished>
+  {Laws.Rule.champion_ok(Laws.Rule.finish(ga, gb, ra, rb, sm, r1, r2, Laws.Rule.winner_of(r1, Laws.Rule.on_line(1n, sm), Laws.Rule.on_line(2n, sm)), Laws.Rule.winner_of(r2, Laws.Rule.on_line(3n, sm), Laws.Rule.on_line(4n, sm)), fr)) == True{} : Bool}
+
+def ok_finish(ga, gb, ra, rb, sm, r1, r2, fr):
+  match fr:
+    case Some{+r}:
+      and3_refl(Laws.Rule.winner_of(r1, Laws.Rule.on_line(1n, sm), Laws.Rule.on_line(2n, sm)), Laws.Rule.winner_of(r2, Laws.Rule.on_line(3n, sm), Laws.Rule.on_line(4n, sm)), Laws.Rule.winner_of(r, Laws.Rule.winner_of(r1, Laws.Rule.on_line(1n, sm), Laws.Rule.on_line(2n, sm)), Laws.Rule.winner_of(r2, Laws.Rule.on_line(3n, sm), Laws.Rule.on_line(4n, sm))))
+    case None{}:
+      {==}
+
+law ok_after_semis:
+  for +fmt: S.Format
+  for +f: Tour.Field
+  for +seed: U32
+  for +run: U32
+  for +ga: Tour.Group
+  for +gb: Tour.Group
+  for +ra: Tour.RoundRobin
+  for +rb: Tour.RoundRobin
+  for +sm: Tour.Semis
+  for s1: Maybe<Tour.Finished>
+  for s2: Maybe<Tour.Finished>
+  {Laws.Rule.champion_ok(Laws.Rule.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, s1, s2)) == True{} : Bool}
+
+def ok_after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, s1, s2):
+  match s1 s2:
+    case Some{+r1} Some{+r2}:
+      ok_finish(ga, gb, ra, rb, sm, r1, r2, Laws.Rule.match_at(fmt, f, seed, run, 14, Laws.Rule.winner_of(r1, Laws.Rule.on_line(1n, sm), Laws.Rule.on_line(2n, sm)), Laws.Rule.winner_of(r2, Laws.Rule.on_line(3n, sm), Laws.Rule.on_line(4n, sm))))
+    case Some{r1} None{}:
+      {==}
+    case None{} Some{r2}:
+      {==}
+    case None{} None{}:
+      {==}
+
+law ok_after_groups:
+  for +fmt: S.Format
+  for +f: Tour.Field
+  for +seed: U32
+  for +run: U32
+  for +ga: Tour.Group
+  for +gb: Tour.Group
+  for xa: Maybe<Tour.RoundRobin>
+  for xb: Maybe<Tour.RoundRobin>
+  {Laws.Rule.champion_ok(Laws.Rule.after_groups(fmt, f, seed, run, ga, gb, xa, xb)) == True{} : Bool}
+
+def ok_after_groups(fmt, f, seed, run, ga, gb, xa, xb):
+  match xa xb:
+    case Some{+ra} Some{+rb}:
+      ok_after_semis(fmt, f, seed, run, ga, gb, ra, rb, Laws.Rule.semis(ga, Laws.Rule.places(ga, ra), gb, Laws.Rule.places(gb, rb)), Laws.Rule.match_at(fmt, f, seed, run, 12, Laws.Rule.on_line(1n, Laws.Rule.semis(ga, Laws.Rule.places(ga, ra), gb, Laws.Rule.places(gb, rb))), Laws.Rule.on_line(2n, Laws.Rule.semis(ga, Laws.Rule.places(ga, ra), gb, Laws.Rule.places(gb, rb)))), Laws.Rule.match_at(fmt, f, seed, run, 13, Laws.Rule.on_line(3n, Laws.Rule.semis(ga, Laws.Rule.places(ga, ra), gb, Laws.Rule.places(gb, rb))), Laws.Rule.on_line(4n, Laws.Rule.semis(ga, Laws.Rule.places(ga, ra), gb, Laws.Rule.places(gb, rb)))))
+    case Some{ra} None{}:
+      {==}
+    case None{} Some{rb}:
+      {==}
+    case None{} None{}:
+      {==}
+
+law ok_after_draw:
+  for +fmt: S.Format
+  for +f: Tour.Field
+  for +seed: U32
+  for +run: U32
+  for gs: Tour.Group & Tour.Group
+  {Laws.Rule.champion_ok(Laws.Rule.after_draw(fmt, f, seed, run, gs)) == True{} : Bool}
+
+def ok_after_draw(fmt, f, seed, run, gs):
+  match gs:
+    case (+ga, +gb):
+      ok_after_groups(fmt, f, seed, run, ga, gb, Laws.Rule.group_play(fmt, f, seed, run, 0, ga), Laws.Rule.group_play(fmt, f, seed, run, 6, gb))
+
+def Laws.L18_champion_won_semi_and_final(fmt, f, d, seed, run):
+  %Equal.sym(Tour.Outcome, Tour.Event.play(fmt, f, d, seed, run), Laws.Rule.tournament(fmt, f, d, seed, run), Laws.L29_tournament_follows_rules(fmt, f, d, seed, run)) : {Laws.Rule.champion_ok(_) == True{} : Bool}
+  ok_after_draw(fmt, f, seed, run, Laws.Rule.groups(d, seed, run))
+
+
+# ---------------------------------------------------------------------------
+# L30: every tournament counted once. The same proof as L14, for the
+# tournament's tally.
+# ---------------------------------------------------------------------------
+
+law counts_cong:
+  for -x1: Nat
+  for -x2: Nat
+  for -x3: Nat
+  for -x4: Nat
+  for -x5: Nat
+  for -x6: Nat
+  for -x7: Nat
+  for -x8: Nat
+  for -y1: Nat
+  for -y2: Nat
+  for -y3: Nat
+  for -y4: Nat
+  for -y5: Nat
+  for -y6: Nat
+  for -y7: Nat
+  for -y8: Nat
+  for e1: {x1 == y1 : Nat}
+  for e2: {x2 == y2 : Nat}
+  for e3: {x3 == y3 : Nat}
+  for e4: {x4 == y4 : Nat}
+  for e5: {x5 == y5 : Nat}
+  for e6: {x6 == y6 : Nat}
+  for e7: {x7 == y7 : Nat}
+  for e8: {x8 == y8 : Nat}
+  {Tour.Counts{x1, x2, x3, x4, x5, x6, x7, x8} == Tour.Counts{y1, y2, y3, y4, y5, y6, y7, y8} : Tour.Counts}
+
+def counts_cong(x1, x2, x3, x4, x5, x6, x7, x8, y1, y2, y3, y4, y5, y6, y7, y8, e1, e2, e3, e4, e5, e6, e7, e8):
+  %e1 : {Tour.Counts{x1, x2, x3, x4, x5, x6, x7, x8} == Tour.Counts{_, y2, y3, y4, y5, y6, y7, y8} : Tour.Counts}
+  %e2 : {Tour.Counts{x1, x2, x3, x4, x5, x6, x7, x8} == Tour.Counts{x1, _, y3, y4, y5, y6, y7, y8} : Tour.Counts}
+  %e3 : {Tour.Counts{x1, x2, x3, x4, x5, x6, x7, x8} == Tour.Counts{x1, x2, _, y4, y5, y6, y7, y8} : Tour.Counts}
+  %e4 : {Tour.Counts{x1, x2, x3, x4, x5, x6, x7, x8} == Tour.Counts{x1, x2, x3, _, y5, y6, y7, y8} : Tour.Counts}
+  %e5 : {Tour.Counts{x1, x2, x3, x4, x5, x6, x7, x8} == Tour.Counts{x1, x2, x3, x4, _, y6, y7, y8} : Tour.Counts}
+  %e6 : {Tour.Counts{x1, x2, x3, x4, x5, x6, x7, x8} == Tour.Counts{x1, x2, x3, x4, x5, _, y7, y8} : Tour.Counts}
+  %e7 : {Tour.Counts{x1, x2, x3, x4, x5, x6, x7, x8} == Tour.Counts{x1, x2, x3, x4, x5, x6, _, y8} : Tour.Counts}
+  %e8 : {Tour.Counts{x1, x2, x3, x4, x5, x6, x7, x8} == Tour.Counts{x1, x2, x3, x4, x5, x6, x7, _} : Tour.Counts}
+  {==}
+
+law ttally_cong:
+  for -xt: Tour.Counts
+  for -xf: Tour.Counts
+  for -xs: Tour.Counts
+  for -xu: Nat
+  for -yt: Tour.Counts
+  for -yf: Tour.Counts
+  for -ys: Tour.Counts
+  for -yu: Nat
+  for et: {xt == yt : Tour.Counts}
+  for ef: {xf == yf : Tour.Counts}
+  for es: {xs == ys : Tour.Counts}
+  for eu: {xu == yu : Nat}
+  {Tour.Tally{xt, xf, xs, xu} == Tour.Tally{yt, yf, ys, yu} : Tour.Tally}
+
+def ttally_cong(xt, xf, xs, xu, yt, yf, ys, yu, et, ef, es, eu):
+  %et : {Tour.Tally{xt, xf, xs, xu} == Tour.Tally{_, yf, ys, yu} : Tour.Tally}
+  %ef : {Tour.Tally{xt, xf, xs, xu} == Tour.Tally{xt, _, ys, yu} : Tour.Tally}
+  %es : {Tour.Tally{xt, xf, xs, xu} == Tour.Tally{xt, xf, _, yu} : Tour.Tally}
+  %eu : {Tour.Tally{xt, xf, xs, xu} == Tour.Tally{xt, xf, xs, _} : Tour.Tally}
+  {==}
+
+law add_tally_nothing_left:
+  for t: Tour.Tally
+  {Laws.Rule.add_tally(Laws.Rule.no_tally(), t) == t : Tour.Tally}
+
+def add_tally_nothing_left(t):
+  match t:
+    case Tour.Tally{Tour.Counts{xt1, xt2, xt3, xt4, xt5, xt6, xt7, xt8}, Tour.Counts{xf1, xf2, xf3, xf4, xf5, xf6, xf7, xf8}, Tour.Counts{xs1, xs2, xs3, xs4, xs5, xs6, xs7, xs8}, xu}:
+      {==}
+
+law add_tally_nothing_right:
+  for t: Tour.Tally
+  {Laws.Rule.add_tally(t, Laws.Rule.no_tally()) == t : Tour.Tally}
+
+def add_tally_nothing_right(t):
+  match t:
+    case Tour.Tally{Tour.Counts{xt1, xt2, xt3, xt4, xt5, xt6, xt7, xt8}, Tour.Counts{xf1, xf2, xf3, xf4, xf5, xf6, xf7, xf8}, Tour.Counts{xs1, xs2, xs3, xs4, xs5, xs6, xs7, xs8}, xu}:
+      ttally_cong(Tour.Counts{Nat.add(xt1, 0n), Nat.add(xt2, 0n), Nat.add(xt3, 0n), Nat.add(xt4, 0n), Nat.add(xt5, 0n), Nat.add(xt6, 0n), Nat.add(xt7, 0n), Nat.add(xt8, 0n)}, Tour.Counts{Nat.add(xf1, 0n), Nat.add(xf2, 0n), Nat.add(xf3, 0n), Nat.add(xf4, 0n), Nat.add(xf5, 0n), Nat.add(xf6, 0n), Nat.add(xf7, 0n), Nat.add(xf8, 0n)}, Tour.Counts{Nat.add(xs1, 0n), Nat.add(xs2, 0n), Nat.add(xs3, 0n), Nat.add(xs4, 0n), Nat.add(xs5, 0n), Nat.add(xs6, 0n), Nat.add(xs7, 0n), Nat.add(xs8, 0n)}, Nat.add(xu, 0n), Tour.Counts{xt1, xt2, xt3, xt4, xt5, xt6, xt7, xt8}, Tour.Counts{xf1, xf2, xf3, xf4, xf5, xf6, xf7, xf8}, Tour.Counts{xs1, xs2, xs3, xs4, xs5, xs6, xs7, xs8}, xu, counts_cong(Nat.add(xt1, 0n), Nat.add(xt2, 0n), Nat.add(xt3, 0n), Nat.add(xt4, 0n), Nat.add(xt5, 0n), Nat.add(xt6, 0n), Nat.add(xt7, 0n), Nat.add(xt8, 0n), xt1, xt2, xt3, xt4, xt5, xt6, xt7, xt8, nat_add_zero(xt1), nat_add_zero(xt2), nat_add_zero(xt3), nat_add_zero(xt4), nat_add_zero(xt5), nat_add_zero(xt6), nat_add_zero(xt7), nat_add_zero(xt8)), counts_cong(Nat.add(xf1, 0n), Nat.add(xf2, 0n), Nat.add(xf3, 0n), Nat.add(xf4, 0n), Nat.add(xf5, 0n), Nat.add(xf6, 0n), Nat.add(xf7, 0n), Nat.add(xf8, 0n), xf1, xf2, xf3, xf4, xf5, xf6, xf7, xf8, nat_add_zero(xf1), nat_add_zero(xf2), nat_add_zero(xf3), nat_add_zero(xf4), nat_add_zero(xf5), nat_add_zero(xf6), nat_add_zero(xf7), nat_add_zero(xf8)), counts_cong(Nat.add(xs1, 0n), Nat.add(xs2, 0n), Nat.add(xs3, 0n), Nat.add(xs4, 0n), Nat.add(xs5, 0n), Nat.add(xs6, 0n), Nat.add(xs7, 0n), Nat.add(xs8, 0n), xs1, xs2, xs3, xs4, xs5, xs6, xs7, xs8, nat_add_zero(xs1), nat_add_zero(xs2), nat_add_zero(xs3), nat_add_zero(xs4), nat_add_zero(xs5), nat_add_zero(xs6), nat_add_zero(xs7), nat_add_zero(xs8)), nat_add_zero(xu))
+
+law add_tally_assoc:
+  for x: Tour.Tally
+  for y: Tour.Tally
+  for z: Tour.Tally
+  {Laws.Rule.add_tally(Laws.Rule.add_tally(x, y), z) == Laws.Rule.add_tally(x, Laws.Rule.add_tally(y, z)) : Tour.Tally}
+
+def add_tally_assoc(x, y, z):
+  match x y z:
+    case Tour.Tally{Tour.Counts{xt1, xt2, xt3, xt4, xt5, xt6, xt7, xt8}, Tour.Counts{xf1, xf2, xf3, xf4, xf5, xf6, xf7, xf8}, Tour.Counts{xs1, xs2, xs3, xs4, xs5, xs6, xs7, xs8}, xu} Tour.Tally{Tour.Counts{yt1, yt2, yt3, yt4, yt5, yt6, yt7, yt8}, Tour.Counts{yf1, yf2, yf3, yf4, yf5, yf6, yf7, yf8}, Tour.Counts{ys1, ys2, ys3, ys4, ys5, ys6, ys7, ys8}, yu} Tour.Tally{Tour.Counts{zt1, zt2, zt3, zt4, zt5, zt6, zt7, zt8}, Tour.Counts{zf1, zf2, zf3, zf4, zf5, zf6, zf7, zf8}, Tour.Counts{zs1, zs2, zs3, zs4, zs5, zs6, zs7, zs8}, zu}:
+      ttally_cong(Tour.Counts{Nat.add(Nat.add(xt1, yt1), zt1), Nat.add(Nat.add(xt2, yt2), zt2), Nat.add(Nat.add(xt3, yt3), zt3), Nat.add(Nat.add(xt4, yt4), zt4), Nat.add(Nat.add(xt5, yt5), zt5), Nat.add(Nat.add(xt6, yt6), zt6), Nat.add(Nat.add(xt7, yt7), zt7), Nat.add(Nat.add(xt8, yt8), zt8)}, Tour.Counts{Nat.add(Nat.add(xf1, yf1), zf1), Nat.add(Nat.add(xf2, yf2), zf2), Nat.add(Nat.add(xf3, yf3), zf3), Nat.add(Nat.add(xf4, yf4), zf4), Nat.add(Nat.add(xf5, yf5), zf5), Nat.add(Nat.add(xf6, yf6), zf6), Nat.add(Nat.add(xf7, yf7), zf7), Nat.add(Nat.add(xf8, yf8), zf8)}, Tour.Counts{Nat.add(Nat.add(xs1, ys1), zs1), Nat.add(Nat.add(xs2, ys2), zs2), Nat.add(Nat.add(xs3, ys3), zs3), Nat.add(Nat.add(xs4, ys4), zs4), Nat.add(Nat.add(xs5, ys5), zs5), Nat.add(Nat.add(xs6, ys6), zs6), Nat.add(Nat.add(xs7, ys7), zs7), Nat.add(Nat.add(xs8, ys8), zs8)}, Nat.add(Nat.add(xu, yu), zu), Tour.Counts{Nat.add(xt1, Nat.add(yt1, zt1)), Nat.add(xt2, Nat.add(yt2, zt2)), Nat.add(xt3, Nat.add(yt3, zt3)), Nat.add(xt4, Nat.add(yt4, zt4)), Nat.add(xt5, Nat.add(yt5, zt5)), Nat.add(xt6, Nat.add(yt6, zt6)), Nat.add(xt7, Nat.add(yt7, zt7)), Nat.add(xt8, Nat.add(yt8, zt8))}, Tour.Counts{Nat.add(xf1, Nat.add(yf1, zf1)), Nat.add(xf2, Nat.add(yf2, zf2)), Nat.add(xf3, Nat.add(yf3, zf3)), Nat.add(xf4, Nat.add(yf4, zf4)), Nat.add(xf5, Nat.add(yf5, zf5)), Nat.add(xf6, Nat.add(yf6, zf6)), Nat.add(xf7, Nat.add(yf7, zf7)), Nat.add(xf8, Nat.add(yf8, zf8))}, Tour.Counts{Nat.add(xs1, Nat.add(ys1, zs1)), Nat.add(xs2, Nat.add(ys2, zs2)), Nat.add(xs3, Nat.add(ys3, zs3)), Nat.add(xs4, Nat.add(ys4, zs4)), Nat.add(xs5, Nat.add(ys5, zs5)), Nat.add(xs6, Nat.add(ys6, zs6)), Nat.add(xs7, Nat.add(ys7, zs7)), Nat.add(xs8, Nat.add(ys8, zs8))}, Nat.add(xu, Nat.add(yu, zu)), counts_cong(Nat.add(Nat.add(xt1, yt1), zt1), Nat.add(Nat.add(xt2, yt2), zt2), Nat.add(Nat.add(xt3, yt3), zt3), Nat.add(Nat.add(xt4, yt4), zt4), Nat.add(Nat.add(xt5, yt5), zt5), Nat.add(Nat.add(xt6, yt6), zt6), Nat.add(Nat.add(xt7, yt7), zt7), Nat.add(Nat.add(xt8, yt8), zt8), Nat.add(xt1, Nat.add(yt1, zt1)), Nat.add(xt2, Nat.add(yt2, zt2)), Nat.add(xt3, Nat.add(yt3, zt3)), Nat.add(xt4, Nat.add(yt4, zt4)), Nat.add(xt5, Nat.add(yt5, zt5)), Nat.add(xt6, Nat.add(yt6, zt6)), Nat.add(xt7, Nat.add(yt7, zt7)), Nat.add(xt8, Nat.add(yt8, zt8)), nat_add_assoc(xt1, yt1, zt1), nat_add_assoc(xt2, yt2, zt2), nat_add_assoc(xt3, yt3, zt3), nat_add_assoc(xt4, yt4, zt4), nat_add_assoc(xt5, yt5, zt5), nat_add_assoc(xt6, yt6, zt6), nat_add_assoc(xt7, yt7, zt7), nat_add_assoc(xt8, yt8, zt8)), counts_cong(Nat.add(Nat.add(xf1, yf1), zf1), Nat.add(Nat.add(xf2, yf2), zf2), Nat.add(Nat.add(xf3, yf3), zf3), Nat.add(Nat.add(xf4, yf4), zf4), Nat.add(Nat.add(xf5, yf5), zf5), Nat.add(Nat.add(xf6, yf6), zf6), Nat.add(Nat.add(xf7, yf7), zf7), Nat.add(Nat.add(xf8, yf8), zf8), Nat.add(xf1, Nat.add(yf1, zf1)), Nat.add(xf2, Nat.add(yf2, zf2)), Nat.add(xf3, Nat.add(yf3, zf3)), Nat.add(xf4, Nat.add(yf4, zf4)), Nat.add(xf5, Nat.add(yf5, zf5)), Nat.add(xf6, Nat.add(yf6, zf6)), Nat.add(xf7, Nat.add(yf7, zf7)), Nat.add(xf8, Nat.add(yf8, zf8)), nat_add_assoc(xf1, yf1, zf1), nat_add_assoc(xf2, yf2, zf2), nat_add_assoc(xf3, yf3, zf3), nat_add_assoc(xf4, yf4, zf4), nat_add_assoc(xf5, yf5, zf5), nat_add_assoc(xf6, yf6, zf6), nat_add_assoc(xf7, yf7, zf7), nat_add_assoc(xf8, yf8, zf8)), counts_cong(Nat.add(Nat.add(xs1, ys1), zs1), Nat.add(Nat.add(xs2, ys2), zs2), Nat.add(Nat.add(xs3, ys3), zs3), Nat.add(Nat.add(xs4, ys4), zs4), Nat.add(Nat.add(xs5, ys5), zs5), Nat.add(Nat.add(xs6, ys6), zs6), Nat.add(Nat.add(xs7, ys7), zs7), Nat.add(Nat.add(xs8, ys8), zs8), Nat.add(xs1, Nat.add(ys1, zs1)), Nat.add(xs2, Nat.add(ys2, zs2)), Nat.add(xs3, Nat.add(ys3, zs3)), Nat.add(xs4, Nat.add(ys4, zs4)), Nat.add(xs5, Nat.add(ys5, zs5)), Nat.add(xs6, Nat.add(ys6, zs6)), Nat.add(xs7, Nat.add(ys7, zs7)), Nat.add(xs8, Nat.add(ys8, zs8)), nat_add_assoc(xs1, ys1, zs1), nat_add_assoc(xs2, ys2, zs2), nat_add_assoc(xs3, ys3, zs3), nat_add_assoc(xs4, ys4, zs4), nat_add_assoc(xs5, ys5, zs5), nat_add_assoc(xs6, ys6, zs6), nat_add_assoc(xs7, ys7, zs7), nat_add_assoc(xs8, ys8, zs8)), nat_add_assoc(xu, yu, zu))
+
+law event_sum_append:
+  for +xs: List<&2, Tour.Tally>
+  for +ys: List<&2, Tour.Tally>
+  {Laws.Rule.event_sum(List.append(&2, Tour.Tally, xs, ys)) == Laws.Rule.add_tally(Laws.Rule.event_sum(xs), Laws.Rule.event_sum(ys)) : Tour.Tally}
+
+def event_sum_append(xs, ys):
+  match xs:
+    case Nil{}:
+      Equal.sym(Tour.Tally, Laws.Rule.add_tally(Laws.Rule.no_tally(), Laws.Rule.event_sum(ys)), Laws.Rule.event_sum(ys), add_tally_nothing_left(Laws.Rule.event_sum(ys)))
+    case Con{+t, +rest}:
+      %Equal.sym(Tour.Tally, Laws.Rule.event_sum(List.append(&2, Tour.Tally, rest, ys)), Laws.Rule.add_tally(Laws.Rule.event_sum(rest), Laws.Rule.event_sum(ys)), event_sum_append(rest, ys)) : {Laws.Rule.add_tally(t, _) == Laws.Rule.add_tally(Laws.Rule.add_tally(t, Laws.Rule.event_sum(rest)), Laws.Rule.event_sum(ys)) : Tour.Tally}
+      Equal.sym(Tour.Tally, Laws.Rule.add_tally(Laws.Rule.add_tally(t, Laws.Rule.event_sum(rest)), Laws.Rule.event_sum(ys)), Laws.Rule.add_tally(t, Laws.Rule.add_tally(Laws.Rule.event_sum(rest), Laws.Rule.event_sum(ys))), add_tally_assoc(t, Laws.Rule.event_sum(rest), Laws.Rule.event_sum(ys)))
+
+law event_results_append:
+  for +fmt: S.Format
+  for +f: Tour.Field
+  for +d: Tour.Draw
+  for +seed: U32
+  for +prefix: U32
+  for +xs: List<&2, List<&2, Bool>>
+  for +ys: List<&2, List<&2, Bool>>
+  {Laws.Rule.event_results(fmt, f, d, seed, prefix, List.append(&2, List<&2, Bool>, xs, ys)) == List.append(&2, Tour.Tally, Laws.Rule.event_results(fmt, f, d, seed, prefix, xs), Laws.Rule.event_results(fmt, f, d, seed, prefix, ys)) : List<&2, Tour.Tally>}
+
+def event_results_append(fmt, f, d, seed, prefix, xs, ys):
+  match xs:
+    case Nil{}:
+      {==}
+    case Con{+path, +rest}:
+      %Equal.sym(List<&2, Tour.Tally>, Laws.Rule.event_results(fmt, f, d, seed, prefix, List.append(&2, List<&2, Bool>, rest, ys)), List.append(&2, Tour.Tally, Laws.Rule.event_results(fmt, f, d, seed, prefix, rest), Laws.Rule.event_results(fmt, f, d, seed, prefix, ys)), event_results_append(fmt, f, d, seed, prefix, rest, ys)) : {(Laws.Rule.event_tally(Tour.Event.play(fmt, f, d, seed, Laws.Rule.number(path, prefix))) <> _) == List.append(&2, Tour.Tally, Laws.Rule.event_results(fmt, f, d, seed, prefix, path <> rest), Laws.Rule.event_results(fmt, f, d, seed, prefix, ys)) : List<&2, Tour.Tally>}
+      {==}
+
+law event_results_cons_all:
+  for +fmt: S.Format
+  for +f: Tour.Field
+  for +d: Tour.Draw
+  for +seed: U32
+  for +b: Bool
+  for +prefix: U32
+  for +paths: List<&2, List<&2, Bool>>
+  {Laws.Rule.event_results(fmt, f, d, seed, prefix, Laws.Rule.cons_all(b, paths)) == Laws.Rule.event_results(fmt, f, d, seed, (prefix * 2 + Laws.Rule.bit(b) : U32), paths) : List<&2, Tour.Tally>}
+
+def event_results_cons_all(fmt, f, d, seed, b, prefix, paths):
+  match paths:
+    case Nil{}:
+      {==}
+    case Con{+path, +rest}:
+      %Equal.sym(List<&2, Tour.Tally>, Laws.Rule.event_results(fmt, f, d, seed, prefix, Laws.Rule.cons_all(b, rest)), Laws.Rule.event_results(fmt, f, d, seed, (prefix * 2 + Laws.Rule.bit(b) : U32), rest), event_results_cons_all(fmt, f, d, seed, b, prefix, rest)) : {(Laws.Rule.event_tally(Tour.Event.play(fmt, f, d, seed, Laws.Rule.number(b <> path, prefix))) <> _) == Laws.Rule.event_results(fmt, f, d, seed, (prefix * 2 + Laws.Rule.bit(b) : U32), path <> rest) : List<&2, Tour.Tally>}
+      {==}
+
+law one_same:
+  for n: Nat
+  {Tour.Event.one(n) == Laws.Rule.one(n) : Tour.Counts}
+
+def one_same(n):
+  match n:
+    case 1n:
+      {==}
+    case 2n:
+      {==}
+    case 3n:
+      {==}
+    case 4n:
+      {==}
+    case 5n:
+      {==}
+    case 6n:
+      {==}
+    case 7n:
+      {==}
+    case 8n:
+      {==}
+    case 0n:
+      {==}
+    case 9n+p:
+      {==}
+
+law add_counts_same:
+  for x: Tour.Counts
+  for y: Tour.Counts
+  {Tour.Event.add_counts(x, y) == Laws.Rule.add_counts(x, y) : Tour.Counts}
+
+def add_counts_same(x, y):
+  match x y:
+    case Tour.Counts{x1, x2, x3, x4, x5, x6, x7, x8} Tour.Counts{y1, y2, y3, y4, y5, y6, y7, y8}:
+      {==}
+
+law event_add_same:
+  for x: Tour.Tally
+  for y: Tour.Tally
+  {Tour.Event.add(x, y) == Laws.Rule.add_tally(x, y) : Tour.Tally}
+
+def event_add_same(x, y):
+  match x y:
+    case Tour.Tally{Tour.Counts{xt1, xt2, xt3, xt4, xt5, xt6, xt7, xt8}, Tour.Counts{xf1, xf2, xf3, xf4, xf5, xf6, xf7, xf8}, Tour.Counts{xs1, xs2, xs3, xs4, xs5, xs6, xs7, xs8}, xu} Tour.Tally{Tour.Counts{yt1, yt2, yt3, yt4, yt5, yt6, yt7, yt8}, Tour.Counts{yf1, yf2, yf3, yf4, yf5, yf6, yf7, yf8}, Tour.Counts{ys1, ys2, ys3, ys4, ys5, ys6, ys7, ys8}, yu}:
+      {==}
+
+law event_count_same:
+  for o: Tour.Outcome
+  {Tour.Event.count(o) == Laws.Rule.event_tally(o) : Tour.Tally}
+
+def event_count_same(o):
+  match o:
+    case Tour.Complete{ga, gb, ra, rb, Tour.Semis{+l1, +l2, +l3, +l4}, r1, r2, +f1, +f2, r, +c}:
+      %one_same(c) : {Tour.Event.count(Tour.Complete{ga, gb, ra, rb, Tour.Semis{l1, l2, l3, l4}, r1, r2, f1, f2, r, c}) == Tour.Tally{_, Laws.Rule.add_counts(Laws.Rule.one(f1), Laws.Rule.one(f2)), Laws.Rule.add_counts(Laws.Rule.add_counts(Laws.Rule.one(l1), Laws.Rule.one(l2)), Laws.Rule.add_counts(Laws.Rule.one(l3), Laws.Rule.one(l4))), 0n} : Tour.Tally}
+      %one_same(f1) : {Tour.Event.count(Tour.Complete{ga, gb, ra, rb, Tour.Semis{l1, l2, l3, l4}, r1, r2, f1, f2, r, c}) == Tour.Tally{Tour.Event.one(c), Laws.Rule.add_counts(_, Laws.Rule.one(f2)), Laws.Rule.add_counts(Laws.Rule.add_counts(Laws.Rule.one(l1), Laws.Rule.one(l2)), Laws.Rule.add_counts(Laws.Rule.one(l3), Laws.Rule.one(l4))), 0n} : Tour.Tally}
+      %one_same(f2) : {Tour.Event.count(Tour.Complete{ga, gb, ra, rb, Tour.Semis{l1, l2, l3, l4}, r1, r2, f1, f2, r, c}) == Tour.Tally{Tour.Event.one(c), Laws.Rule.add_counts(Tour.Event.one(f1), _), Laws.Rule.add_counts(Laws.Rule.add_counts(Laws.Rule.one(l1), Laws.Rule.one(l2)), Laws.Rule.add_counts(Laws.Rule.one(l3), Laws.Rule.one(l4))), 0n} : Tour.Tally}
+      %one_same(l1) : {Tour.Event.count(Tour.Complete{ga, gb, ra, rb, Tour.Semis{l1, l2, l3, l4}, r1, r2, f1, f2, r, c}) == Tour.Tally{Tour.Event.one(c), Laws.Rule.add_counts(Tour.Event.one(f1), Tour.Event.one(f2)), Laws.Rule.add_counts(Laws.Rule.add_counts(_, Laws.Rule.one(l2)), Laws.Rule.add_counts(Laws.Rule.one(l3), Laws.Rule.one(l4))), 0n} : Tour.Tally}
+      %one_same(l2) : {Tour.Event.count(Tour.Complete{ga, gb, ra, rb, Tour.Semis{l1, l2, l3, l4}, r1, r2, f1, f2, r, c}) == Tour.Tally{Tour.Event.one(c), Laws.Rule.add_counts(Tour.Event.one(f1), Tour.Event.one(f2)), Laws.Rule.add_counts(Laws.Rule.add_counts(Tour.Event.one(l1), _), Laws.Rule.add_counts(Laws.Rule.one(l3), Laws.Rule.one(l4))), 0n} : Tour.Tally}
+      %one_same(l3) : {Tour.Event.count(Tour.Complete{ga, gb, ra, rb, Tour.Semis{l1, l2, l3, l4}, r1, r2, f1, f2, r, c}) == Tour.Tally{Tour.Event.one(c), Laws.Rule.add_counts(Tour.Event.one(f1), Tour.Event.one(f2)), Laws.Rule.add_counts(Laws.Rule.add_counts(Tour.Event.one(l1), Tour.Event.one(l2)), Laws.Rule.add_counts(_, Laws.Rule.one(l4))), 0n} : Tour.Tally}
+      %one_same(l4) : {Tour.Event.count(Tour.Complete{ga, gb, ra, rb, Tour.Semis{l1, l2, l3, l4}, r1, r2, f1, f2, r, c}) == Tour.Tally{Tour.Event.one(c), Laws.Rule.add_counts(Tour.Event.one(f1), Tour.Event.one(f2)), Laws.Rule.add_counts(Laws.Rule.add_counts(Tour.Event.one(l1), Tour.Event.one(l2)), Laws.Rule.add_counts(Tour.Event.one(l3), _)), 0n} : Tour.Tally}
+      %add_counts_same(Tour.Event.one(f1), Tour.Event.one(f2)) : {Tour.Event.count(Tour.Complete{ga, gb, ra, rb, Tour.Semis{l1, l2, l3, l4}, r1, r2, f1, f2, r, c}) == Tour.Tally{Tour.Event.one(c), _, Laws.Rule.add_counts(Laws.Rule.add_counts(Tour.Event.one(l1), Tour.Event.one(l2)), Laws.Rule.add_counts(Tour.Event.one(l3), Tour.Event.one(l4))), 0n} : Tour.Tally}
+      %add_counts_same(Tour.Event.one(l1), Tour.Event.one(l2)) : {Tour.Event.count(Tour.Complete{ga, gb, ra, rb, Tour.Semis{l1, l2, l3, l4}, r1, r2, f1, f2, r, c}) == Tour.Tally{Tour.Event.one(c), Tour.Event.add_counts(Tour.Event.one(f1), Tour.Event.one(f2)), Laws.Rule.add_counts(_, Laws.Rule.add_counts(Tour.Event.one(l3), Tour.Event.one(l4))), 0n} : Tour.Tally}
+      %add_counts_same(Tour.Event.one(l3), Tour.Event.one(l4)) : {Tour.Event.count(Tour.Complete{ga, gb, ra, rb, Tour.Semis{l1, l2, l3, l4}, r1, r2, f1, f2, r, c}) == Tour.Tally{Tour.Event.one(c), Tour.Event.add_counts(Tour.Event.one(f1), Tour.Event.one(f2)), Laws.Rule.add_counts(Tour.Event.add_counts(Tour.Event.one(l1), Tour.Event.one(l2)), _), 0n} : Tour.Tally}
+      %add_counts_same(Tour.Event.add_counts(Tour.Event.one(l1), Tour.Event.one(l2)), Tour.Event.add_counts(Tour.Event.one(l3), Tour.Event.one(l4))) : {Tour.Event.count(Tour.Complete{ga, gb, ra, rb, Tour.Semis{l1, l2, l3, l4}, r1, r2, f1, f2, r, c}) == Tour.Tally{Tour.Event.one(c), Tour.Event.add_counts(Tour.Event.one(f1), Tour.Event.one(f2)), _, 0n} : Tour.Tally}
+      {==}
+    case Tour.Unfinished{}:
+      {==}
+
+# L30, by induction on the number of bits, exactly as L14.
+def Laws.L30_every_tournament_counted_once(d0, fmt, f, d, seed, prefix):
+  match d0:
+    case 0n:
+      %Equal.sym(Tour.Tally, Tour.Event.count(Tour.Event.play(fmt, f, d, seed, prefix)), Laws.Rule.event_tally(Tour.Event.play(fmt, f, d, seed, prefix)), event_count_same(Tour.Event.play(fmt, f, d, seed, prefix))) : {_ == Laws.Rule.event_sum(Laws.Rule.event_results(fmt, f, d, seed, prefix, [[]])) : Tour.Tally}
+      Equal.sym(Tour.Tally, Laws.Rule.add_tally(Laws.Rule.event_tally(Tour.Event.play(fmt, f, d, seed, prefix)), Laws.Rule.no_tally()), Laws.Rule.event_tally(Tour.Event.play(fmt, f, d, seed, prefix)), add_tally_nothing_right(Laws.Rule.event_tally(Tour.Event.play(fmt, f, d, seed, prefix))))
+    case 1n+p:
+      %Equal.sym(List<&2, Tour.Tally>, Laws.Rule.event_results(fmt, f, d, seed, prefix, List.append(&2, List<&2, Bool>, Laws.Rule.cons_all(False{}, Laws.Rule.paths(p)), Laws.Rule.cons_all(True{}, Laws.Rule.paths(p)))), List.append(&2, Tour.Tally, Laws.Rule.event_results(fmt, f, d, seed, prefix, Laws.Rule.cons_all(False{}, Laws.Rule.paths(p))), Laws.Rule.event_results(fmt, f, d, seed, prefix, Laws.Rule.cons_all(True{}, Laws.Rule.paths(p)))), event_results_append(fmt, f, d, seed, prefix, Laws.Rule.cons_all(False{}, Laws.Rule.paths(p)), Laws.Rule.cons_all(True{}, Laws.Rule.paths(p)))) : {Tour.Event.add(Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 0 : U32)), Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 1 : U32))) == Laws.Rule.event_sum(_) : Tour.Tally}
+      %Equal.sym(Tour.Tally, Laws.Rule.event_sum(List.append(&2, Tour.Tally, Laws.Rule.event_results(fmt, f, d, seed, prefix, Laws.Rule.cons_all(False{}, Laws.Rule.paths(p))), Laws.Rule.event_results(fmt, f, d, seed, prefix, Laws.Rule.cons_all(True{}, Laws.Rule.paths(p))))), Laws.Rule.add_tally(Laws.Rule.event_sum(Laws.Rule.event_results(fmt, f, d, seed, prefix, Laws.Rule.cons_all(False{}, Laws.Rule.paths(p)))), Laws.Rule.event_sum(Laws.Rule.event_results(fmt, f, d, seed, prefix, Laws.Rule.cons_all(True{}, Laws.Rule.paths(p))))), event_sum_append(Laws.Rule.event_results(fmt, f, d, seed, prefix, Laws.Rule.cons_all(False{}, Laws.Rule.paths(p))), Laws.Rule.event_results(fmt, f, d, seed, prefix, Laws.Rule.cons_all(True{}, Laws.Rule.paths(p))))) : {Tour.Event.add(Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 0 : U32)), Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 1 : U32))) == _ : Tour.Tally}
+      %Equal.sym(List<&2, Tour.Tally>, Laws.Rule.event_results(fmt, f, d, seed, prefix, Laws.Rule.cons_all(False{}, Laws.Rule.paths(p))), Laws.Rule.event_results(fmt, f, d, seed, (prefix * 2 + Laws.Rule.bit(False{}) : U32), Laws.Rule.paths(p)), event_results_cons_all(fmt, f, d, seed, False{}, prefix, Laws.Rule.paths(p))) : {Tour.Event.add(Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 0 : U32)), Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 1 : U32))) == Laws.Rule.add_tally(Laws.Rule.event_sum(_), Laws.Rule.event_sum(Laws.Rule.event_results(fmt, f, d, seed, prefix, Laws.Rule.cons_all(True{}, Laws.Rule.paths(p))))) : Tour.Tally}
+      %Equal.sym(List<&2, Tour.Tally>, Laws.Rule.event_results(fmt, f, d, seed, prefix, Laws.Rule.cons_all(True{}, Laws.Rule.paths(p))), Laws.Rule.event_results(fmt, f, d, seed, (prefix * 2 + Laws.Rule.bit(True{}) : U32), Laws.Rule.paths(p)), event_results_cons_all(fmt, f, d, seed, True{}, prefix, Laws.Rule.paths(p))) : {Tour.Event.add(Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 0 : U32)), Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 1 : U32))) == Laws.Rule.add_tally(Laws.Rule.event_sum(Laws.Rule.event_results(fmt, f, d, seed, (prefix * 2 + 0 : U32), Laws.Rule.paths(p))), Laws.Rule.event_sum(_)) : Tour.Tally}
+      %Laws.L30_every_tournament_counted_once(p, fmt, f, d, seed, (prefix * 2 + 0 : U32)) : {Tour.Event.add(Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 0 : U32)), Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 1 : U32))) == Laws.Rule.add_tally(_, Laws.Rule.event_sum(Laws.Rule.event_results(fmt, f, d, seed, (prefix * 2 + 1 : U32), Laws.Rule.paths(p)))) : Tour.Tally}
+      %Laws.L30_every_tournament_counted_once(p, fmt, f, d, seed, (prefix * 2 + 1 : U32)) : {Tour.Event.add(Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 0 : U32)), Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 1 : U32))) == Laws.Rule.add_tally(Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 0 : U32)), _) : Tour.Tally}
+      event_add_same(Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 0 : U32)), Tour.Event.tally(p, fmt, f, d, seed, (prefix * 2 + 1 : U32)))
+
