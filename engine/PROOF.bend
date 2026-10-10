@@ -3,6 +3,7 @@ import ./scoring.bend as S
 import ./sim.bend as Sim
 import ./LAWS.bend as Laws
 import ./tournament.bend as Tour
+import ./params.bend as P
 import ./proof_tables.bend as T
 
 def Laws.ex_40_15_is_not_over():
@@ -2433,3 +2434,332 @@ def Laws.L28_standings_follow_rule(g, rr):
   %place_same(Tour.P3{}, Tour.P1{}, Tour.P2{}, Tour.P4{}, g, rr) : {Tour.Standings.places(g, rr) == Tour.Places{Tour.Standings.place(Tour.P1{}, Tour.P2{}, Tour.P3{}, Tour.P4{}, g, rr), Tour.Standings.place(Tour.P2{}, Tour.P1{}, Tour.P3{}, Tour.P4{}, g, rr), _, Laws.Rule.place(Tour.P4{}, Tour.P1{}, Tour.P2{}, Tour.P3{}, g, rr)} : Tour.Places}
   %place_same(Tour.P4{}, Tour.P1{}, Tour.P2{}, Tour.P3{}, g, rr) : {Tour.Standings.places(g, rr) == Tour.Places{Tour.Standings.place(Tour.P1{}, Tour.P2{}, Tour.P3{}, Tour.P4{}, g, rr), Tour.Standings.place(Tour.P2{}, Tour.P1{}, Tour.P3{}, Tour.P4{}, g, rr), Tour.Standings.place(Tour.P3{}, Tour.P1{}, Tour.P2{}, Tour.P4{}, g, rr), _} : Tour.Places}
   {==}
+
+# ---------------------------------------------------------------------------
+# L29: one whole tournament. The engine's helpers follow the rule's, step by
+# step, using L15, L19 and L28 for the draw, the semifinal lines and the
+# standings.
+# ---------------------------------------------------------------------------
+
+law pick8_same:
+  for n: Nat
+  for p1: P.Player
+  for p2: P.Player
+  for p3: P.Player
+  for p4: P.Player
+  for p5: P.Player
+  for p6: P.Player
+  for p7: P.Player
+  for p8: P.Player
+  {Tour.Event.pick8(n, p1, p2, p3, p4, p5, p6, p7, p8) == Laws.Rule.pick8(n, p1, p2, p3, p4, p5, p6, p7, p8) : P.Player}
+
+def pick8_same(n, p1, p2, p3, p4, p5, p6, p7, p8):
+  match n:
+    case 1n:
+      {==}
+    case 2n:
+      {==}
+    case 3n:
+      {==}
+    case 4n:
+      {==}
+    case 5n:
+      {==}
+    case 6n:
+      {==}
+    case 7n:
+      {==}
+    case 0n:
+      {==}
+    case 8n+p:
+      {==}
+
+law player_same:
+  for n: Nat
+  for f: Tour.Field
+  {Tour.Event.player(n, f) == Laws.Rule.player(n, f) : P.Player}
+
+def player_same(n, f):
+  match f:
+    case Tour.Field{m, p1, p2, p3, p4, p5, p6, p7, p8}:
+      pick8_same(n, p1, p2, p3, p4, p5, p6, p7, p8)
+
+law chance_same:
+  for +f: Tour.Field
+  for +x: Nat
+  for +y: Nat
+  {Tour.Event.chance(f, x, y) == Laws.Rule.chance(f, x, y) : Sim.Chance}
+
+def chance_same(f, x, y):
+  match f:
+    case Tour.Field{+m, +p1, +p2, +p3, +p4, +p5, +p6, +p7, +p8}:
+      %pick8_same(x, p1, p2, p3, p4, p5, p6, p7, p8) : {Tour.Event.chance(Tour.Field{m, p1, p2, p3, p4, p5, p6, p7, p8}, x, y) == P.Serve.chance(m, _, Laws.Rule.pick8(y, p1, p2, p3, p4, p5, p6, p7, p8)) : Sim.Chance}
+      %pick8_same(y, p1, p2, p3, p4, p5, p6, p7, p8) : {Tour.Event.chance(Tour.Field{m, p1, p2, p3, p4, p5, p6, p7, p8}, x, y) == P.Serve.chance(m, Tour.Event.pick8(x, p1, p2, p3, p4, p5, p6, p7, p8), _) : Sim.Chance}
+      {==}
+
+law finished_same:
+  for o: Sim.Outcome
+  {Tour.Event.finished(o) == Laws.Rule.finished(o) : Maybe<Tour.Finished>}
+
+def finished_same(o):
+  match o:
+    case Sim.Won{w, S.Match{a, b, c}}:
+      {==}
+    case Sim.Unfinished{m}:
+      {==}
+
+law match_at_same:
+  for +fmt: S.Format
+  for +f: Tour.Field
+  for +seed: U32
+  for +run: U32
+  for +slot: U32
+  for +x: Nat
+  for +y: Nat
+  {Tour.Event.match_at(fmt, f, seed, run, slot, x, y) == Laws.Rule.match_at(fmt, f, seed, run, slot, x, y) : Maybe<Tour.Finished>}
+
+def match_at_same(fmt, f, seed, run, slot, x, y):
+  %chance_same(f, x, y) : {Tour.Event.match_at(fmt, f, seed, run, slot, x, y) == Laws.Rule.finished(Sim.Match.simulate(fmt, _, Laws.Rule.chance(f, y, x), seed, run, slot, Sim.Rng.coin(seed, run, slot))) : Maybe<Tour.Finished>}
+  %chance_same(f, y, x) : {Tour.Event.match_at(fmt, f, seed, run, slot, x, y) == Laws.Rule.finished(Sim.Match.simulate(fmt, Tour.Event.chance(f, x, y), _, seed, run, slot, Sim.Rng.coin(seed, run, slot))) : Maybe<Tour.Finished>}
+  finished_same(Sim.Match.simulate(fmt, Tour.Event.chance(f, x, y), Tour.Event.chance(f, y, x), seed, run, slot, Sim.Rng.coin(seed, run, slot)))
+
+law all6_same:
+  for a: Maybe<Tour.Finished>
+  for b: Maybe<Tour.Finished>
+  for c: Maybe<Tour.Finished>
+  for d: Maybe<Tour.Finished>
+  for e: Maybe<Tour.Finished>
+  for h: Maybe<Tour.Finished>
+  {Tour.Event.all6(a, b, c, d, e, h) == Laws.Rule.all6(a, b, c, d, e, h) : Maybe<Tour.RoundRobin>}
+
+def all6_same(a, b, c, d, e, h):
+  match a:
+    case None{}:
+      {==}
+    case Some{x0}:
+      match b:
+        case None{}:
+          {==}
+        case Some{x1}:
+          match c:
+            case None{}:
+              {==}
+            case Some{x2}:
+              match d:
+                case None{}:
+                  {==}
+                case Some{x3}:
+                  match e:
+                    case None{}:
+                      {==}
+                    case Some{x4}:
+                      match h:
+                        case None{}:
+                          {==}
+                        case Some{x5}:
+                          {==}
+
+law group_play_same:
+  for +fmt: S.Format
+  for +f: Tour.Field
+  for +seed: U32
+  for +run: U32
+  for +base: U32
+  for g: Tour.Group
+  {Tour.Event.group_play(fmt, f, seed, run, base, g) == Laws.Rule.group_play(fmt, f, seed, run, base, g) : Maybe<Tour.RoundRobin>}
+
+def group_play_same(fmt, f, seed, run, base, g):
+  match g:
+    case Tour.Group{+s1, +s2, +s3, +s4}:
+      %match_at_same(fmt, f, seed, run, base, s1, s2) : {Tour.Event.group_play(fmt, f, seed, run, base, Tour.Group{s1, s2, s3, s4}) == Laws.Rule.all6(_, Laws.Rule.match_at(fmt, f, seed, run, (base + 1 : U32), s1, s3), Laws.Rule.match_at(fmt, f, seed, run, (base + 2 : U32), s1, s4), Laws.Rule.match_at(fmt, f, seed, run, (base + 3 : U32), s2, s3), Laws.Rule.match_at(fmt, f, seed, run, (base + 4 : U32), s2, s4), Laws.Rule.match_at(fmt, f, seed, run, (base + 5 : U32), s3, s4)) : Maybe<Tour.RoundRobin>}
+      %match_at_same(fmt, f, seed, run, (base + 1 : U32), s1, s3) : {Tour.Event.group_play(fmt, f, seed, run, base, Tour.Group{s1, s2, s3, s4}) == Laws.Rule.all6(Tour.Event.match_at(fmt, f, seed, run, base, s1, s2), _, Laws.Rule.match_at(fmt, f, seed, run, (base + 2 : U32), s1, s4), Laws.Rule.match_at(fmt, f, seed, run, (base + 3 : U32), s2, s3), Laws.Rule.match_at(fmt, f, seed, run, (base + 4 : U32), s2, s4), Laws.Rule.match_at(fmt, f, seed, run, (base + 5 : U32), s3, s4)) : Maybe<Tour.RoundRobin>}
+      %match_at_same(fmt, f, seed, run, (base + 2 : U32), s1, s4) : {Tour.Event.group_play(fmt, f, seed, run, base, Tour.Group{s1, s2, s3, s4}) == Laws.Rule.all6(Tour.Event.match_at(fmt, f, seed, run, base, s1, s2), Tour.Event.match_at(fmt, f, seed, run, (base + 1 : U32), s1, s3), _, Laws.Rule.match_at(fmt, f, seed, run, (base + 3 : U32), s2, s3), Laws.Rule.match_at(fmt, f, seed, run, (base + 4 : U32), s2, s4), Laws.Rule.match_at(fmt, f, seed, run, (base + 5 : U32), s3, s4)) : Maybe<Tour.RoundRobin>}
+      %match_at_same(fmt, f, seed, run, (base + 3 : U32), s2, s3) : {Tour.Event.group_play(fmt, f, seed, run, base, Tour.Group{s1, s2, s3, s4}) == Laws.Rule.all6(Tour.Event.match_at(fmt, f, seed, run, base, s1, s2), Tour.Event.match_at(fmt, f, seed, run, (base + 1 : U32), s1, s3), Tour.Event.match_at(fmt, f, seed, run, (base + 2 : U32), s1, s4), _, Laws.Rule.match_at(fmt, f, seed, run, (base + 4 : U32), s2, s4), Laws.Rule.match_at(fmt, f, seed, run, (base + 5 : U32), s3, s4)) : Maybe<Tour.RoundRobin>}
+      %match_at_same(fmt, f, seed, run, (base + 4 : U32), s2, s4) : {Tour.Event.group_play(fmt, f, seed, run, base, Tour.Group{s1, s2, s3, s4}) == Laws.Rule.all6(Tour.Event.match_at(fmt, f, seed, run, base, s1, s2), Tour.Event.match_at(fmt, f, seed, run, (base + 1 : U32), s1, s3), Tour.Event.match_at(fmt, f, seed, run, (base + 2 : U32), s1, s4), Tour.Event.match_at(fmt, f, seed, run, (base + 3 : U32), s2, s3), _, Laws.Rule.match_at(fmt, f, seed, run, (base + 5 : U32), s3, s4)) : Maybe<Tour.RoundRobin>}
+      %match_at_same(fmt, f, seed, run, (base + 5 : U32), s3, s4) : {Tour.Event.group_play(fmt, f, seed, run, base, Tour.Group{s1, s2, s3, s4}) == Laws.Rule.all6(Tour.Event.match_at(fmt, f, seed, run, base, s1, s2), Tour.Event.match_at(fmt, f, seed, run, (base + 1 : U32), s1, s3), Tour.Event.match_at(fmt, f, seed, run, (base + 2 : U32), s1, s4), Tour.Event.match_at(fmt, f, seed, run, (base + 3 : U32), s2, s3), Tour.Event.match_at(fmt, f, seed, run, (base + 4 : U32), s2, s4), _) : Maybe<Tour.RoundRobin>}
+      all6_same(Tour.Event.match_at(fmt, f, seed, run, base, s1, s2), Tour.Event.match_at(fmt, f, seed, run, (base + 1 : U32), s1, s3), Tour.Event.match_at(fmt, f, seed, run, (base + 2 : U32), s1, s4), Tour.Event.match_at(fmt, f, seed, run, (base + 3 : U32), s2, s3), Tour.Event.match_at(fmt, f, seed, run, (base + 4 : U32), s2, s4), Tour.Event.match_at(fmt, f, seed, run, (base + 5 : U32), s3, s4))
+
+law groups_same:
+  for d: Tour.Draw
+  for +seed: U32
+  for +run: U32
+  {Tour.Event.groups(d, seed, run) == Laws.Rule.groups(d, seed, run) : Tour.Group & Tour.Group}
+
+def groups_same(d, seed, run):
+  match d:
+    case Tour.Seeded{}:
+      %same_same(Sim.Rng.coin(seed, run, 15), S.A{}) : {Tour.Event.groups(Tour.Seeded{}, seed, run) == Laws.Rule.seeded_groups(_, Laws.Rule.lot(seed, run, 16), Laws.Rule.lot(seed, run, 17)) : Tour.Group & Tour.Group}
+      %same_same(Sim.Rng.coin(seed, run, 16), S.A{}) : {Tour.Event.groups(Tour.Seeded{}, seed, run) == Laws.Rule.seeded_groups(Tour.Event.lot(seed, run, 15), _, Laws.Rule.lot(seed, run, 17)) : Tour.Group & Tour.Group}
+      %same_same(Sim.Rng.coin(seed, run, 17), S.A{}) : {Tour.Event.groups(Tour.Seeded{}, seed, run) == Laws.Rule.seeded_groups(Tour.Event.lot(seed, run, 15), Tour.Event.lot(seed, run, 16), _) : Tour.Group & Tour.Group}
+      Laws.L15_seeded_draw_follows_rule(Tour.Event.lot(seed, run, 15), Tour.Event.lot(seed, run, 16), Tour.Event.lot(seed, run, 17))
+    case Tour.Fixed{a, b}:
+      {==}
+
+law on_line_same:
+  for n: Nat
+  for sm: Tour.Semis
+  {Tour.Knockout.on_line(n, sm) == Laws.Rule.on_line(n, sm) : Nat}
+
+def on_line_same(n, sm):
+  match n sm:
+    case 1n Tour.Semis{a, b, c, d}:
+      {==}
+    case 2n Tour.Semis{a, b, c, d}:
+      {==}
+    case 3n Tour.Semis{a, b, c, d}:
+      {==}
+    case 0n Tour.Semis{a, b, c, d}:
+      {==}
+    case 4n+p Tour.Semis{a, b, c, d}:
+      {==}
+
+law winner_of_same:
+  for r: Tour.Finished
+  for a: Nat
+  for b: Nat
+  {Tour.Knockout.winner_of(r, a, b) == Laws.Rule.winner_of(r, a, b) : Nat}
+
+def winner_of_same(r, a, b):
+  match r:
+    case Tour.Finished{S.A{}, s}:
+      {==}
+    case Tour.Finished{S.B{}, s}:
+      {==}
+
+law finish_same:
+  for +ga: Tour.Group
+  for +gb: Tour.Group
+  for +ra: Tour.RoundRobin
+  for +rb: Tour.RoundRobin
+  for +sm: Tour.Semis
+  for +r1: Tour.Finished
+  for +r2: Tour.Finished
+  for +f1: Nat
+  for +f2: Nat
+  for fr: Maybe<Tour.Finished>
+  {Tour.Event.finish(ga, gb, ra, rb, sm, r1, r2, f1, f2, fr) == Laws.Rule.finish(ga, gb, ra, rb, sm, r1, r2, f1, f2, fr) : Tour.Outcome}
+
+def finish_same(ga, gb, ra, rb, sm, r1, r2, f1, f2, fr):
+  match fr:
+    case Some{+r}:
+      %winner_of_same(r, f1, f2) : {Tour.Event.finish(ga, gb, ra, rb, sm, r1, r2, f1, f2, Some{r}) == Tour.Complete{ga, gb, ra, rb, sm, r1, r2, f1, f2, r, _} : Tour.Outcome}
+      {==}
+    case None{}:
+      {==}
+
+law final_stage_same:
+  for +fmt: S.Format
+  for +f: Tour.Field
+  for +seed: U32
+  for +run: U32
+  for +ga: Tour.Group
+  for +gb: Tour.Group
+  for +ra: Tour.RoundRobin
+  for +rb: Tour.RoundRobin
+  for +sm: Tour.Semis
+  for +r1: Tour.Finished
+  for +r2: Tour.Finished
+  for +f1: Nat
+  for +f2: Nat
+  {Tour.Event.final_stage(fmt, f, seed, run, ga, gb, ra, rb, sm, r1, r2, f1, f2) == Laws.Rule.final_stage(fmt, f, seed, run, ga, gb, ra, rb, sm, r1, r2, f1, f2) : Tour.Outcome}
+
+def final_stage_same(fmt, f, seed, run, ga, gb, ra, rb, sm, r1, r2, f1, f2):
+  %match_at_same(fmt, f, seed, run, 14, f1, f2) : {Tour.Event.final_stage(fmt, f, seed, run, ga, gb, ra, rb, sm, r1, r2, f1, f2) == Laws.Rule.finish(ga, gb, ra, rb, sm, r1, r2, f1, f2, _) : Tour.Outcome}
+  finish_same(ga, gb, ra, rb, sm, r1, r2, f1, f2, Tour.Event.match_at(fmt, f, seed, run, 14, f1, f2))
+
+law after_semis_same:
+  for +fmt: S.Format
+  for +f: Tour.Field
+  for +seed: U32
+  for +run: U32
+  for +ga: Tour.Group
+  for +gb: Tour.Group
+  for +ra: Tour.RoundRobin
+  for +rb: Tour.RoundRobin
+  for +sm: Tour.Semis
+  for s1: Maybe<Tour.Finished>
+  for s2: Maybe<Tour.Finished>
+  {Tour.Event.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, s1, s2) == Laws.Rule.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, s1, s2) : Tour.Outcome}
+
+def after_semis_same(fmt, f, seed, run, ga, gb, ra, rb, sm, s1, s2):
+  match s1 s2:
+    case Some{+r1} Some{+r2}:
+      %on_line_same(1n, sm) : {Tour.Event.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, Some{r1}, Some{r2}) == Laws.Rule.final_stage(fmt, f, seed, run, ga, gb, ra, rb, sm, r1, r2, Laws.Rule.winner_of(r1, _, Laws.Rule.on_line(2n, sm)), Laws.Rule.winner_of(r2, Laws.Rule.on_line(3n, sm), Laws.Rule.on_line(4n, sm))) : Tour.Outcome}
+      %on_line_same(2n, sm) : {Tour.Event.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, Some{r1}, Some{r2}) == Laws.Rule.final_stage(fmt, f, seed, run, ga, gb, ra, rb, sm, r1, r2, Laws.Rule.winner_of(r1, Tour.Knockout.on_line(1n, sm), _), Laws.Rule.winner_of(r2, Laws.Rule.on_line(3n, sm), Laws.Rule.on_line(4n, sm))) : Tour.Outcome}
+      %on_line_same(3n, sm) : {Tour.Event.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, Some{r1}, Some{r2}) == Laws.Rule.final_stage(fmt, f, seed, run, ga, gb, ra, rb, sm, r1, r2, Laws.Rule.winner_of(r1, Tour.Knockout.on_line(1n, sm), Tour.Knockout.on_line(2n, sm)), Laws.Rule.winner_of(r2, _, Laws.Rule.on_line(4n, sm))) : Tour.Outcome}
+      %on_line_same(4n, sm) : {Tour.Event.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, Some{r1}, Some{r2}) == Laws.Rule.final_stage(fmt, f, seed, run, ga, gb, ra, rb, sm, r1, r2, Laws.Rule.winner_of(r1, Tour.Knockout.on_line(1n, sm), Tour.Knockout.on_line(2n, sm)), Laws.Rule.winner_of(r2, Tour.Knockout.on_line(3n, sm), _)) : Tour.Outcome}
+      %winner_of_same(r1, Tour.Knockout.on_line(1n, sm), Tour.Knockout.on_line(2n, sm)) : {Tour.Event.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, Some{r1}, Some{r2}) == Laws.Rule.final_stage(fmt, f, seed, run, ga, gb, ra, rb, sm, r1, r2, _, Laws.Rule.winner_of(r2, Tour.Knockout.on_line(3n, sm), Tour.Knockout.on_line(4n, sm))) : Tour.Outcome}
+      %winner_of_same(r2, Tour.Knockout.on_line(3n, sm), Tour.Knockout.on_line(4n, sm)) : {Tour.Event.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, Some{r1}, Some{r2}) == Laws.Rule.final_stage(fmt, f, seed, run, ga, gb, ra, rb, sm, r1, r2, Tour.Knockout.winner_of(r1, Tour.Knockout.on_line(1n, sm), Tour.Knockout.on_line(2n, sm)), _) : Tour.Outcome}
+      final_stage_same(fmt, f, seed, run, ga, gb, ra, rb, sm, r1, r2, Tour.Knockout.winner_of(r1, Tour.Knockout.on_line(1n, sm), Tour.Knockout.on_line(2n, sm)), Tour.Knockout.winner_of(r2, Tour.Knockout.on_line(3n, sm), Tour.Knockout.on_line(4n, sm)))
+    case Some{r1} None{}:
+      {==}
+    case None{} Some{r2}:
+      {==}
+    case None{} None{}:
+      {==}
+
+law semis_stage_same:
+  for +fmt: S.Format
+  for +f: Tour.Field
+  for +seed: U32
+  for +run: U32
+  for +ga: Tour.Group
+  for +gb: Tour.Group
+  for +ra: Tour.RoundRobin
+  for +rb: Tour.RoundRobin
+  for +sm: Tour.Semis
+  {Tour.Event.semis_stage(fmt, f, seed, run, ga, gb, ra, rb, sm) == Laws.Rule.semis_stage(fmt, f, seed, run, ga, gb, ra, rb, sm) : Tour.Outcome}
+
+def semis_stage_same(fmt, f, seed, run, ga, gb, ra, rb, sm):
+  %on_line_same(1n, sm) : {Tour.Event.semis_stage(fmt, f, seed, run, ga, gb, ra, rb, sm) == Laws.Rule.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, Laws.Rule.match_at(fmt, f, seed, run, 12, _, Laws.Rule.on_line(2n, sm)), Laws.Rule.match_at(fmt, f, seed, run, 13, Laws.Rule.on_line(3n, sm), Laws.Rule.on_line(4n, sm))) : Tour.Outcome}
+  %on_line_same(2n, sm) : {Tour.Event.semis_stage(fmt, f, seed, run, ga, gb, ra, rb, sm) == Laws.Rule.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, Laws.Rule.match_at(fmt, f, seed, run, 12, Tour.Knockout.on_line(1n, sm), _), Laws.Rule.match_at(fmt, f, seed, run, 13, Laws.Rule.on_line(3n, sm), Laws.Rule.on_line(4n, sm))) : Tour.Outcome}
+  %on_line_same(3n, sm) : {Tour.Event.semis_stage(fmt, f, seed, run, ga, gb, ra, rb, sm) == Laws.Rule.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, Laws.Rule.match_at(fmt, f, seed, run, 12, Tour.Knockout.on_line(1n, sm), Tour.Knockout.on_line(2n, sm)), Laws.Rule.match_at(fmt, f, seed, run, 13, _, Laws.Rule.on_line(4n, sm))) : Tour.Outcome}
+  %on_line_same(4n, sm) : {Tour.Event.semis_stage(fmt, f, seed, run, ga, gb, ra, rb, sm) == Laws.Rule.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, Laws.Rule.match_at(fmt, f, seed, run, 12, Tour.Knockout.on_line(1n, sm), Tour.Knockout.on_line(2n, sm)), Laws.Rule.match_at(fmt, f, seed, run, 13, Tour.Knockout.on_line(3n, sm), _)) : Tour.Outcome}
+  %match_at_same(fmt, f, seed, run, 12, Tour.Knockout.on_line(1n, sm), Tour.Knockout.on_line(2n, sm)) : {Tour.Event.semis_stage(fmt, f, seed, run, ga, gb, ra, rb, sm) == Laws.Rule.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, _, Laws.Rule.match_at(fmt, f, seed, run, 13, Tour.Knockout.on_line(3n, sm), Tour.Knockout.on_line(4n, sm))) : Tour.Outcome}
+  %match_at_same(fmt, f, seed, run, 13, Tour.Knockout.on_line(3n, sm), Tour.Knockout.on_line(4n, sm)) : {Tour.Event.semis_stage(fmt, f, seed, run, ga, gb, ra, rb, sm) == Laws.Rule.after_semis(fmt, f, seed, run, ga, gb, ra, rb, sm, Tour.Event.match_at(fmt, f, seed, run, 12, Tour.Knockout.on_line(1n, sm), Tour.Knockout.on_line(2n, sm)), _) : Tour.Outcome}
+  after_semis_same(fmt, f, seed, run, ga, gb, ra, rb, sm, Tour.Event.match_at(fmt, f, seed, run, 12, Tour.Knockout.on_line(1n, sm), Tour.Knockout.on_line(2n, sm)), Tour.Event.match_at(fmt, f, seed, run, 13, Tour.Knockout.on_line(3n, sm), Tour.Knockout.on_line(4n, sm)))
+
+law after_groups_same:
+  for +fmt: S.Format
+  for +f: Tour.Field
+  for +seed: U32
+  for +run: U32
+  for +ga: Tour.Group
+  for +gb: Tour.Group
+  for xa: Maybe<Tour.RoundRobin>
+  for xb: Maybe<Tour.RoundRobin>
+  {Tour.Event.after_groups(fmt, f, seed, run, ga, gb, xa, xb) == Laws.Rule.after_groups(fmt, f, seed, run, ga, gb, xa, xb) : Tour.Outcome}
+
+def after_groups_same(fmt, f, seed, run, ga, gb, xa, xb):
+  match xa xb:
+    case Some{+ra} Some{+rb}:
+      %Laws.L28_standings_follow_rule(ga, ra) : {Tour.Event.after_groups(fmt, f, seed, run, ga, gb, Some{ra}, Some{rb}) == Laws.Rule.semis_stage(fmt, f, seed, run, ga, gb, ra, rb, Laws.Rule.semis(ga, _, gb, Laws.Rule.places(gb, rb))) : Tour.Outcome}
+      %Laws.L28_standings_follow_rule(gb, rb) : {Tour.Event.after_groups(fmt, f, seed, run, ga, gb, Some{ra}, Some{rb}) == Laws.Rule.semis_stage(fmt, f, seed, run, ga, gb, ra, rb, Laws.Rule.semis(ga, Tour.Standings.places(ga, ra), gb, _)) : Tour.Outcome}
+      %Laws.L19_semis_cross_groups(ga, Tour.Standings.places(ga, ra), gb, Tour.Standings.places(gb, rb)) : {Tour.Event.after_groups(fmt, f, seed, run, ga, gb, Some{ra}, Some{rb}) == Laws.Rule.semis_stage(fmt, f, seed, run, ga, gb, ra, rb, _) : Tour.Outcome}
+      semis_stage_same(fmt, f, seed, run, ga, gb, ra, rb, Tour.Knockout.semis(ga, Tour.Standings.places(ga, ra), gb, Tour.Standings.places(gb, rb)))
+    case Some{ra} None{}:
+      {==}
+    case None{} Some{rb}:
+      {==}
+    case None{} None{}:
+      {==}
+
+law after_draw_same:
+  for +fmt: S.Format
+  for +f: Tour.Field
+  for +seed: U32
+  for +run: U32
+  for gs: Tour.Group & Tour.Group
+  {Tour.Event.after_draw(fmt, f, seed, run, gs) == Laws.Rule.after_draw(fmt, f, seed, run, gs) : Tour.Outcome}
+
+def after_draw_same(fmt, f, seed, run, gs):
+  match gs:
+    case (+ga, +gb):
+      %group_play_same(fmt, f, seed, run, 0, ga) : {Tour.Event.after_draw(fmt, f, seed, run, (ga, gb)) == Laws.Rule.after_groups(fmt, f, seed, run, ga, gb, _, Laws.Rule.group_play(fmt, f, seed, run, 6, gb)) : Tour.Outcome}
+      %group_play_same(fmt, f, seed, run, 6, gb) : {Tour.Event.after_draw(fmt, f, seed, run, (ga, gb)) == Laws.Rule.after_groups(fmt, f, seed, run, ga, gb, Tour.Event.group_play(fmt, f, seed, run, 0, ga), _) : Tour.Outcome}
+      after_groups_same(fmt, f, seed, run, ga, gb, Tour.Event.group_play(fmt, f, seed, run, 0, ga), Tour.Event.group_play(fmt, f, seed, run, 6, gb))
+
+def Laws.L29_tournament_follows_rules(fmt, f, d, seed, run):
+  %groups_same(d, seed, run) : {Tour.Event.play(fmt, f, d, seed, run) == Laws.Rule.after_draw(fmt, f, seed, run, _) : Tour.Outcome}
+  after_draw_same(fmt, f, seed, run, Tour.Event.groups(d, seed, run))
+
