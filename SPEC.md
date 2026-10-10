@@ -129,7 +129,7 @@ The engine follows standard WTA tour singles rules, with every format detail sto
 
 The two serve-order rows are easy to get wrong and hard to notice when wrong: the results still look like tennis. They get their own laws.
 
-**To confirm before milestone 6:** the official WTA Finals match format for 2026.
+**Confirmed at milestone 6:** the 2026 rulebook (VI.B.6, and the ITF rules in its Appendix N) gives exactly this format: best of three tie-break sets, with a 7-point tiebreak at 6–6 in every set. Copied into `data/rules/`.
 
 ## Simulation
 
@@ -161,9 +161,9 @@ The real uncertainty sits in the inputs, not the run count. A serve percentage b
 
 The WTA Finals has eight players in two groups of four; each plays the other three in her group, the top two of each group reach the semifinals, and the semifinal winners meet in the final.
 
-1. **Groups.** Three modes. Seeded random (default before the draw): the top two seeds go in different groups, and seeds 3–4, 5–6 and 7–8 are each split between the groups by lot, mirroring the real draw (confirm in the rulebook). Real groups: used once the draw happens. Custom groups: you choose who goes where, for what-ifs such as a group of death.
+1. **Groups.** Three modes. Seeded random (default before the draw): the top two seeds go in different groups, and seeds 3–4, 5–6 and 7–8 are each split between the groups by lot, mirroring the real draw (confirmed: rulebook VI.B.3). Real groups: used once the draw happens. Custom groups: you choose who goes where, for what-ifs such as a group of death.
 2. **Round robin.** Simulate all six matches in each group.
-3. **Standings.** Rank by matches won; break ties with the official rules (below).
+3. **Standings.** Rank by matches won; break ties with the official rules (below). Agreed readings of the rulebook (milestone 6): set and game percentages count all of a player's round-robin matches, not only those among the tied players; percentages are compared exactly, without rounding; and the two steps about matches not played ("greatest number of matches played" and "a player completing less than all three matches is eliminated") are left out, because v0 completes every match.
 4. **Semifinals.** Group A winner vs Group B runner-up; Group B winner vs Group A runner-up.
 5. **Final.** Semifinal winners meet.
 
@@ -204,12 +204,17 @@ These are the rules the code must never break, written in plain words; each beco
 | L25 | Match | Who has won a match follows the match rule: the first player to win 2 sets (the sets-to-win setting). |
 | L26 | Simulation | Each simulated point goes to the server exactly when the random number is below the server's point chance, and to the receiver otherwise. The server is the one L11 picks. |
 | L27 | Simulation | A simulated match plays at most 1,000 points from its random stream. It is reported as won only by the player the scoring engine says has won; otherwise it is reported as unfinished. |
+| L28 | Standings | A group's places follow the rulebook's standings rule (VI.B.4.b) for every possible set of six results. |
+| L29 | Tournament | A simulated tournament follows the rules: the draw, then every match played by the L27 match simulator in its own slot of random numbers with the right two players' chances, then the standings and semifinal lines deciding who plays whom. If any match is unfinished, the tournament is reported as unfinished. |
+| L30 | Tournament | The total over all simulated tournaments counts every tournament exactly once, however the work is split across cores. |
 
 L3, L4 and L7 follow from L2 and L6, but they get their own laws anyway: deuce is where scoring bugs hide, and it is the reason every match needs a point cap.
 
 L20 was added during milestone 2. L2–L5 only constrain who has won a game and that a won game stays won, so without L20 an engine that credited a point to the wrong player would still pass them. L21–L23 were added in milestone 3 to close the same gap for tiebreaks, sets and matches. L24 and L25 were added for the same reason: L9 and L12 only describe a finished set or match, so without them an engine that never ended a set or match would pass.
 
 L14 was reworded in milestone 4. As first written ("the same seed and inputs always give the same result") it is automatically true in Bend: functions have no hidden state, clock or shared generator, so the proof would be "it is the same expression" and could never fail. The reworded law covers the way parallel tallying really goes wrong: a run dropped or counted twice. Identical output on reruns, and on 1 core versus all cores, is still checked by running it. L26 and L27 were added in milestone 4: without L26 a simulator could use the wrong player's point chance and every scoring law would still prove; without L27 it could stop early, use more than 1,000 points, or count an unfinished match as a win.
+
+L28–L30 were added in milestone 6. Without L28, an engine that broke a three-way tie by head-to-head, or by set counts instead of percentages, would still pass L16 and L17. Without L29, it could pair the wrong players, use one player's chance for another, or reuse random numbers across matches, and still pass L15–L19. L30 is L14 for tournaments.
 
 Two things Bend will not prove: that the point model reflects real tennis, and that the input numbers are right. Those are checked by validation, below.
 
@@ -289,7 +294,7 @@ These are the choices that are easy to make without noticing, each with my recom
 The biggest unknown is the toolchain: Bend 2 is young, so milestone 1 should prove it installs and compiles in the Claude Code cloud environment before anything else is built.
 
 - [ ] Does Bend 2 install and run in Claude Code cloud, and how much CPU and run time does a session allow?
-- [ ] Official 2026 WTA Finals match format and round-robin tiebreak rules (rulebook text, safoved in the repo).
+- [x] Official 2026 WTA Finals match format and round-robin tiebreak rules (rulebook text, saved in `data/rules/`, milestone 6).
 - [ ] When is the group draw, and when is the eight-player field final?
 - [x] Does Tennis Abstract show 52-week hard-court serve and return points won for each player, with point counts? The player pages show the percentages but no point counts; the per-player data files behind them have the raw counts (milestone 5).
 - [ ] Repo name, and public or private?

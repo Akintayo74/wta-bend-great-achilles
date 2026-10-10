@@ -1,13 +1,12 @@
-# LAWS.bend: the rules the engine must never break (SPEC.md, Laws L1-L27;
-# L28-L30 proposed in milestone 6).
+# LAWS.bend: the rules the engine must never break (SPEC.md, Laws L1-L30).
 #
 # STATUS: Milestone 2 (game layer: L2-L5, L20): approved by the owner.
 #         Milestone 3 (tiebreak, set, match: L6-L13, L21-L25): approved by
 #         the owner.
 #         Milestone 4 (simulation: L1, L14, L26, L27): approved by the
 #         owner.
-#         Milestone 6 (tournament: L15-L19, and proposed L28-L30): DRAFT,
-#         waiting for the owner's review.
+#         Milestone 6 (tournament: L15-L19, L28-L30): approved by the
+#         owner.
 # Once merged to main, this file is locked; see CLAUDE.md.
 #
 # How to read a law:
@@ -1062,7 +1061,7 @@ law L14_every_run_counted_once:
   {Sim.Run.tally(d, fmt, ca, cb, seed, prefix) == Rule.sum(Rule.results(fmt, ca, cb, seed, prefix, Rule.paths(d))) : Sim.Tally}
 
 # ===========================================================================
-# MILESTONE 6: groups, standings and knockouts. DRAFT for the owner's review.
+# MILESTONE 6: groups, standings and knockouts. Approved by the owner.
 # ===========================================================================
 #
 # Source: the 2026 WTA Rulebook, Section VI.B, copied word for word into
@@ -1402,7 +1401,7 @@ law ex_three_way_tie_for_second:
 # Standings laws: L28, L16, L17
 # ---------------------------------------------------------------------------
 
-# L28 (proposed). The engine's group places follow the rulebook's standings
+# L28. The engine's group places follow the rulebook's standings
 # rule above, for every possible set of six results. Without it, an engine
 # that broke three-way ties by head-to-head, or used set counts instead of
 # percentages, would pass L16 and L17.
@@ -1610,7 +1609,7 @@ def Rule.after_draw(+fmt: S.Format, +f: Tour.Field, +seed: U32, +run: U32, gs: T
 def Rule.tournament(+fmt: S.Format, +f: Tour.Field, d: Tour.Draw, +seed: U32, +run: U32) -> Tour.Outcome:
   Rule.after_draw(fmt, f, seed, run, Rule.groups(d, seed, run))
 
-# L29 (proposed). A simulated tournament follows the rules above: the draw,
+# L29. A simulated tournament follows the rules above: the draw,
 # then each match played by the match simulator of L27 in its own slot, with
 # the right players' chances, then the standings (L28) and the semifinal
 # lines (L19) deciding who plays whom, and the run reported unfinished if any
@@ -1710,7 +1709,7 @@ def Rule.event_results(+fmt: S.Format, +f: Tour.Field, +d: Tour.Draw, +seed: U32
     case Con{path, rest}:
       Rule.event_tally(Tour.Event.play(fmt, f, d, seed, Rule.number(path, prefix))) <> Rule.event_results(fmt, f, d, seed, prefix, rest)
 
-# L30 (proposed). The totals over all tournaments count every run exactly
+# L30. The totals over all tournaments count every run exactly
 # once, however the work is split across cores: L14, for tournaments.
 law L30_every_tournament_counted_once:
   for +d: Nat
