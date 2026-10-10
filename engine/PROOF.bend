@@ -2,6 +2,7 @@ import Base
 import ./scoring.bend as S
 import ./sim.bend as Sim
 import ./LAWS.bend as Laws
+import ./tournament.bend as Tour
 import ./proof_tables.bend as T
 
 def Laws.ex_40_15_is_not_over():
@@ -1884,9 +1885,9 @@ def Laws.L14_every_run_counted_once(d, fmt, ca, cb, seed, prefix):
       %Laws.L14_every_run_counted_once(p, fmt, ca, cb, seed, (prefix * 2 + 1 : U32)) : {Sim.Run.add(Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 0 : U32)), Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 1 : U32))) == Laws.Rule.add(Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 0 : U32)), _) : Sim.Tally}
       run_add_same(Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 0 : U32)), Sim.Run.tally(p, fmt, ca, cb, seed, (prefix * 2 + 1 : U32)))
 
+
 # ===========================================================================
-# Milestone 6 (draft): the worked examples. The laws L15-L19 and L28-L30
-# are left open until the owner approves them.
+# MILESTONE 6: groups, standings and knockouts
 # ===========================================================================
 
 def Laws.ex_seeded_draw():
@@ -1914,4 +1915,521 @@ def Laws.ex_three_way_tie_for_second():
   {==}
 
 def Laws.ex_semis():
+  {==}
+
+# ---------------------------------------------------------------------------
+# L15: the draw. Three lots, eight cases, each computed.
+# ---------------------------------------------------------------------------
+
+def Laws.L15_seeded_draw_follows_rule(l34, l56, l78):
+  match l34 l56 l78:
+    case True{} True{} True{}:
+      {==}
+    case True{} True{} False{}:
+      {==}
+    case True{} False{} True{}:
+      {==}
+    case True{} False{} False{}:
+      {==}
+    case False{} True{} True{}:
+      {==}
+    case False{} True{} False{}:
+      {==}
+    case False{} False{} True{}:
+      {==}
+    case False{} False{} False{}:
+      {==}
+
+# ---------------------------------------------------------------------------
+# L19: the semifinal lines
+# ---------------------------------------------------------------------------
+
+# Three nested choices agree, by trying every combination of the conditions.
+law choose3_same:
+  for b1: Bool
+  for b2: Bool
+  for b3: Bool
+  for s1: Nat
+  for s2: Nat
+  for s3: Nat
+  for s4: Nat
+  {S.Match.choose(b1, s1, S.Match.choose(b2, s2, S.Match.choose(b3, s3, s4))) == Laws.Rule.choose(b1, s1, Laws.Rule.choose(b2, s2, Laws.Rule.choose(b3, s3, s4))) : Nat}
+
+def choose3_same(b1, b2, b3, s1, s2, s3, s4):
+  match b1 b2 b3:
+    case True{} True{} True{}:
+      {==}
+    case True{} True{} False{}:
+      {==}
+    case True{} False{} True{}:
+      {==}
+    case True{} False{} False{}:
+      {==}
+    case False{} True{} True{}:
+      {==}
+    case False{} True{} False{}:
+      {==}
+    case False{} False{} True{}:
+      {==}
+    case False{} False{} False{}:
+      {==}
+
+law at_place_same:
+  for +n: Nat
+  for g: Tour.Group
+  for pl: Tour.Places
+  {Tour.Knockout.at_place(n, g, pl) == Laws.Rule.at_place(n, g, pl) : Nat}
+
+def at_place_same(n, g, pl):
+  match g pl:
+    case Tour.Group{s1, s2, s3, s4} Tour.Places{+p1, +p2, +p3, _}:
+      choose3_same(Nat.is_eq(p1, n), Nat.is_eq(p2, n), Nat.is_eq(p3, n), s1, s2, s3, s4)
+
+def Laws.L19_semis_cross_groups(ga, pa, gb, pb):
+  %at_place_same(1n, ga, pa) : {Tour.Knockout.semis(ga, pa, gb, pb) == Tour.Semis{_, Laws.Rule.at_place(2n, gb, pb), Laws.Rule.at_place(2n, ga, pa), Laws.Rule.at_place(1n, gb, pb)} : Tour.Semis}
+  %at_place_same(2n, gb, pb) : {Tour.Knockout.semis(ga, pa, gb, pb) == Tour.Semis{Tour.Knockout.at_place(1n, ga, pa), _, Laws.Rule.at_place(2n, ga, pa), Laws.Rule.at_place(1n, gb, pb)} : Tour.Semis}
+  %at_place_same(2n, ga, pa) : {Tour.Knockout.semis(ga, pa, gb, pb) == Tour.Semis{Tour.Knockout.at_place(1n, ga, pa), Tour.Knockout.at_place(2n, gb, pb), _, Laws.Rule.at_place(1n, gb, pb)} : Tour.Semis}
+  %at_place_same(1n, gb, pb) : {Tour.Knockout.semis(ga, pa, gb, pb) == Tour.Semis{Tour.Knockout.at_place(1n, ga, pa), Tour.Knockout.at_place(2n, gb, pb), Tour.Knockout.at_place(2n, ga, pa), _} : Tour.Semis}
+  {==}
+
+
+# ---------------------------------------------------------------------------
+# L28: the standings. The engine's helpers follow the rule's one by one.
+# The two sides keep their records in different types (Tour.Record and
+# Laws.GroupRecord), so `conv` turns one into the other, and the lemmas say
+# that converting the engine's record gives the rule's.
+# ---------------------------------------------------------------------------
+
+def conv(r: Tour.Record) -> Laws.GroupRecord:
+  match r:
+    case Tour.Record{a, b, c, d, e}:
+      Laws.GroupRecord{a, b, c, d, e}
+
+law games_for_same:
+  for s: S.Side
+  for sc: S.Score
+  {Tour.Standings.games_for(s, sc) == Laws.Rule.games_for(s, sc) : Nat}
+
+def games_for_same(s, sc):
+  match s sc:
+    case S.A{} S.Score{a, b}:
+      {==}
+    case S.B{} S.Score{a, b}:
+      {==}
+
+law games_won_same:
+  for +s: S.Side
+  for done: List<&2, S.Score>
+  {Tour.Standings.games_won(s, done) == Laws.Rule.games_won(s, done) : Nat}
+
+def games_won_same(s, done):
+  match done:
+    case Nil{}:
+      {==}
+    case Con{+sc, +rest}:
+      %games_won_same(s, rest) : {Nat.add(Tour.Standings.games_for(s, sc), Tour.Standings.games_won(s, rest)) == Nat.add(Laws.Rule.games_for(s, sc), _) : Nat}
+      %games_for_same(s, sc) : {Nat.add(Tour.Standings.games_for(s, sc), Tour.Standings.games_won(s, rest)) == Nat.add(_, Tour.Standings.games_won(s, rest)) : Nat}
+      {==}
+
+law entry_conv:
+  for +s: S.Side
+  for r: Tour.Finished
+  {conv(Tour.Standings.entry(s, r)) == Laws.Rule.entry(s, r) : Laws.GroupRecord}
+
+def entry_conv(s, r):
+  match r:
+    case Tour.Finished{+w, +sets}:
+      %other_same(s) : {conv(Tour.Standings.entry(s, Tour.Finished{w, sets})) == Laws.GroupRecord{Laws.Rule.count(Laws.Rule.same(w, s), 0n), Laws.Rule.sets_won(s, sets), Laws.Rule.sets_won(_, sets), Laws.Rule.games_won(s, sets), Laws.Rule.games_won(_, sets)} : Laws.GroupRecord}
+      %sets_won_same(s, sets) : {conv(Tour.Standings.entry(s, Tour.Finished{w, sets})) == Laws.GroupRecord{Laws.Rule.count(Laws.Rule.same(w, s), 0n), _, Laws.Rule.sets_won(S.Side.other(s), sets), Laws.Rule.games_won(s, sets), Laws.Rule.games_won(S.Side.other(s), sets)} : Laws.GroupRecord}
+      %sets_won_same(S.Side.other(s), sets) : {conv(Tour.Standings.entry(s, Tour.Finished{w, sets})) == Laws.GroupRecord{Laws.Rule.count(Laws.Rule.same(w, s), 0n), S.Match.sets_won(s, sets), _, Laws.Rule.games_won(s, sets), Laws.Rule.games_won(S.Side.other(s), sets)} : Laws.GroupRecord}
+      %games_won_same(s, sets) : {conv(Tour.Standings.entry(s, Tour.Finished{w, sets})) == Laws.GroupRecord{Laws.Rule.count(Laws.Rule.same(w, s), 0n), S.Match.sets_won(s, sets), S.Match.sets_won(S.Side.other(s), sets), _, Laws.Rule.games_won(S.Side.other(s), sets)} : Laws.GroupRecord}
+      %games_won_same(S.Side.other(s), sets) : {conv(Tour.Standings.entry(s, Tour.Finished{w, sets})) == Laws.GroupRecord{Laws.Rule.count(Laws.Rule.same(w, s), 0n), S.Match.sets_won(s, sets), S.Match.sets_won(S.Side.other(s), sets), Tour.Standings.games_won(s, sets), _} : Laws.GroupRecord}
+      %same_same(w, s) : {conv(Tour.Standings.entry(s, Tour.Finished{w, sets})) == Laws.GroupRecord{Laws.Rule.count(_, 0n), S.Match.sets_won(s, sets), S.Match.sets_won(S.Side.other(s), sets), Tour.Standings.games_won(s, sets), Tour.Standings.games_won(S.Side.other(s), sets)} : Laws.GroupRecord}
+      %count_same(S.Match.same(w, s), 0n) : {conv(Tour.Standings.entry(s, Tour.Finished{w, sets})) == Laws.GroupRecord{_, S.Match.sets_won(s, sets), S.Match.sets_won(S.Side.other(s), sets), Tour.Standings.games_won(s, sets), Tour.Standings.games_won(S.Side.other(s), sets)} : Laws.GroupRecord}
+      {==}
+
+law plus3_conv:
+  for a: Tour.Record
+  for b: Tour.Record
+  for c: Tour.Record
+  {conv(Tour.Standings.plus3(a, b, c)) == Laws.Rule.plus3(conv(a), conv(b), conv(c)) : Laws.GroupRecord}
+
+def plus3_conv(a, b, c):
+  match a b c:
+    case Tour.Record{a1, a2, a3, a4, a5} Tour.Record{b1, b2, b3, b4, b5} Tour.Record{c1, c2, c3, c4, c5}:
+      {==}
+
+law record_conv:
+  for x: Tour.Pos
+  for rr: Tour.RoundRobin
+  {conv(Tour.Standings.record(x, rr)) == Laws.Rule.record(x, rr) : Laws.GroupRecord}
+
+def record_conv(x, rr):
+  match x rr:
+    case Tour.P1{} Tour.RoundRobin{+r12, +r13, +r14, _, _, _}:
+      %entry_conv(S.A{}, r12) : {conv(Tour.Standings.plus3(Tour.Standings.entry(S.A{}, r12), Tour.Standings.entry(S.A{}, r13), Tour.Standings.entry(S.A{}, r14))) == Laws.Rule.plus3(_, Laws.Rule.entry(S.A{}, r13), Laws.Rule.entry(S.A{}, r14)) : Laws.GroupRecord}
+      %entry_conv(S.A{}, r13) : {conv(Tour.Standings.plus3(Tour.Standings.entry(S.A{}, r12), Tour.Standings.entry(S.A{}, r13), Tour.Standings.entry(S.A{}, r14))) == Laws.Rule.plus3(conv(Tour.Standings.entry(S.A{}, r12)), _, Laws.Rule.entry(S.A{}, r14)) : Laws.GroupRecord}
+      %entry_conv(S.A{}, r14) : {conv(Tour.Standings.plus3(Tour.Standings.entry(S.A{}, r12), Tour.Standings.entry(S.A{}, r13), Tour.Standings.entry(S.A{}, r14))) == Laws.Rule.plus3(conv(Tour.Standings.entry(S.A{}, r12)), conv(Tour.Standings.entry(S.A{}, r13)), _) : Laws.GroupRecord}
+      plus3_conv(Tour.Standings.entry(S.A{}, r12), Tour.Standings.entry(S.A{}, r13), Tour.Standings.entry(S.A{}, r14))
+    case Tour.P2{} Tour.RoundRobin{+r12, _, _, +r23, +r24, _}:
+      %entry_conv(S.B{}, r12) : {conv(Tour.Standings.plus3(Tour.Standings.entry(S.B{}, r12), Tour.Standings.entry(S.A{}, r23), Tour.Standings.entry(S.A{}, r24))) == Laws.Rule.plus3(_, Laws.Rule.entry(S.A{}, r23), Laws.Rule.entry(S.A{}, r24)) : Laws.GroupRecord}
+      %entry_conv(S.A{}, r23) : {conv(Tour.Standings.plus3(Tour.Standings.entry(S.B{}, r12), Tour.Standings.entry(S.A{}, r23), Tour.Standings.entry(S.A{}, r24))) == Laws.Rule.plus3(conv(Tour.Standings.entry(S.B{}, r12)), _, Laws.Rule.entry(S.A{}, r24)) : Laws.GroupRecord}
+      %entry_conv(S.A{}, r24) : {conv(Tour.Standings.plus3(Tour.Standings.entry(S.B{}, r12), Tour.Standings.entry(S.A{}, r23), Tour.Standings.entry(S.A{}, r24))) == Laws.Rule.plus3(conv(Tour.Standings.entry(S.B{}, r12)), conv(Tour.Standings.entry(S.A{}, r23)), _) : Laws.GroupRecord}
+      plus3_conv(Tour.Standings.entry(S.B{}, r12), Tour.Standings.entry(S.A{}, r23), Tour.Standings.entry(S.A{}, r24))
+    case Tour.P3{} Tour.RoundRobin{_, +r13, _, +r23, _, +r34}:
+      %entry_conv(S.B{}, r13) : {conv(Tour.Standings.plus3(Tour.Standings.entry(S.B{}, r13), Tour.Standings.entry(S.B{}, r23), Tour.Standings.entry(S.A{}, r34))) == Laws.Rule.plus3(_, Laws.Rule.entry(S.B{}, r23), Laws.Rule.entry(S.A{}, r34)) : Laws.GroupRecord}
+      %entry_conv(S.B{}, r23) : {conv(Tour.Standings.plus3(Tour.Standings.entry(S.B{}, r13), Tour.Standings.entry(S.B{}, r23), Tour.Standings.entry(S.A{}, r34))) == Laws.Rule.plus3(conv(Tour.Standings.entry(S.B{}, r13)), _, Laws.Rule.entry(S.A{}, r34)) : Laws.GroupRecord}
+      %entry_conv(S.A{}, r34) : {conv(Tour.Standings.plus3(Tour.Standings.entry(S.B{}, r13), Tour.Standings.entry(S.B{}, r23), Tour.Standings.entry(S.A{}, r34))) == Laws.Rule.plus3(conv(Tour.Standings.entry(S.B{}, r13)), conv(Tour.Standings.entry(S.B{}, r23)), _) : Laws.GroupRecord}
+      plus3_conv(Tour.Standings.entry(S.B{}, r13), Tour.Standings.entry(S.B{}, r23), Tour.Standings.entry(S.A{}, r34))
+    case Tour.P4{} Tour.RoundRobin{_, _, +r14, _, +r24, +r34}:
+      %entry_conv(S.B{}, r14) : {conv(Tour.Standings.plus3(Tour.Standings.entry(S.B{}, r14), Tour.Standings.entry(S.B{}, r24), Tour.Standings.entry(S.B{}, r34))) == Laws.Rule.plus3(_, Laws.Rule.entry(S.B{}, r24), Laws.Rule.entry(S.B{}, r34)) : Laws.GroupRecord}
+      %entry_conv(S.B{}, r24) : {conv(Tour.Standings.plus3(Tour.Standings.entry(S.B{}, r14), Tour.Standings.entry(S.B{}, r24), Tour.Standings.entry(S.B{}, r34))) == Laws.Rule.plus3(conv(Tour.Standings.entry(S.B{}, r14)), _, Laws.Rule.entry(S.B{}, r34)) : Laws.GroupRecord}
+      %entry_conv(S.B{}, r34) : {conv(Tour.Standings.plus3(Tour.Standings.entry(S.B{}, r14), Tour.Standings.entry(S.B{}, r24), Tour.Standings.entry(S.B{}, r34))) == Laws.Rule.plus3(conv(Tour.Standings.entry(S.B{}, r14)), conv(Tour.Standings.entry(S.B{}, r24)), _) : Laws.GroupRecord}
+      plus3_conv(Tour.Standings.entry(S.B{}, r14), Tour.Standings.entry(S.B{}, r24), Tour.Standings.entry(S.B{}, r34))
+
+law wins_of_conv:
+  for r: Tour.Record
+  {Tour.Standings.wins_of(r) == Laws.Rule.wins_of(conv(r)) : Nat}
+
+def wins_of_conv(r):
+  match r:
+    case Tour.Record{a, b, c, d, e}:
+      {==}
+
+law wins_same:
+  for +x: Tour.Pos
+  for +rr: Tour.RoundRobin
+  {Tour.Standings.wins(x, rr) == Laws.Rule.wins(x, rr) : Nat}
+
+def wins_same(x, rr):
+  %record_conv(x, rr) : {Tour.Standings.wins(x, rr) == Laws.Rule.wins_of(_) : Nat}
+  wins_of_conv(Tour.Standings.record(x, rr))
+
+law set_go_conv:
+  for y: Tour.Record
+  for x: Tour.Record
+  {Tour.Standings.set_cmp.go(y, x) == Laws.Rule.set_cmp.go(conv(y), conv(x)) : Cmp}
+
+def set_go_conv(y, x):
+  match y x:
+    case Tour.Record{a1, a2, a3, a4, a5} Tour.Record{b1, b2, b3, b4, b5}:
+      {==}
+
+law game_go_conv:
+  for y: Tour.Record
+  for x: Tour.Record
+  {Tour.Standings.game_cmp.go(y, x) == Laws.Rule.game_cmp.go(conv(y), conv(x)) : Cmp}
+
+def game_go_conv(y, x):
+  match y x:
+    case Tour.Record{a1, a2, a3, a4, a5} Tour.Record{b1, b2, b3, b4, b5}:
+      {==}
+
+law set_cmp_same:
+  for +y: Tour.Pos
+  for +x: Tour.Pos
+  for +rr: Tour.RoundRobin
+  {Tour.Standings.set_cmp(y, x, rr) == Laws.Rule.set_cmp(y, x, rr) : Cmp}
+
+def set_cmp_same(y, x, rr):
+  %record_conv(y, rr) : {Tour.Standings.set_cmp(y, x, rr) == Laws.Rule.set_cmp.go(_, Laws.Rule.record(x, rr)) : Cmp}
+  %record_conv(x, rr) : {Tour.Standings.set_cmp(y, x, rr) == Laws.Rule.set_cmp.go(conv(Tour.Standings.record(y, rr)), _) : Cmp}
+  set_go_conv(Tour.Standings.record(y, rr), Tour.Standings.record(x, rr))
+
+law game_cmp_same:
+  for +y: Tour.Pos
+  for +x: Tour.Pos
+  for +rr: Tour.RoundRobin
+  {Tour.Standings.game_cmp(y, x, rr) == Laws.Rule.game_cmp(y, x, rr) : Cmp}
+
+def game_cmp_same(y, x, rr):
+  %record_conv(y, rr) : {Tour.Standings.game_cmp(y, x, rr) == Laws.Rule.game_cmp.go(_, Laws.Rule.record(x, rr)) : Cmp}
+  %record_conv(x, rr) : {Tour.Standings.game_cmp(y, x, rr) == Laws.Rule.game_cmp.go(conv(Tour.Standings.record(y, rr)), _) : Cmp}
+  game_go_conv(Tour.Standings.record(y, rr), Tour.Standings.record(x, rr))
+
+law won_as_same:
+  for s: S.Side
+  for r: Tour.Finished
+  {Tour.Standings.won_as(s, r) == Laws.Rule.won_as(s, r) : Bool}
+
+def won_as_same(s, r):
+  match s r:
+    case S.A{} Tour.Finished{S.A{}, _}:
+      {==}
+    case S.A{} Tour.Finished{S.B{}, _}:
+      {==}
+    case S.B{} Tour.Finished{S.A{}, _}:
+      {==}
+    case S.B{} Tour.Finished{S.B{}, _}:
+      {==}
+
+law beat_same:
+  for y: Tour.Pos
+  for x: Tour.Pos
+  for rr: Tour.RoundRobin
+  {Tour.Standings.beat(y, x, rr) == Laws.Rule.beat(y, x, rr) : Bool}
+
+def beat_same(y, x, rr):
+  match y x rr:
+    case Tour.P1{} Tour.P1{} _:
+      {==}
+    case Tour.P1{} Tour.P2{} Tour.RoundRobin{r, _, _, _, _, _}:
+      won_as_same(S.A{}, r)
+    case Tour.P1{} Tour.P3{} Tour.RoundRobin{_, r, _, _, _, _}:
+      won_as_same(S.A{}, r)
+    case Tour.P1{} Tour.P4{} Tour.RoundRobin{_, _, r, _, _, _}:
+      won_as_same(S.A{}, r)
+    case Tour.P2{} Tour.P1{} Tour.RoundRobin{r, _, _, _, _, _}:
+      won_as_same(S.B{}, r)
+    case Tour.P2{} Tour.P2{} _:
+      {==}
+    case Tour.P2{} Tour.P3{} Tour.RoundRobin{_, _, _, r, _, _}:
+      won_as_same(S.A{}, r)
+    case Tour.P2{} Tour.P4{} Tour.RoundRobin{_, _, _, _, r, _}:
+      won_as_same(S.A{}, r)
+    case Tour.P3{} Tour.P1{} Tour.RoundRobin{_, r, _, _, _, _}:
+      won_as_same(S.B{}, r)
+    case Tour.P3{} Tour.P2{} Tour.RoundRobin{_, _, _, r, _, _}:
+      won_as_same(S.B{}, r)
+    case Tour.P3{} Tour.P3{} _:
+      {==}
+    case Tour.P3{} Tour.P4{} Tour.RoundRobin{_, _, _, _, _, r}:
+      won_as_same(S.A{}, r)
+    case Tour.P4{} Tour.P1{} Tour.RoundRobin{_, _, r, _, _, _}:
+      won_as_same(S.B{}, r)
+    case Tour.P4{} Tour.P2{} Tour.RoundRobin{_, _, _, _, r, _}:
+      won_as_same(S.B{}, r)
+    case Tour.P4{} Tour.P3{} Tour.RoundRobin{_, _, _, _, _, r}:
+      won_as_same(S.B{}, r)
+    case Tour.P4{} Tour.P4{} _:
+      {==}
+
+law seed_same:
+  for x: Tour.Pos
+  for g: Tour.Group
+  {Tour.Standings.seed(x, g) == Laws.Rule.seed(x, g) : Nat}
+
+def seed_same(x, g):
+  match x g:
+    case Tour.P1{} Tour.Group{a, b, c, d}:
+      {==}
+    case Tour.P2{} Tour.Group{a, b, c, d}:
+      {==}
+    case Tour.P3{} Tour.Group{a, b, c, d}:
+      {==}
+    case Tour.P4{} Tour.Group{a, b, c, d}:
+      {==}
+
+law race_same:
+  for +y: Tour.Pos
+  for +x: Tour.Pos
+  for +g: Tour.Group
+  {Tour.Standings.race(y, x, g) == Laws.Rule.race(y, x, g) : Bool}
+
+def race_same(y, x, g):
+  %seed_same(y, g) : {Tour.Standings.race(y, x, g) == Nat.is_lt(_, Laws.Rule.seed(x, g)) : Bool}
+  %seed_same(x, g) : {Tour.Standings.race(y, x, g) == Nat.is_lt(Tour.Standings.seed(y, g), _) : Bool}
+  {==}
+
+law decide_same:
+  for c: Cmp
+  for l: Bool
+  {Tour.Standings.decide(c, l) == Laws.Rule.decide(c, l) : Bool}
+
+def decide_same(c, l):
+  match c:
+    case GT{}:
+      {==}
+    case LT{}:
+      {==}
+    case EQ{}:
+      {==}
+
+# The shape of the three-way rule, with its comparisons as inputs: every
+# combination of them gives the same answer on both sides.
+law three_way_shape:
+  for a: Cmp
+  for b: Bool
+  for c: Cmp
+  for d: Bool
+  for e: Bool
+  for +f: Bool
+  {Tour.Standings.decide(a, Tour.Standings.either(b, Tour.Standings.decide(c, Tour.Standings.either(d, e, f)), f)) == Laws.Rule.decide(a, Laws.Rule.either(b, Laws.Rule.decide(c, Laws.Rule.either(d, e, f)), f)) : Bool}
+
+def three_way_shape(a, b, c, d, e, f):
+  match a b c d:
+    case GT{} True{} GT{} True{}:
+      {==}
+    case GT{} True{} GT{} False{}:
+      {==}
+    case GT{} True{} LT{} True{}:
+      {==}
+    case GT{} True{} LT{} False{}:
+      {==}
+    case GT{} True{} EQ{} True{}:
+      {==}
+    case GT{} True{} EQ{} False{}:
+      {==}
+    case GT{} False{} GT{} True{}:
+      {==}
+    case GT{} False{} GT{} False{}:
+      {==}
+    case GT{} False{} LT{} True{}:
+      {==}
+    case GT{} False{} LT{} False{}:
+      {==}
+    case GT{} False{} EQ{} True{}:
+      {==}
+    case GT{} False{} EQ{} False{}:
+      {==}
+    case LT{} True{} GT{} True{}:
+      {==}
+    case LT{} True{} GT{} False{}:
+      {==}
+    case LT{} True{} LT{} True{}:
+      {==}
+    case LT{} True{} LT{} False{}:
+      {==}
+    case LT{} True{} EQ{} True{}:
+      {==}
+    case LT{} True{} EQ{} False{}:
+      {==}
+    case LT{} False{} GT{} True{}:
+      {==}
+    case LT{} False{} GT{} False{}:
+      {==}
+    case LT{} False{} LT{} True{}:
+      {==}
+    case LT{} False{} LT{} False{}:
+      {==}
+    case LT{} False{} EQ{} True{}:
+      {==}
+    case LT{} False{} EQ{} False{}:
+      {==}
+    case EQ{} True{} GT{} True{}:
+      {==}
+    case EQ{} True{} GT{} False{}:
+      {==}
+    case EQ{} True{} LT{} True{}:
+      {==}
+    case EQ{} True{} LT{} False{}:
+      {==}
+    case EQ{} True{} EQ{} True{}:
+      {==}
+    case EQ{} True{} EQ{} False{}:
+      {==}
+    case EQ{} False{} GT{} True{}:
+      {==}
+    case EQ{} False{} GT{} False{}:
+      {==}
+    case EQ{} False{} LT{} True{}:
+      {==}
+    case EQ{} False{} LT{} False{}:
+      {==}
+    case EQ{} False{} EQ{} True{}:
+      {==}
+    case EQ{} False{} EQ{} False{}:
+      {==}
+
+law three_way_same:
+  for +y: Tour.Pos
+  for +x: Tour.Pos
+  for +k: Tour.Pos
+  for +g: Tour.Group
+  for +rr: Tour.RoundRobin
+  {Tour.Standings.three_way(y, x, k, g, rr) == Laws.Rule.three_way(y, x, k, g, rr) : Bool}
+
+def three_way_same(y, x, k, g, rr):
+  %set_cmp_same(y, x, rr) : {Tour.Standings.three_way(y, x, k, g, rr) == Laws.Rule.decide(_, Laws.Rule.either(Cmp.is_eq(Laws.Rule.set_cmp(k, x, rr)), Laws.Rule.decide(Laws.Rule.game_cmp(y, x, rr), Laws.Rule.either(Cmp.is_eq(Laws.Rule.game_cmp(k, x, rr)), Laws.Rule.race(y, x, g), Laws.Rule.beat(y, x, rr))), Laws.Rule.beat(y, x, rr))) : Bool}
+  %set_cmp_same(k, x, rr) : {Tour.Standings.three_way(y, x, k, g, rr) == Laws.Rule.decide(Tour.Standings.set_cmp(y, x, rr), Laws.Rule.either(Cmp.is_eq(_), Laws.Rule.decide(Laws.Rule.game_cmp(y, x, rr), Laws.Rule.either(Cmp.is_eq(Laws.Rule.game_cmp(k, x, rr)), Laws.Rule.race(y, x, g), Laws.Rule.beat(y, x, rr))), Laws.Rule.beat(y, x, rr))) : Bool}
+  %game_cmp_same(y, x, rr) : {Tour.Standings.three_way(y, x, k, g, rr) == Laws.Rule.decide(Tour.Standings.set_cmp(y, x, rr), Laws.Rule.either(Cmp.is_eq(Tour.Standings.set_cmp(k, x, rr)), Laws.Rule.decide(_, Laws.Rule.either(Cmp.is_eq(Laws.Rule.game_cmp(k, x, rr)), Laws.Rule.race(y, x, g), Laws.Rule.beat(y, x, rr))), Laws.Rule.beat(y, x, rr))) : Bool}
+  %game_cmp_same(k, x, rr) : {Tour.Standings.three_way(y, x, k, g, rr) == Laws.Rule.decide(Tour.Standings.set_cmp(y, x, rr), Laws.Rule.either(Cmp.is_eq(Tour.Standings.set_cmp(k, x, rr)), Laws.Rule.decide(Tour.Standings.game_cmp(y, x, rr), Laws.Rule.either(Cmp.is_eq(_), Laws.Rule.race(y, x, g), Laws.Rule.beat(y, x, rr))), Laws.Rule.beat(y, x, rr))) : Bool}
+  %race_same(y, x, g) : {Tour.Standings.three_way(y, x, k, g, rr) == Laws.Rule.decide(Tour.Standings.set_cmp(y, x, rr), Laws.Rule.either(Cmp.is_eq(Tour.Standings.set_cmp(k, x, rr)), Laws.Rule.decide(Tour.Standings.game_cmp(y, x, rr), Laws.Rule.either(Cmp.is_eq(Tour.Standings.game_cmp(k, x, rr)), _, Laws.Rule.beat(y, x, rr))), Laws.Rule.beat(y, x, rr))) : Bool}
+  %beat_same(y, x, rr) : {Tour.Standings.three_way(y, x, k, g, rr) == Laws.Rule.decide(Tour.Standings.set_cmp(y, x, rr), Laws.Rule.either(Cmp.is_eq(Tour.Standings.set_cmp(k, x, rr)), Laws.Rule.decide(Tour.Standings.game_cmp(y, x, rr), Laws.Rule.either(Cmp.is_eq(Tour.Standings.game_cmp(k, x, rr)), Tour.Standings.race(y, x, g), _)), _)) : Bool}
+  three_way_shape(Tour.Standings.set_cmp(y, x, rr), Cmp.is_eq(Tour.Standings.set_cmp(k, x, rr)), Tour.Standings.game_cmp(y, x, rr), Cmp.is_eq(Tour.Standings.game_cmp(k, x, rr)), Tour.Standings.race(y, x, g), Tour.Standings.beat(y, x, rr))
+
+law tied_same:
+  for zt: Bool
+  for wt: Bool
+  for +y: Tour.Pos
+  for +x: Tour.Pos
+  for +z: Tour.Pos
+  for +w: Tour.Pos
+  for +g: Tour.Group
+  for +rr: Tour.RoundRobin
+  {Tour.Standings.tied(zt, wt, y, x, z, w, g, rr) == Laws.Rule.tied(zt, wt, y, x, z, w, g, rr) : Bool}
+
+def tied_same(zt, wt, y, x, z, w, g, rr):
+  match zt wt:
+    case False{} False{}:
+      beat_same(y, x, rr)
+    case True{} False{}:
+      three_way_same(y, x, z, g, rr)
+    case False{} True{}:
+      three_way_same(y, x, w, g, rr)
+    case True{} True{}:
+      race_same(y, x, g)
+
+law ahead_same:
+  for +y: Tour.Pos
+  for +x: Tour.Pos
+  for +z: Tour.Pos
+  for +w: Tour.Pos
+  for +g: Tour.Group
+  for +rr: Tour.RoundRobin
+  {Tour.Standings.ahead(y, x, z, w, g, rr) == Laws.Rule.ahead(y, x, z, w, g, rr) : Bool}
+
+def ahead_same(y, x, z, w, g, rr):
+  %wins_same(y, rr) : {Tour.Standings.ahead(y, x, z, w, g, rr) == Laws.Rule.decide(Nat.cmp(_, Laws.Rule.wins(x, rr)), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(z, rr), Laws.Rule.wins(x, rr)), Nat.is_eq(Laws.Rule.wins(w, rr), Laws.Rule.wins(x, rr)), y, x, z, w, g, rr)) : Bool}
+  %wins_same(x, rr) : {Tour.Standings.ahead(y, x, z, w, g, rr) == Laws.Rule.decide(Nat.cmp(Tour.Standings.wins(y, rr), _), Laws.Rule.tied(Nat.is_eq(Laws.Rule.wins(z, rr), _), Nat.is_eq(Laws.Rule.wins(w, rr), _), y, x, z, w, g, rr)) : Bool}
+  %wins_same(z, rr) : {Tour.Standings.ahead(y, x, z, w, g, rr) == Laws.Rule.decide(Nat.cmp(Tour.Standings.wins(y, rr), Tour.Standings.wins(x, rr)), Laws.Rule.tied(Nat.is_eq(_, Tour.Standings.wins(x, rr)), Nat.is_eq(Laws.Rule.wins(w, rr), Tour.Standings.wins(x, rr)), y, x, z, w, g, rr)) : Bool}
+  %wins_same(w, rr) : {Tour.Standings.ahead(y, x, z, w, g, rr) == Laws.Rule.decide(Nat.cmp(Tour.Standings.wins(y, rr), Tour.Standings.wins(x, rr)), Laws.Rule.tied(Nat.is_eq(Tour.Standings.wins(z, rr), Tour.Standings.wins(x, rr)), Nat.is_eq(_, Tour.Standings.wins(x, rr)), y, x, z, w, g, rr)) : Bool}
+  %tied_same(Nat.is_eq(Tour.Standings.wins(z, rr), Tour.Standings.wins(x, rr)), Nat.is_eq(Tour.Standings.wins(w, rr), Tour.Standings.wins(x, rr)), y, x, z, w, g, rr) : {Tour.Standings.ahead(y, x, z, w, g, rr) == Laws.Rule.decide(Nat.cmp(Tour.Standings.wins(y, rr), Tour.Standings.wins(x, rr)), _) : Bool}
+  decide_same(Nat.cmp(Tour.Standings.wins(y, rr), Tour.Standings.wins(x, rr)), Tour.Standings.tied(Nat.is_eq(Tour.Standings.wins(z, rr), Tour.Standings.wins(x, rr)), Nat.is_eq(Tour.Standings.wins(w, rr), Tour.Standings.wins(x, rr)), y, x, z, w, g, rr))
+
+law count3_same:
+  for a: Bool
+  for b: Bool
+  for c: Bool
+  {S.Match.count(a, S.Match.count(b, S.Match.count(c, 1n))) == Laws.Rule.count(a, Laws.Rule.count(b, Laws.Rule.count(c, 1n))) : Nat}
+
+def count3_same(a, b, c):
+  match a b c:
+    case True{} True{} True{}:
+      {==}
+    case True{} True{} False{}:
+      {==}
+    case True{} False{} True{}:
+      {==}
+    case True{} False{} False{}:
+      {==}
+    case False{} True{} True{}:
+      {==}
+    case False{} True{} False{}:
+      {==}
+    case False{} False{} True{}:
+      {==}
+    case False{} False{} False{}:
+      {==}
+
+law place_same:
+  for +x: Tour.Pos
+  for +y: Tour.Pos
+  for +z: Tour.Pos
+  for +w: Tour.Pos
+  for +g: Tour.Group
+  for +rr: Tour.RoundRobin
+  {Tour.Standings.place(x, y, z, w, g, rr) == Laws.Rule.place(x, y, z, w, g, rr) : Nat}
+
+def place_same(x, y, z, w, g, rr):
+  %ahead_same(y, x, z, w, g, rr) : {Tour.Standings.place(x, y, z, w, g, rr) == Laws.Rule.count(_, Laws.Rule.count(Laws.Rule.ahead(z, x, y, w, g, rr), Laws.Rule.count(Laws.Rule.ahead(w, x, y, z, g, rr), 1n))) : Nat}
+  %ahead_same(z, x, y, w, g, rr) : {Tour.Standings.place(x, y, z, w, g, rr) == Laws.Rule.count(Tour.Standings.ahead(y, x, z, w, g, rr), Laws.Rule.count(_, Laws.Rule.count(Laws.Rule.ahead(w, x, y, z, g, rr), 1n))) : Nat}
+  %ahead_same(w, x, y, z, g, rr) : {Tour.Standings.place(x, y, z, w, g, rr) == Laws.Rule.count(Tour.Standings.ahead(y, x, z, w, g, rr), Laws.Rule.count(Tour.Standings.ahead(z, x, y, w, g, rr), Laws.Rule.count(_, 1n))) : Nat}
+  count3_same(Tour.Standings.ahead(y, x, z, w, g, rr), Tour.Standings.ahead(z, x, y, w, g, rr), Tour.Standings.ahead(w, x, y, z, g, rr))
+
+def Laws.L28_standings_follow_rule(g, rr):
+  %place_same(Tour.P1{}, Tour.P2{}, Tour.P3{}, Tour.P4{}, g, rr) : {Tour.Standings.places(g, rr) == Tour.Places{_, Laws.Rule.place(Tour.P2{}, Tour.P1{}, Tour.P3{}, Tour.P4{}, g, rr), Laws.Rule.place(Tour.P3{}, Tour.P1{}, Tour.P2{}, Tour.P4{}, g, rr), Laws.Rule.place(Tour.P4{}, Tour.P1{}, Tour.P2{}, Tour.P3{}, g, rr)} : Tour.Places}
+  %place_same(Tour.P2{}, Tour.P1{}, Tour.P3{}, Tour.P4{}, g, rr) : {Tour.Standings.places(g, rr) == Tour.Places{Tour.Standings.place(Tour.P1{}, Tour.P2{}, Tour.P3{}, Tour.P4{}, g, rr), _, Laws.Rule.place(Tour.P3{}, Tour.P1{}, Tour.P2{}, Tour.P4{}, g, rr), Laws.Rule.place(Tour.P4{}, Tour.P1{}, Tour.P2{}, Tour.P3{}, g, rr)} : Tour.Places}
+  %place_same(Tour.P3{}, Tour.P1{}, Tour.P2{}, Tour.P4{}, g, rr) : {Tour.Standings.places(g, rr) == Tour.Places{Tour.Standings.place(Tour.P1{}, Tour.P2{}, Tour.P3{}, Tour.P4{}, g, rr), Tour.Standings.place(Tour.P2{}, Tour.P1{}, Tour.P3{}, Tour.P4{}, g, rr), _, Laws.Rule.place(Tour.P4{}, Tour.P1{}, Tour.P2{}, Tour.P3{}, g, rr)} : Tour.Places}
+  %place_same(Tour.P4{}, Tour.P1{}, Tour.P2{}, Tour.P3{}, g, rr) : {Tour.Standings.places(g, rr) == Tour.Places{Tour.Standings.place(Tour.P1{}, Tour.P2{}, Tour.P3{}, Tour.P4{}, g, rr), Tour.Standings.place(Tour.P2{}, Tour.P1{}, Tour.P3{}, Tour.P4{}, g, rr), Tour.Standings.place(Tour.P3{}, Tour.P1{}, Tour.P2{}, Tour.P4{}, g, rr), _} : Tour.Places}
   {==}
